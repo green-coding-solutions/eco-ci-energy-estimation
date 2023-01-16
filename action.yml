@@ -1,0 +1,85 @@
+name: 'Eco CI Energy Estimation'
+description: 'Estimate the energy of Linux Github Actions Runner VMs via ML Model'
+inputs:
+  task:
+    description: 'Task to be executed (initialize, start-measurement, get-measurement)'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - id: initialize
+      if: inputs.task == 'initialize'
+      name: Clone the repo for the XGBoost estimation model
+      shell: bash
+      run: git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/spec-power-model
+
+    - if:  inputs.task == 'initialize'
+      name: Install go asciigraph
+      shell: bash
+      run: go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
+
+    - if:  inputs.task == 'initialize'
+      name: Compiling reporter
+      shell: bash
+      run: gcc /tmp/spec-power-model/demo-reporter/cpu-utilization.c -o /tmp/demo-reporter
+
+    - if:  inputs.task == 'initialize'
+      name: Cache pip packages
+      id: cache-pip      
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-pip-packages
+      with:
+        #TODO: must be moved to a virtual env, otherwise we are overwriting packages from other users!
+        # npm cache files are stored in `~/.npm` on Linux/macOS
+        path: /home/runner/.local/lib/python3.10/site-packages
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('/tmp/spec-power-model/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - if: inputs.task == 'initialize' && steps.cache-pip.outputs.cache-hit != 'true'
+      name: Inform about cache miss
+      continue-on-error: true
+      shell: bash
+      run: echo "Cache hit failed! ❌" >> $GITHUB_STEP_SUMMARY
+
+    - if: inputs.task == 'initialize' && steps.cache-pip.outputs.cache-hit == 'true'
+      name: Inform about cache hit
+      continue-on-error: true
+      shell: bash
+      run: echo "Cache hit succeeded! 😀" >> $GITHUB_STEP_SUMMARY
+
+    # this step will just be skipped by pip if packages are copied in from cache
+    - if:  inputs.task == 'initialize'
+      name: Installing requirements
+      shell: bash
+      run: pip install -r /tmp/spec-power-model/requirements.txt
+
+    - if:  inputs.task == 'start-measurement'
+      name: Starting measurement
+      # if started another time the file will be overwritten, which is intended (lap function)
+      shell: bash
+      # if measurement is started first time the reporter might not have run already
+      # we prefer this over manual startint / stopping as it is less error prone for users
+      run: |
+        killall -9 -q /tmp/demo-reporter || true
+        /tmp/demo-reporter > /tmp/cpu-utilization.txt &
+
+    - if:  inputs.task == 'get-measurement'
+      name: Running estimation model
+      shell: bash
+      run: |
+        cat /tmp/cpu-utilization.txt | python3 /tmp/spec-power-model/xgb.py --silent > /tmp/energy.txt
+        echo "🖥 avg. CPU utilization [%]:" >> $GITHUB_STEP_SUMMARY
+        awk '{ total += $1; count++ } END { print total/count }' /tmp/cpu-utilization.txt >> $GITHUB_STEP_SUMMARY
+        echo "🔋 Total Energy [Joules] :" >> $GITHUB_STEP_SUMMARY
+        awk '{sum+=$1} END {print sum}' /tmp/energy.txt  >> $GITHUB_STEP_SUMMARY
+        echo "🔌 avg. Power [Watts]:" >> $GITHUB_STEP_SUMMARY
+        awk '{ total += $1; count++ } END { print total/count }' /tmp/energy.txt >> $GITHUB_STEP_SUMMARY
+        echo '📈 Energy graph:' >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo ' ' >> $GITHUB_STEP_SUMMARY
+        cat /tmp/energy.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $GITHUB_STEP_SUMMARY
+        echo ' ```' >> $GITHUB_STEP_SUMMARY
