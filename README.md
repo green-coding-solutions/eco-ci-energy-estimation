@@ -1,6 +1,53 @@
 # eco-ci-energy-estimation
 Eco CI Energy estimation for Github Actions Runner VMs
 
+## Usage
+
+Here is a sample workflow that just creates a demo load.
+
+You have to call `initialize` before doing any of your work and then `start-measurement`, when you want to start measuring.
+
+Whenever you want to have some output of energy metrics in your `$GITHUB_STEP_SUMMARY` call `get-measurement`
+
+```code
+
+
+# This is a basic workflow to help you get started with Actions
+
+name: Energy Test
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        with:
+          task: initialize
+
+      - uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        with:
+          task: start-measurement
+
+      - name: Doing load
+        run: sleep 5
+        continue-on-error: true
+
+      - uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        with:
+          task: get-measurement
+     # end
+```
+
 
 ## Design decisions for the energy estimation action
 The goal of this action is to empower Github Action users to estimate the energy of the Github hosted runner VMs in an easy fashion with minimal integration overhead into existing workflows.
