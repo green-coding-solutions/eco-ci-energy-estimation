@@ -35,6 +35,16 @@ runs:
           export ECO_CI_PREVIOUS_VENV=$VIRTUAL_ENV
         fi
 
+      # To identify the hash for our cache we cannot use the classic mechansim of
+      # hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt')
+      # hashFiles is restricted to ONLY work in the GITHUB_WORKSPACE which is for the calling action
+      # therefore we need to construct the hash ourselfs beforehand and save it to an output variable
+    - if:  inputs.task == 'initialize'
+      name: Hash requirements file
+      id: hash-requirements
+      shell: bash
+      run: echo "myhash=$(md5sum /tmp/eco-ci/spec-power-model/requirements.txt | cut -d ' ' -f1)" >> $GITHUB_OUTPUT
+
     - if:  inputs.task == 'initialize'
       name: Cache pip packages
       id: cache-pip
@@ -42,12 +52,11 @@ runs:
       env:
         cache-name: cache-pip-packages
       with:
-        #TODO: must be moved to a virtual env, otherwise we are overwriting packages from other users!
         # npm cache files are stored in `~/.npm` on Linux/macOS
         path: /tmp/eco-ci/venv/lib/python3.10/site-packages
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt') }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.hash-requirements.outputs.myhash }}
         restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt') }}
+          ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.hash-requirements.outputs.myhash }}
 
     - if: inputs.task == 'initialize' && steps.cache-pip.outputs.cache-hit != 'true'
       name: Inform about cache miss
