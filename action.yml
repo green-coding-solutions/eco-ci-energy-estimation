@@ -11,7 +11,9 @@ runs:
       if: inputs.task == 'initialize'
       name: Clone the repo for the XGBoost estimation model
       shell: bash
-      run: git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/spec-power-model
+      run: |
+        mkdir /tmp/eco-ci
+        git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
 
     - if:  inputs.task == 'initialize'
       name: Install go asciigraph
@@ -21,19 +23,29 @@ runs:
     - if:  inputs.task == 'initialize'
       name: Compiling reporter
       shell: bash
-      run: gcc /tmp/spec-power-model/demo-reporter/cpu-utilization.c -o /tmp/demo-reporter
+      run: gcc /tmp/eco-ci/spec-power-model/demo-reporter/cpu-utilization.c -o /tmp/eco-ci/demo-reporter
+
+    - if:  inputs.task == 'initialize'
+      name: Create a venv, and backup old
+      shell: bash
+      run: |
+        python3.10 -m venv /tmp/eco-ci/venv
+        export ECO_CI_PREVIOUS_VENV=''
+        if [[ $VIRTUAL_ENV == '' ]]; then
+          export ECO_CI_PREVIOUS_VENV=$VIRTUAL_ENV
+        fi
 
     - if:  inputs.task == 'initialize'
       name: Cache pip packages
-      id: cache-pip      
+      id: cache-pip
       uses: actions/cache@v3
       env:
         cache-name: cache-pip-packages
       with:
         #TODO: must be moved to a virtual env, otherwise we are overwriting packages from other users!
         # npm cache files are stored in `~/.npm` on Linux/macOS
-        path: /home/runner/.local/lib/python3.10/site-packages
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('/tmp/spec-power-model/requirements.txt') }}
+        path: /tmp/eco-ci/venv/lib/python3.10/site-packages
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
@@ -55,7 +67,16 @@ runs:
     - if:  inputs.task == 'initialize'
       name: Installing requirements
       shell: bash
-      run: pip install -r /tmp/spec-power-model/requirements.txt
+      run: |
+        # first activate our venv
+        source /tmp/eco-ci/venv/bin/activate
+        python3.10 -m pip install -r /tmp/eco-ci/spec-power-model/requirements.txt
+        # now reset to old venv
+        deactivate our venv
+        # reactivate the old one, if it was present
+        if [[ $ECO_CI_PREVIOUS_VENV != '' ]]; then
+          source $ECO_CI_PREVIOUS_VENV/bin/activate
+        fi
 
     - if:  inputs.task == 'start-measurement'
       name: Starting measurement
@@ -64,22 +85,68 @@ runs:
       # if measurement is started first time the reporter might not have run already
       # we prefer this over manual startint / stopping as it is less error prone for users
       run: |
-        killall -9 -q /tmp/demo-reporter || true
-        /tmp/demo-reporter > /tmp/cpu-utilization.txt &
+        killall -9 -q /tmp/eco-ci/demo-reporter || true
+        /tmp/eco-ci/demo-reporter > /tmp/eco-ci/cpu-utilization.txt &
 
     - if:  inputs.task == 'get-measurement'
       name: Running estimation model
       shell: bash
       run: |
-        cat /tmp/cpu-utilization.txt | python3 /tmp/spec-power-model/xgb.py --silent > /tmp/energy.txt
+        # first activate our venv
+        source /tmp/eco-ci/venv/bin/activate
+        model_name=$(cat /proc/cpuinfo  | grep "model name")
+        if [[ "$model_name" == *"8272CL"* ]]; then
+            echo "Found 8272CL model"
+            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp 195 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
+            --release-year 2019 --ram 7 --cpu-freq 2600 --cpu-chips 1
+            --vhost-ratio $(echo "2/52" | bc -l)
+            --silent -- > /tmp/eco-ci/energy.txt
+        elif [[ "$model_name" == *"8370C"* ]]; then
+            echo "Found 8370C model"
+            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp 270 --cpu-threads 64 --cpu-cores 32 --cpu-make intel \
+            --release-year 2021 --ram 7 --cpu-freq 2800 --cpu-chips 1
+            --vhost-ratio $(echo "2/64" | bc -l)
+        elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
+            echo "Found E5-2673 v4 model"
+            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp 165 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
+            --release-year 2018 --ram 7 --cpu-freq 2300 --cpu-chips 1
+            --vhost-ratio $(echo "2/52" | bc -l)
+        elif [[ "$model_name" == *"E5-2673 v3"* ]]; then
+            echo "Found E5-2673 v3 model"
+            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp 110 --cpu-threads 24 --cpu-cores 12 --cpu-make intel \
+            --release-year 2015 --ram 7 --cpu-freq 2400 --cpu-chips 1
+            --vhost-ratio $(echo "2/24" | bc -l)
+        # model is underclocked
+        elif [[ "$model_name" == *"8171M"* ]]; then
+            echo "Found 8171M model"
+            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp 165 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
+            --release-year 2018 --ram 7 --cpu-freq 2600 --cpu-chips 1
+            --vhost-ratio $(echo "2/52" | bc -l)
+        else
+            echo "⚠️ Unknown model $model_name for estimation, running default ..."  >> $GITHUB_STEP_SUMMARY
+            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent -- > /tmp/eco-ci/energy.txt
+        fi
+
+        # now reset to old venv
+        deactivate our venv
+        # reactivate the old one, if it was present
+        if [[ $ECO_CI_PREVIOUS_VENV != '' ]]; then
+          source $ECO_CI_PREVIOUS_VENV/bin/activate
+        fi
+
         echo "🖥 avg. CPU utilization [%]:" >> $GITHUB_STEP_SUMMARY
-        awk '{ total += $1; count++ } END { print total/count }' /tmp/cpu-utilization.txt >> $GITHUB_STEP_SUMMARY
+        awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-utilization.txt >> $GITHUB_STEP_SUMMARY
         echo "🔋 Total Energy [Joules] :" >> $GITHUB_STEP_SUMMARY
-        awk '{sum+=$1} END {print sum}' /tmp/energy.txt  >> $GITHUB_STEP_SUMMARY
+        awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt  >> $GITHUB_STEP_SUMMARY
         echo "🔌 avg. Power [Watts]:" >> $GITHUB_STEP_SUMMARY
-        awk '{ total += $1; count++ } END { print total/count }' /tmp/energy.txt >> $GITHUB_STEP_SUMMARY
+        awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt >> $GITHUB_STEP_SUMMARY
         echo '📈 Energy graph:' >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
         echo ' ' >> $GITHUB_STEP_SUMMARY
-        cat /tmp/energy.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $GITHUB_STEP_SUMMARY
+        cat /tmp/eco-ci/energy.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $GITHUB_STEP_SUMMARY
         echo ' ```' >> $GITHUB_STEP_SUMMARY
