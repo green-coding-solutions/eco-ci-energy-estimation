@@ -97,37 +97,36 @@ runs:
             echo "Found 8272CL model"
             cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp 195 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2019 --ram 7 --cpu-freq 2600 --cpu-chips 1
-            --vhost-ratio $(echo "2/52" | bc -l)
-            --silent -- > /tmp/eco-ci/energy.txt
+            --release-year 2019 --ram 7 --cpu-freq 2600 --cpu-chips 1 \
+            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
         elif [[ "$model_name" == *"8370C"* ]]; then
             echo "Found 8370C model"
             cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp 270 --cpu-threads 64 --cpu-cores 32 --cpu-make intel \
-            --release-year 2021 --ram 7 --cpu-freq 2800 --cpu-chips 1
-            --vhost-ratio $(echo "2/64" | bc -l)
+            --release-year 2021 --ram 7 --cpu-freq 2800 --cpu-chips 1  \
+            --vhost-ratio $(echo "2/64" | bc -l) --silent > /tmp/eco-ci/energy.txt
         elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
             echo "Found E5-2673 v4 model"
             cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp 165 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2018 --ram 7 --cpu-freq 2300 --cpu-chips 1
-            --vhost-ratio $(echo "2/52" | bc -l)
+            --release-year 2018 --ram 7 --cpu-freq 2300 --cpu-chips 1  \
+            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
         elif [[ "$model_name" == *"E5-2673 v3"* ]]; then
             echo "Found E5-2673 v3 model"
             cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp 110 --cpu-threads 24 --cpu-cores 12 --cpu-make intel \
-            --release-year 2015 --ram 7 --cpu-freq 2400 --cpu-chips 1
-            --vhost-ratio $(echo "2/24" | bc -l)
+            --release-year 2015 --ram 7 --cpu-freq 2400 --cpu-chips 1  \
+            --vhost-ratio $(echo "2/24" | bc -l) --silent > /tmp/eco-ci/energy.txt
         # model is underclocked
         elif [[ "$model_name" == *"8171M"* ]]; then
             echo "Found 8171M model"
             cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp 165 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2018 --ram 7 --cpu-freq 2600 --cpu-chips 1
-            --vhost-ratio $(echo "2/52" | bc -l)
+            --release-year 2018 --ram 7 --cpu-freq 2600 --cpu-chips 1  \
+            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
         else
             echo "⚠️ Unknown model $model_name for estimation, running default ..."  >> $GITHUB_STEP_SUMMARY
-            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent -- > /tmp/eco-ci/energy.txt
+            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
         fi
 
         # now reset to old venv
