@@ -47,9 +47,7 @@ runs:
         path: /tmp/eco-ci/venv/lib/python3.10/site-packages
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
+          ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt') }}
 
     - if: inputs.task == 'initialize' && steps.cache-pip.outputs.cache-hit != 'true'
       name: Inform about cache miss
