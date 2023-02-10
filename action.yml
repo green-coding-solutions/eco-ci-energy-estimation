@@ -62,13 +62,13 @@ runs:
       name: Inform about cache miss
       continue-on-error: true
       shell: bash
-      run: echo "Cache hit failed! ❌" >> $GITHUB_STEP_SUMMARY
+      run: echo "Cache hit failed! ❌"
 
     - if: inputs.task == 'initialize' && steps.cache-pip.outputs.cache-hit == 'true'
       name: Inform about cache hit
       continue-on-error: true
       shell: bash
-      run: echo "Cache hit succeeded! 😀" >> $GITHUB_STEP_SUMMARY
+      run: echo "Cache hit succeeded! 😀"
 
     # this step will just be skipped by pip if packages are copied in from cache
     - if:  inputs.task == 'initialize'
