@@ -177,8 +177,9 @@ runs:
         repo_enc=$( echo ${{ github.repository }} | jq -Rr @uri)
         branch_enc=$( echo ${{ github.ref_name }} | jq -Rr @uri)
         workflow_enc=$( echo ${{ github.workflow }} | jq -Rr @uri)
+        run_id_enc=$( echo ${{ github.run_id }} | jq -Rr @uri)
 
-        curl -X POST $add_endpoint -H 'Content-Type: application/json' -d '{"value":"$value_enc","repo":"$repo_enc","branch":"$branch_enc","workflow":"workflow_enc","project_id":""}'
+        curl -X POST $add_endpoint -H 'Content-Type: application/json' -d '{"value":"$value_enc","repo":"$repo_enc","branch":"$branch_enc","workflow":"$workflow_enc","run_id":"$run_id_enc","project_id":""}'
         
         echo "Badge for your README.md" >> $GITHUB_STEP_SUMMARY
         echo "[![Energy Used](${get_endpoint}/?repo=${repo_enc}&branch=${branch_enc}&workflow=${workflow_enc})](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${workflow_enc})" >> $GITHUB_STEP_SUMMARY
