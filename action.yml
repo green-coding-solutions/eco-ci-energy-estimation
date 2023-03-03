@@ -96,6 +96,7 @@ runs:
         /tmp/eco-ci/demo-reporter > /tmp/eco-ci/cpu-utilization.txt &
 
     - if:  inputs.task == 'get-measurement'
+      id: run-model
       name: Running estimation model
       shell: bash
       run: |
@@ -147,12 +148,41 @@ runs:
 
         echo "🖥 avg. CPU utilization [%]:" >> $GITHUB_STEP_SUMMARY
         awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-utilization.txt >> $GITHUB_STEP_SUMMARY
+        
         echo "🔋 Total Energy [Joules] :" >> $GITHUB_STEP_SUMMARY
-        awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt  >> $GITHUB_STEP_SUMMARY
+        total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt)
+        echo ${total_energy} >> ${GITHUB_STEP_SUMMARY}
+        echo "total_energy=${total_energy}" >> ${GITHUB_OUTPUT}
+        
         echo "🔌 avg. Power [Watts]:" >> $GITHUB_STEP_SUMMARY
         awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt >> $GITHUB_STEP_SUMMARY
         echo '📈 Energy graph:' >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
         echo ' ' >> $GITHUB_STEP_SUMMARY
         cat /tmp/eco-ci/energy.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $GITHUB_STEP_SUMMARY
+        echo ' ```' >> $GITHUB_STEP_SUMMARY
+
+    - if:  inputs.task == 'get-measurement'
+      name: energy used badge
+      id: energy-used-badge
+      shell: bash
+      run: |
+        api_base="https://api.green-coding.berlin"
+        add_endpoint=$api_base"/v1/ci/badge/add/"
+        get_endpoint=$api_base"/v1/ci/badge/get/"
+        metrics_url="https://metrics.green-coding.berlin"
+
+        value="${{ steps.run-model.outputs.total_energy }}"
+        value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
+        unit="mJ"
+        repo_enc=$( echo ${{ github.repository }} | jq -Rr @uri)
+        branch_enc=$( echo ${{ github.ref_name }} | jq -Rr @uri)
+        workflow_enc=$( echo ${{ github.workflow }} | jq -Rr @uri)
+        run_id_enc=$( echo ${{ github.run_id }} | jq -Rr @uri)
+
+        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ github.ref_name }}\",\"workflow\":\"${{ github.workflow }}\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\"}"
+        
+        echo "Badge for your README.md" >> $GITHUB_STEP_SUMMARY
+        echo ' ```' >> $GITHUB_STEP_SUMMARY
+        echo "[![Energy Used](${get_endpoint}?repo=${repo_enc}&branch=${branch_enc}&workflow=${workflow_enc})](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${workflow_enc})" >> $GITHUB_STEP_SUMMARY
         echo ' ```' >> $GITHUB_STEP_SUMMARY
