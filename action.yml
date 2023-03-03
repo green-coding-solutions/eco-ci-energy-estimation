@@ -12,7 +12,9 @@ runs:
       name: Clone the repo for the XGBoost estimation model
       shell: bash
       run: |
-        mkdir /tmp/eco-ci
+        if [[ ! -d /tmp/eco-ci ]]; then
+          mkdir /tmp/eco-ci
+        fi
         git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
 
     - if:  inputs.task == 'initialize'
