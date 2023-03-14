@@ -4,6 +4,10 @@ inputs:
   task:
     description: 'Task to be executed (initialize, start-measurement, get-measurement)'
     required: true
+  branch: 
+    description: 'Used to correctly identify this CI run for the Badge. Uses github.ref_name by default'
+    default: ${{ github.ref_name }}
+    required: false
 runs:
   using: 'composite'
   steps:
@@ -179,7 +183,7 @@ runs:
         value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
         unit="mJ"
         repo_enc=$( echo ${{ github.repository }} | jq -Rr @uri)
-        branch_enc=$( echo ${{ github.ref_name }} | jq -Rr @uri)
+        branch_enc=$( echo ${{ inputs.branch }} | jq -Rr @uri)
         workflow_enc=$( echo ${{ github.workflow }} | jq -Rr @uri)
         run_id_enc=$( echo ${{ github.run_id }} | jq -Rr @uri)
 
