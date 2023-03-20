@@ -180,8 +180,7 @@ runs:
         awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt >> $GITHUB_STEP_SUMMARY
 
         api_base="https://api.green-coding.berlin"
-        add_endpoint=$api_base"/v1/ci/badge/add/"
-        get_endpoint=$api_base"/v1/ci/badge/get/"
+        add_endpoint=$api_base"/v1/ci/measurement/add/"
         metrics_url="https://metrics.green-coding.berlin"
 
         value=$total_energy
@@ -266,7 +265,7 @@ runs:
       shell: bash
       run: |
         api_base="https://api.green-coding.berlin"
-        get_endpoint=$api_base"/v1/ci/badge/get/"
+        get_endpoint=$api_base"/v1/ci/measurement/get/"
         metrics_url="https://metrics.green-coding.berlin"
 
         repo_enc=$( echo ${{ github.repository }} | jq -Rr @uri)
