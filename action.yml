@@ -103,7 +103,7 @@ runs:
       # we prefer this over manual startint / stopping as it is less error prone for users
       run: |
         killall -9 -q /tmp/eco-ci/demo-reporter || true
-        /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util-lap.txt
+        /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util-lap.txt &
 
     - if:  inputs.task == 'get-measurement'
       id: run-lap-model
@@ -151,7 +151,7 @@ runs:
         fi
 
         # now reset to old venv
-        deactivate our venv
+        # deactivate our venv
         # reactivate the old one, if it was present
         if [[ $ECO_CI_PREVIOUS_VENV != '' ]]; then
           source $ECO_CI_PREVIOUS_VENV/bin/activate
@@ -163,13 +163,12 @@ runs:
             export GET_MEASUREMENT_COUNT=$((GET_MEASUREMENT_COUNT+1))
         fi
 
-        if[[ $input.label == '' ]]; then
-            label='Measurment #'$GET_MEASUREMENT_COUNT
-        else
-            label=$input.label
+        label="${{ inputs.label }}"
+        if [[ $label == '' ]]; then
+            label="Measurment #$GET_MEASUREMENT_COUNT"
         fi
 
-        echo $label': ' >> $GIT_STEP_SUMMARY
+        echo "$label: " >> $GITHUB_STEP_SUMMARY
         echo "🖥 avg. CPU utilization [%]:" >> $GITHUB_STEP_SUMMARY
         awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-lap.txt >> $GITHUB_STEP_SUMMARY
         
@@ -189,7 +188,7 @@ runs:
         value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
         unit="mJ"
 
-        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"$inputs.branch\",\"workflow\":\"${{ github.workflow }}\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\"}"
+        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"${{ github.workflow }}\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\"}"
 
 
     - if: inputs.task == 'show-total-and-badge'
@@ -237,7 +236,7 @@ runs:
         fi
 
         # now reset to old venv
-        deactivate our venv
+        # deactivate our venv
         # reactivate the old one, if it was present
         if [[ $ECO_CI_PREVIOUS_VENV != '' ]]; then
           source $ECO_CI_PREVIOUS_VENV/bin/activate
