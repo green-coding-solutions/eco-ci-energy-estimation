@@ -180,15 +180,17 @@ runs:
         awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt >> $GITHUB_STEP_SUMMARY
 
         api_base="https://api.green-coding.berlin"
-        add_endpoint=$api_base"/v1/ci/measurement/add/"
+        add_endpoint=$api_base"/v1/ci/measurement/add"
         metrics_url="https://metrics.green-coding.berlin"
 
         value=$total_energy
         value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
         unit="mJ"
 
-        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"${{ github.workflow }}\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\"}"
+        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"${{ github.workflow }}\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\"}"
 
+        killall -9 -q /tmp/eco-ci/demo-reporter || true
+        /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util-lap.txt &
 
     - if: inputs.task == 'show-total-and-badge'
       name: get estimation for total energy
@@ -265,7 +267,7 @@ runs:
       shell: bash
       run: |
         api_base="https://api.green-coding.berlin"
-        get_endpoint=$api_base"/v1/ci/measurement/get/"
+        get_endpoint=$api_base"/v1/ci/measurement/get"
         metrics_url="https://metrics.green-coding.berlin"
 
         repo_enc=$( echo ${{ github.repository }} | jq -Rr @uri)
