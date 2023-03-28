@@ -54,7 +54,7 @@ runs:
       name: Hash requirements file
       id: hash-requirements
       shell: bash
-      run: echo "myhash=$(md5sum /tmp/eco-ci/spec-power-model/requirements.txt | cut -d ' ' -f1)" >> $GITHUB_OUTPUT
+      run: echo "myhash=$(md5sum /tmp/eco-ci/spec-power-model/requirements.txt | cut -d ' ' -f1)" >> $GITHUB_OUTPUT;
 
     - if:  inputs.task == 'initialize'
       name: Cache pip packages
@@ -96,6 +96,95 @@ runs:
           source $ECO_CI_PREVIOUS_VENV/bin/activate
         fi
 
+    - if: inputs.task == 'initialize'
+      id: variables
+      shell: bash
+      run: |
+          workflow_id=$(curl https://api.github.com/repos/${{ github.repository }}/actions/workflows | jq '.workflows[] | select(.name == "${{ github.workflow }}") | .id')
+          echo 'workflow id: ' $workflow_id
+          echo "ECO_CI_WORKFLOW_ID=$workflow_id" >> $GITHUB_ENV
+
+          model_name=$(cat /proc/cpuinfo  | grep "model name")
+
+          if [[ "$model_name" == *"8272CL"* ]]; then
+              echo "Found 8272CL model"
+              echo "ECO_CI_MODEL_NAME=8272CL" >> $GITHUB_ENV
+
+              echo "ECO_CI_TDP=195" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_THREADS=52" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CORES=26" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_MAKE=intel" >> $GITHUB_ENV;
+              echo "ECO_CI_RELEASE_YEAR=2019" >> $GITHUB_ENV;
+              echo "ECO_CI_RAM=7" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_FREQ=2600" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CHIPS=1" >> $GITHUB_ENV;
+              echo "ECO_CI_VHOST_RATIO=$(echo "2/52" | bc -l)" >> $GITHUB_ENV;
+
+          elif [[ "$model_name" == *"8370C"* ]]; then
+              echo "Found 8370C model"
+              echo "ECO_CI_MODEL_NAME=8370C" >> $GITHUB_ENV
+
+              echo "ECO_CI_TDP=270" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_THREADS=64" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CORES=32" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_MAKE=intel" >> $GITHUB_ENV;
+              echo "ECO_CI_RELEASE_YEAR=2021" >> $GITHUB_ENV;
+              echo "ECO_CI_RAM=7" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_FREQ=2800" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CHIPS=1" >> $GITHUB_ENV;
+              echo "ECO_CI_VHOST_RATIO=$(echo "2/64" | bc -l)" >> $GITHUB_ENV;
+
+          elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
+              echo "Found E5-2673 v4 model"
+              echo "ECO_CI_MODEL_NAME='E5-2673'" >> $GITHUB_ENV
+              
+              echo "ECO_CI_TDP=165" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_THREADS=52" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CORES=26" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_MAKE=intel" >> $GITHUB_ENV;
+              echo "ECO_CI_RELEASE_YEAR=2018" >> $GITHUB_ENV;
+              echo "ECO_CI_RAM=7" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_FREQ=2300" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CHIPS=1" >> $GITHUB_ENV;
+              echo "ECO_CI_VHOST_RATIO=$(echo "2/52" | bc -l)" >> $GITHUB_ENV              
+
+          elif [[ "$model_name" == *"E5-2673 v3"* ]]; then
+              echo "Found E5-2673 v3 model"
+              echo "ECO_CI_MODEL_NAME='E5-2673 v3'" >> $GITHUB_ENV
+              
+              echo "ECO_CI_TDP=110" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_THREADS=24" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CORES=12" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_MAKE=intel" >> $GITHUB_ENV;
+              echo "ECO_CI_RELEASE_YEAR=2015" >> $GITHUB_ENV;
+              echo "ECO_CI_RAM=7" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_FREQ=2400" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CHIPS=1" >> $GITHUB_ENV;
+              echo "ECO_CI_VHOST_RATIO=$(echo "2/24" | bc -l)" >> $GITHUB_ENV              
+
+          # model is underclocked
+          elif [[ "$model_name" == *"8171M"* ]]; then
+              echo "Found 8171M model"
+              echo "ECO_CI_MODEL_NAME=8171M" >> $GITHUB_ENV
+
+              echo "ECO_CI_TDP=165" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_THREADS=52" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CORES=26" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_MAKE=intel" >> $GITHUB_ENV;
+              echo "ECO_CI_RELEASE_YEAR=2018" >> $GITHUB_ENV;
+              echo "ECO_CI_RAM=7" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_FREQ=2600" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CHIPS=1" >> $GITHUB_ENV;
+              echo "ECO_CI_VHOST_RATIO=$(echo "2/52" | bc -l)" >> $GITHUB_ENV              
+
+          else
+              echo "⚠️ Unknown model $model_name for estimation, running default ..."  >> $GITHUB_STEP_SUMMARY
+              echo "ECO_CI_MODEL_NAME=unknown" >> $GITHUB_ENV
+
+          fi
+
+          echo "ECO_CI_API_BASE=https://api.green-coding.berlin" >> $GITHUB_ENV
+
     - if:  inputs.task == 'start-measurement'
       name: Starting measurement
       shell: bash
@@ -112,42 +201,16 @@ runs:
       run: |
         # first activate our venv
         source /tmp/eco-ci/venv/bin/activate
-        model_name=$(cat /proc/cpuinfo  | grep "model name")
 
-        if [[ "$model_name" == *"8272CL"* ]]; then
-            echo "Found 8272CL model"
-            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 195 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2019 --ram 7 --cpu-freq 2600 --cpu-chips 1 \
-            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        elif [[ "$model_name" == *"8370C"* ]]; then
-            echo "Found 8370C model"
-            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 270 --cpu-threads 64 --cpu-cores 32 --cpu-make intel \
-            --release-year 2021 --ram 7 --cpu-freq 2800 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/64" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
-            echo "Found E5-2673 v4 model"
-            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 165 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2018 --ram 7 --cpu-freq 2300 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        elif [[ "$model_name" == *"E5-2673 v3"* ]]; then
-            echo "Found E5-2673 v3 model"
-            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 110 --cpu-threads 24 --cpu-cores 12 --cpu-make intel \
-            --release-year 2015 --ram 7 --cpu-freq 2400 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/24" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        # model is underclocked
-        elif [[ "$model_name" == *"8171M"* ]]; then
-            echo "Found 8171M model"
-            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 165 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2018 --ram 7 --cpu-freq 2600 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
+        if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
+            cat /tmp/eco-cigreen-a/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
         else
-            echo "⚠️ Unknown model $model_name for estimation, running default ..."  >> $GITHUB_STEP_SUMMARY
-            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
+            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
+            --cpu-cores $ECO_CI_CPU_CORES --cpu-make $ECO_CI_CPU_MAKE \
+            --release-year $ECO_CI_RELEASE_YEAR --ram $ECO_CI_RAM \
+            --cpu-freq $ECO_CI_CPU_FREQ --cpu-chips $ECO_CI_CPU_CHIPS \
+            --vhost-ratio $ECO_CI_VHOST_RATIO --silent > /tmp/eco-ci/energy.txt
         fi
 
         # now reset to old venv
@@ -179,15 +242,14 @@ runs:
         echo "🔌 avg. Power [Watts]:" >> $GITHUB_STEP_SUMMARY
         awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt >> $GITHUB_STEP_SUMMARY
 
-        api_base="https://api.green-coding.berlin"
-        add_endpoint=$api_base"/v1/ci/measurement/add"
+        add_endpoint=$ECO_CI_API_BASE"/v1/ci/measurement/add"
         metrics_url="https://metrics.green-coding.berlin"
 
         value=$total_energy
         value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
         unit="mJ"
 
-        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"${{ github.workflow }}\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\"}"
+        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"$ECO_CI_WORKFLOW_ID\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\"}"
 
         killall -9 -q /tmp/eco-ci/demo-reporter || true
         /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util-lap.txt &
@@ -200,40 +262,15 @@ runs:
         source /tmp/eco-ci/venv/bin/activate
         model_name=$(cat /proc/cpuinfo  | grep "model name")
 
-        if [[ "$model_name" == *"8272CL"* ]]; then
-            echo "Found 8272CL model"
-            cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 195 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2019 --ram 7 --cpu-freq 2600 --cpu-chips 1 \
-            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        elif [[ "$model_name" == *"8370C"* ]]; then
-            echo "Found 8370C model"
-            cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 270 --cpu-threads 64 --cpu-cores 32 --cpu-make intel \
-            --release-year 2021 --ram 7 --cpu-freq 2800 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/64" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
-            echo "Found E5-2673 v4 model"
-            cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 165 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2018 --ram 7 --cpu-freq 2300 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        elif [[ "$model_name" == *"E5-2673 v3"* ]]; then
-            echo "Found E5-2673 v3 model"
-            cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 110 --cpu-threads 24 --cpu-cores 12 --cpu-make intel \
-            --release-year 2015 --ram 7 --cpu-freq 2400 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/24" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        # model is underclocked
-        elif [[ "$model_name" == *"8171M"* ]]; then
-            echo "Found 8171M model"
-            cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 165 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2018 --ram 7 --cpu-freq 2600 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
+        if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
+            cat /tmp/eco-cigreen-a/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
         else
-            echo "⚠️ Unknown model $model_name for estimation, running default ..."  >> $GITHUB_STEP_SUMMARY
-            cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
+            cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
+            --cpu-cores $ECO_CI_CPU_CORES --cpu-make $ECO_CI_CPU_MAKE \
+            --release-year $ECO_CI_RELEASE_YEAR --ram $ECO_CI_RAM \
+            --cpu-freq $ECO_CI_CPU_FREQ --cpu-chips $ECO_CI_CPU_CHIPS \
+            --vhost-ratio $ECO_CI_VHOST_RATIO --silent > /tmp/eco-ci/energy.txt
         fi
 
         # now reset to old venv
@@ -249,9 +286,8 @@ runs:
         
         echo "🔋 Total Energy [Joules] :" >> $GITHUB_STEP_SUMMARY
         total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt)
-        echo ${total_energy} >> ${GITHUB_STEP_SUMMARY}
-        echo "total_energy=${total_energy}" >> ${GITHUB_OUTPUT}
-        
+        echo ${total_energy} >> $GITHUB_STEP_SUMMARY
+
         echo "🔌 avg. Power [Watts]:" >> $GITHUB_STEP_SUMMARY
         awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt >> $GITHUB_STEP_SUMMARY
         echo '📈 Energy graph:' >> $GITHUB_STEP_SUMMARY
@@ -266,16 +302,14 @@ runs:
       id: energy-used-badge
       shell: bash
       run: |
-        api_base="https://api.green-coding.berlin"
-        get_endpoint=$api_base"/v1/ci/measurement/get"
+        get_endpoint=$ECO_CI_API_BASE"/v1/ci/measurement/get"
         metrics_url="https://metrics.green-coding.berlin"
 
         repo_enc=$( echo ${{ github.repository }} | jq -Rr @uri)
         branch_enc=$( echo ${{ inputs.branch }} | jq -Rr @uri)
-        workflow_enc=$( echo ${{ github.workflow }} | jq -Rr @uri)
         run_id_enc=$( echo ${{ github.run_id }} | jq -Rr @uri)
         
         echo "Badge for your README.md" >> $GITHUB_STEP_SUMMARY
         echo ' ```' >> $GITHUB_STEP_SUMMARY
-        echo "[![Energy Used](${get_endpoint}?repo=${repo_enc}&branch=${branch_enc}&workflow=${workflow_enc})](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${workflow_enc})" >> $GITHUB_STEP_SUMMARY
+        echo "[![Energy Used](${get_endpoint}?repo=${repo_enc}&branch=${branch_enc}&workflow=$ECO_CI_WORKFLOW_ID)](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$ECO_CI_WORKFLOW_ID)" >> $GITHUB_STEP_SUMMARY
         echo ' ```' >> $GITHUB_STEP_SUMMARY
