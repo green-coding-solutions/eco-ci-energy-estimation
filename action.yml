@@ -2,7 +2,7 @@ name: 'Eco CI Energy Estimation'
 description: 'Estimate the energy of Linux Github Actions Runner VMs via ML Model'
 inputs:
   task:
-    description: 'Task to be executed (initialize, start-measurement, get-measurement, show-total-and-badge)'
+    description: 'Task to be executed (start-measurement, get-measurement, end-measurement)'
     required: true
   branch: 
     description: 'Used to correctly identify this CI run for the Badge. Uses github.ref_name by default'
@@ -16,7 +16,7 @@ runs:
   using: 'composite'
   steps:
     - id: initialize
-      if: inputs.task == 'initialize'
+      if: inputs.task == 'start-measurement'
       name: Clone the repo for the XGBoost estimation model
       shell: bash
       run: |
@@ -26,17 +26,17 @@ runs:
         mkdir /tmp/eco-ci
         git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
 
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement'
       name: Install go asciigraph
       shell: bash
       run: go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
 
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement'
       name: Compiling reporter
       shell: bash
       run: gcc /tmp/eco-ci/spec-power-model/demo-reporter/cpu-utilization.c -o /tmp/eco-ci/demo-reporter
 
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement'
       name: Create a venv, and backup old
       shell: bash
       run: |
@@ -50,13 +50,13 @@ runs:
       # hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt')
       # hashFiles is restricted to ONLY work in the GITHUB_WORKSPACE which is for the calling action
       # therefore we need to construct the hash ourselfs beforehand and save it to an output variable
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement'
       name: Hash requirements file
       id: hash-requirements
       shell: bash
       run: echo "myhash=$(md5sum /tmp/eco-ci/spec-power-model/requirements.txt | cut -d ' ' -f1)" >> $GITHUB_OUTPUT;
 
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement'
       name: Cache pip packages
       id: cache-pip
       uses: actions/cache@v3
@@ -69,20 +69,20 @@ runs:
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.hash-requirements.outputs.myhash }}
 
-    - if: inputs.task == 'initialize' && steps.cache-pip.outputs.cache-hit != 'true'
+    - if: inputs.task == 'start-measurement' && steps.cache-pip.outputs.cache-hit != 'true'
       name: Inform about cache miss
       continue-on-error: true
       shell: bash
       run: echo "Cache hit failed! ❌"
 
-    - if: inputs.task == 'initialize' && steps.cache-pip.outputs.cache-hit == 'true'
+    - if: inputs.task == 'start-measurement' && steps.cache-pip.outputs.cache-hit == 'true'
       name: Inform about cache hit
       continue-on-error: true
       shell: bash
       run: echo "Cache hit succeeded! 😀"
 
     # this step will just be skipped by pip if packages are copied in from cache
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement'
       name: Installing requirements
       shell: bash
       run: |
@@ -96,7 +96,7 @@ runs:
           source $ECO_CI_PREVIOUS_VENV/bin/activate
         fi
 
-    - if: inputs.task == 'initialize'
+    - if: inputs.task == 'start-measurement'
       id: variables
       shell: bash
       run: |
@@ -254,7 +254,7 @@ runs:
         killall -9 -q /tmp/eco-ci/demo-reporter || true
         /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util-lap.txt &
 
-    - if: inputs.task == 'show-total-and-badge'
+    - if: inputs.task == 'end-measurement'
       name: get estimation for total energy
       id: run-total-model
       shell: bash
@@ -297,7 +297,7 @@ runs:
         echo ' ```' >> $GITHUB_STEP_SUMMARY
 
 
-    - if:  inputs.task == 'show-total-and-badge'
+    - if:  inputs.task == 'end-measurement'
       name: energy used badge
       id: energy-used-badge
       shell: bash
