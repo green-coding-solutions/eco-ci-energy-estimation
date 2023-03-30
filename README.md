@@ -6,10 +6,13 @@ Eco CI Energy estimation for Github Actions Runner VMs
 When you use the eco-ci energy estimator, you must call it with one of three tasks:
 
 - `start-measurement` - Initialize the action starts the measurement. THis must be called, and only once per job.
-- `get-measurement` - Measures the energy at this point in time since either the start-measurement or last get-measurement action call, whichever was most recent. Outputs the current measurement to the `$GITHUB_STEP_SUMMARY`
+- `get-measurement` - Must be called at least once per job. Measures the energy at this point in time since either the start-measurement or last get-measurement action call. Outputs the current measurement to the `$GITHUB_STEP_SUMMARY`
     - This can optionally take a 'label' parameter that will be used as a label for the measurement
+    - It also optionally takes a 'branch' parameter. This uses the {{ github.ref_name }} by default to identify the exact workflow run this energy measurement belongs to, but in case your CI runs against a different branch than what {{ github.ref_name }} gives you, you can set it here.
 - `end-measurement` - Gets a measurement of the *total* energy use of the job since you called start measurement, and displays this alongside a graph to the `$GITHUB_STEP_SUMMARY`. Also provides a link to a badge you can use to display the energy use.
     - This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge.
+    - The energy displayed on this badge will be slightly different than what is displayed as for the total energy use. This badge will sum up and display the energy used by each instance of get-measurement before it- which is why get-measurement must be called at least one time before this step.
+    - this task also optionally takes the branch parameter.
 
 
 Here is a sample workflow that runs some python tests.
