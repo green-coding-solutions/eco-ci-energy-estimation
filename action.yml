@@ -2,7 +2,7 @@ name: 'Eco CI Energy Estimation'
 description: 'Estimate the energy of Linux Github Actions Runner VMs via ML Model'
 inputs:
   task:
-    description: 'Task to be executed (start-measurement, get-measurement, end-measurement)'
+    description: 'Task to be executed (start-measurement, get-measurement, final-measurement)'
     required: true
   branch: 
     description: 'Used to correctly identify this CI run for the Badge. Uses github.ref_name by default'
@@ -16,7 +16,7 @@ runs:
   using: 'composite'
   steps:
     - id: initialize
-      if: inputs.task == 'start-measurement'
+      if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Clone the repo for the XGBoost estimation model
       shell: bash
       run: |
@@ -26,17 +26,17 @@ runs:
         mkdir /tmp/eco-ci
         git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
 
-    - if:  inputs.task == 'start-measurement'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Install go asciigraph
       shell: bash
       run: go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
 
-    - if:  inputs.task == 'start-measurement'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Compiling reporter
       shell: bash
       run: gcc /tmp/eco-ci/spec-power-model/demo-reporter/cpu-utilization.c -o /tmp/eco-ci/demo-reporter
 
-    - if:  inputs.task == 'start-measurement'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Create a venv, and backup old
       shell: bash
       run: |
@@ -50,13 +50,13 @@ runs:
       # hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt')
       # hashFiles is restricted to ONLY work in the GITHUB_WORKSPACE which is for the calling action
       # therefore we need to construct the hash ourselfs beforehand and save it to an output variable
-    - if:  inputs.task == 'start-measurement'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Hash requirements file
       id: hash-requirements
       shell: bash
       run: echo "myhash=$(md5sum /tmp/eco-ci/spec-power-model/requirements.txt | cut -d ' ' -f1)" >> $GITHUB_OUTPUT;
 
-    - if:  inputs.task == 'start-measurement'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Cache pip packages
       id: cache-pip
       uses: actions/cache@v3
@@ -69,20 +69,19 @@ runs:
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.hash-requirements.outputs.myhash }}
 
-    - if: inputs.task == 'start-measurement' && steps.cache-pip.outputs.cache-hit != 'true'
-      name: Inform about cache miss
-      continue-on-error: true
-      shell: bash
-      run: echo "Cache hit failed! ❌"
-
-    - if: inputs.task == 'start-measurement' && steps.cache-pip.outputs.cache-hit == 'true'
+    - if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Inform about cache hit
       continue-on-error: true
       shell: bash
-      run: echo "Cache hit succeeded! 😀"
+      run: |
+        if [[ ${{ steps.cache-pip.outputs.cache-hit }} == 'true' ]]; then
+          echo "Cache hit succeeded! 😀"
+        else
+          echo "Cache hit failed! ❌"
+        fi
 
     # this step will just be skipped by pip if packages are copied in from cache
-    - if:  inputs.task == 'start-measurement'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Installing requirements
       shell: bash
       run: |
@@ -96,7 +95,7 @@ runs:
           source $ECO_CI_PREVIOUS_VENV/bin/activate
         fi
 
-    - if: inputs.task == 'start-measurement'
+    - if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       id: variables
       shell: bash
       run: |
@@ -183,7 +182,10 @@ runs:
 
           fi
 
-          echo "ECO_CI_API_BASE=https://api.green-coding.berlin" >> $GITHUB_ENV
+          #echo "ECO_CI_API_BASE=https://api.green-coding.berlin" >> $GITHUB_ENV
+          echo "ECO_CI_API_BASE=https://32c1-2a02-2454-4e0-c700-a8f5-5564-a6d2-7257.eu.ngrok.io" >> $GITHUB_ENV
+
+          echo "ECO_CI_INIT=DONE" >> $GITHUB_ENV;
 
     - if:  inputs.task == 'start-measurement'
       name: Starting measurement
@@ -228,7 +230,7 @@ runs:
 
         label="${{ inputs.label }}"
         if [[ $label == '' ]]; then
-            label="Measurment #$GET_MEASUREMENT_COUNT"
+            label="Measurement #$GET_MEASUREMENT_COUNT"
         fi
 
         echo "$label: " >> $GITHUB_STEP_SUMMARY
@@ -254,13 +256,38 @@ runs:
         killall -9 -q /tmp/eco-ci/demo-reporter || true
         /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util-lap.txt &
 
-    - if: inputs.task == 'end-measurement'
+    - if: inputs.task == 'final-measurement'
       name: get estimation for total energy
       id: run-total-model
       shell: bash
       run: |
         source /tmp/eco-ci/venv/bin/activate
-        model_name=$(cat /proc/cpuinfo  | grep "model name")
+
+        if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
+            cat /tmp/eco-cigreen-a/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
+        else
+            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
+            --cpu-cores $ECO_CI_CPU_CORES --cpu-make $ECO_CI_CPU_MAKE \
+            --release-year $ECO_CI_RELEASE_YEAR --ram $ECO_CI_RAM \
+            --cpu-freq $ECO_CI_CPU_FREQ --cpu-chips $ECO_CI_CPU_CHIPS \
+            --vhost-ratio $ECO_CI_VHOST_RATIO --silent > /tmp/eco-ci/energy.txt
+        fi
+
+        lap_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt)
+        add_endpoint=$ECO_CI_API_BASE"/v1/ci/measurement/add"
+        metrics_url="https://metrics.green-coding.berlin"
+
+        value=$total_energy
+        value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
+        unit="mJ"
+
+        label="${{ inputs.label }}"
+        if [[ $label == '' ]]; then
+            label="Final Measurement"
+        fi
+        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"$ECO_CI_WORKFLOW_ID\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\"}"
+
 
         if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
             cat /tmp/eco-cigreen-a/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
@@ -280,7 +307,7 @@ runs:
           source $ECO_CI_PREVIOUS_VENV/bin/activate
         fi
 
-        echo 'Total Measurement: ' >> $GITHUB_STEP_SUMMARY
+        echo 'Total Measurement of CI Run: ' >> $GITHUB_STEP_SUMMARY
         echo "🖥 avg. CPU utilization [%]:" >> $GITHUB_STEP_SUMMARY
         awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt >> $GITHUB_STEP_SUMMARY
         
@@ -296,8 +323,7 @@ runs:
         cat /tmp/eco-ci/energy.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $GITHUB_STEP_SUMMARY
         echo ' ```' >> $GITHUB_STEP_SUMMARY
 
-
-    - if:  inputs.task == 'end-measurement'
+    - if:  inputs.task == 'final-measurement'
       name: energy used badge
       id: energy-used-badge
       shell: bash
