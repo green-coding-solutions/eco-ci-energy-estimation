@@ -2,17 +2,21 @@ name: 'Eco CI Energy Estimation'
 description: 'Estimate the energy of Linux Github Actions Runner VMs via ML Model'
 inputs:
   task:
-    description: 'Task to be executed (initialize, start-measurement, get-measurement)'
+    description: 'Task to be executed (start-measurement, get-measurement, final-measurement)'
     required: true
   branch: 
     description: 'Used to correctly identify this CI run for the Badge. Uses github.ref_name by default'
     default: ${{ github.ref_name }}
     required: false
+  label:
+    description: 'Label for the get-measurement task, to mark what this measurement correlates to in your workflow'
+    default: null
+    required: false
 runs:
   using: 'composite'
   steps:
     - id: initialize
-      if: inputs.task == 'initialize'
+      if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Clone the repo for the XGBoost estimation model
       shell: bash
       run: |
@@ -22,17 +26,17 @@ runs:
         mkdir /tmp/eco-ci
         git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
 
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Install go asciigraph
       shell: bash
       run: go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
 
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Compiling reporter
       shell: bash
       run: gcc /tmp/eco-ci/spec-power-model/demo-reporter/cpu-utilization.c -o /tmp/eco-ci/demo-reporter
 
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Create a venv, and backup old
       shell: bash
       run: |
@@ -46,13 +50,13 @@ runs:
       # hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt')
       # hashFiles is restricted to ONLY work in the GITHUB_WORKSPACE which is for the calling action
       # therefore we need to construct the hash ourselfs beforehand and save it to an output variable
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Hash requirements file
       id: hash-requirements
       shell: bash
-      run: echo "myhash=$(md5sum /tmp/eco-ci/spec-power-model/requirements.txt | cut -d ' ' -f1)" >> $GITHUB_OUTPUT
+      run: echo "myhash=$(md5sum /tmp/eco-ci/spec-power-model/requirements.txt | cut -d ' ' -f1)" >> $GITHUB_OUTPUT;
 
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Cache pip packages
       id: cache-pip
       uses: actions/cache@v3
@@ -65,20 +69,19 @@ runs:
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.hash-requirements.outputs.myhash }}
 
-    - if: inputs.task == 'initialize' && steps.cache-pip.outputs.cache-hit != 'true'
-      name: Inform about cache miss
-      continue-on-error: true
-      shell: bash
-      run: echo "Cache hit failed! ❌"
-
-    - if: inputs.task == 'initialize' && steps.cache-pip.outputs.cache-hit == 'true'
+    - if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Inform about cache hit
       continue-on-error: true
       shell: bash
-      run: echo "Cache hit succeeded! 😀"
+      run: |
+        if [[ ${{ steps.cache-pip.outputs.cache-hit }} == 'true' ]]; then
+          echo "Cache hit succeeded! 😀"
+        else
+          echo "Cache hit failed! ❌"
+        fi
 
     # this step will just be skipped by pip if packages are copied in from cache
-    - if:  inputs.task == 'initialize'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
       name: Installing requirements
       shell: bash
       run: |
@@ -92,75 +95,226 @@ runs:
           source $ECO_CI_PREVIOUS_VENV/bin/activate
         fi
 
+    - if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
+      id: variables
+      shell: bash
+      run: |
+          workflow_id=$(curl https://api.github.com/repos/${{ github.repository }}/actions/workflows | jq '.workflows[] | select(.name == "${{ github.workflow }}") | .id')
+          echo 'workflow id: ' $workflow_id
+          echo "ECO_CI_WORKFLOW_ID=$workflow_id" >> $GITHUB_ENV
+
+          model_name=$(cat /proc/cpuinfo  | grep "model name")
+
+          if [[ "$model_name" == *"8272CL"* ]]; then
+              echo "Found 8272CL model"
+              echo "ECO_CI_MODEL_NAME=8272CL" >> $GITHUB_ENV
+
+              echo "ECO_CI_TDP=195" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_THREADS=52" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CORES=26" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_MAKE=intel" >> $GITHUB_ENV;
+              echo "ECO_CI_RELEASE_YEAR=2019" >> $GITHUB_ENV;
+              echo "ECO_CI_RAM=7" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_FREQ=2600" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CHIPS=1" >> $GITHUB_ENV;
+              echo "ECO_CI_VHOST_RATIO=$(echo "2/52" | bc -l)" >> $GITHUB_ENV;
+
+          elif [[ "$model_name" == *"8370C"* ]]; then
+              echo "Found 8370C model"
+              echo "ECO_CI_MODEL_NAME=8370C" >> $GITHUB_ENV
+
+              echo "ECO_CI_TDP=270" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_THREADS=64" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CORES=32" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_MAKE=intel" >> $GITHUB_ENV;
+              echo "ECO_CI_RELEASE_YEAR=2021" >> $GITHUB_ENV;
+              echo "ECO_CI_RAM=7" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_FREQ=2800" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CHIPS=1" >> $GITHUB_ENV;
+              echo "ECO_CI_VHOST_RATIO=$(echo "2/64" | bc -l)" >> $GITHUB_ENV;
+
+          elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
+              echo "Found E5-2673 v4 model"
+              echo "ECO_CI_MODEL_NAME='E5-2673'" >> $GITHUB_ENV
+              
+              echo "ECO_CI_TDP=165" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_THREADS=52" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CORES=26" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_MAKE=intel" >> $GITHUB_ENV;
+              echo "ECO_CI_RELEASE_YEAR=2018" >> $GITHUB_ENV;
+              echo "ECO_CI_RAM=7" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_FREQ=2300" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CHIPS=1" >> $GITHUB_ENV;
+              echo "ECO_CI_VHOST_RATIO=$(echo "2/52" | bc -l)" >> $GITHUB_ENV              
+
+          elif [[ "$model_name" == *"E5-2673 v3"* ]]; then
+              echo "Found E5-2673 v3 model"
+              echo "ECO_CI_MODEL_NAME='E5-2673 v3'" >> $GITHUB_ENV
+              
+              echo "ECO_CI_TDP=110" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_THREADS=24" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CORES=12" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_MAKE=intel" >> $GITHUB_ENV;
+              echo "ECO_CI_RELEASE_YEAR=2015" >> $GITHUB_ENV;
+              echo "ECO_CI_RAM=7" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_FREQ=2400" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CHIPS=1" >> $GITHUB_ENV;
+              echo "ECO_CI_VHOST_RATIO=$(echo "2/24" | bc -l)" >> $GITHUB_ENV              
+
+          # model is underclocked
+          elif [[ "$model_name" == *"8171M"* ]]; then
+              echo "Found 8171M model"
+              echo "ECO_CI_MODEL_NAME=8171M" >> $GITHUB_ENV
+
+              echo "ECO_CI_TDP=165" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_THREADS=52" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CORES=26" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_MAKE=intel" >> $GITHUB_ENV;
+              echo "ECO_CI_RELEASE_YEAR=2018" >> $GITHUB_ENV;
+              echo "ECO_CI_RAM=7" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_FREQ=2600" >> $GITHUB_ENV;
+              echo "ECO_CI_CPU_CHIPS=1" >> $GITHUB_ENV;
+              echo "ECO_CI_VHOST_RATIO=$(echo "2/52" | bc -l)" >> $GITHUB_ENV              
+
+          else
+              echo "⚠️ Unknown model $model_name for estimation, running default ..."  >> $GITHUB_STEP_SUMMARY
+              echo "ECO_CI_MODEL_NAME=unknown" >> $GITHUB_ENV
+
+          fi
+
+          #echo "ECO_CI_API_BASE=https://api.green-coding.berlin" >> $GITHUB_ENV
+          echo "ECO_CI_API_BASE=https://32c1-2a02-2454-4e0-c700-a8f5-5564-a6d2-7257.eu.ngrok.io" >> $GITHUB_ENV
+
+          echo "ECO_CI_INIT=DONE" >> $GITHUB_ENV;
+
     - if:  inputs.task == 'start-measurement'
       name: Starting measurement
-      # if started another time the file will be overwritten, which is intended (lap function)
       shell: bash
       # if measurement is started first time the reporter might not have run already
       # we prefer this over manual startint / stopping as it is less error prone for users
       run: |
         killall -9 -q /tmp/eco-ci/demo-reporter || true
-        /tmp/eco-ci/demo-reporter > /tmp/eco-ci/cpu-utilization.txt &
+        /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util-lap.txt &
 
     - if:  inputs.task == 'get-measurement'
-      id: run-model
+      id: run-lap-model
       name: Running estimation model
       shell: bash
       run: |
         # first activate our venv
         source /tmp/eco-ci/venv/bin/activate
-        model_name=$(cat /proc/cpuinfo  | grep "model name")
-        if [[ "$model_name" == *"8272CL"* ]]; then
-            echo "Found 8272CL model"
-            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 195 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2019 --ram 7 --cpu-freq 2600 --cpu-chips 1 \
-            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        elif [[ "$model_name" == *"8370C"* ]]; then
-            echo "Found 8370C model"
-            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 270 --cpu-threads 64 --cpu-cores 32 --cpu-make intel \
-            --release-year 2021 --ram 7 --cpu-freq 2800 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/64" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
-            echo "Found E5-2673 v4 model"
-            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 165 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2018 --ram 7 --cpu-freq 2300 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        elif [[ "$model_name" == *"E5-2673 v3"* ]]; then
-            echo "Found E5-2673 v3 model"
-            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 110 --cpu-threads 24 --cpu-cores 12 --cpu-make intel \
-            --release-year 2015 --ram 7 --cpu-freq 2400 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/24" | bc -l) --silent > /tmp/eco-ci/energy.txt
-        # model is underclocked
-        elif [[ "$model_name" == *"8171M"* ]]; then
-            echo "Found 8171M model"
-            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-            --tdp 165 --cpu-threads 52 --cpu-cores 26 --cpu-make intel \
-            --release-year 2018 --ram 7 --cpu-freq 2600 --cpu-chips 1  \
-            --vhost-ratio $(echo "2/52" | bc -l) --silent > /tmp/eco-ci/energy.txt
+
+        if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
+            cat /tmp/eco-cigreen-a/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
         else
-            echo "⚠️ Unknown model $model_name for estimation, running default ..."  >> $GITHUB_STEP_SUMMARY
-            cat /tmp/eco-ci/cpu-utilization.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
+            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
+            --cpu-cores $ECO_CI_CPU_CORES --cpu-make $ECO_CI_CPU_MAKE \
+            --release-year $ECO_CI_RELEASE_YEAR --ram $ECO_CI_RAM \
+            --cpu-freq $ECO_CI_CPU_FREQ --cpu-chips $ECO_CI_CPU_CHIPS \
+            --vhost-ratio $ECO_CI_VHOST_RATIO --silent > /tmp/eco-ci/energy.txt
         fi
 
         # now reset to old venv
-        deactivate our venv
+        # deactivate our venv
         # reactivate the old one, if it was present
         if [[ $ECO_CI_PREVIOUS_VENV != '' ]]; then
           source $ECO_CI_PREVIOUS_VENV/bin/activate
         fi
 
+        if [[ $GET_MEASUREMENT_COUNT == '' ]]; then
+            export GET_MEASUREMENT_COUNT=1
+        else
+            export GET_MEASUREMENT_COUNT=$((GET_MEASUREMENT_COUNT+1))
+        fi
+
+        label="${{ inputs.label }}"
+        if [[ $label == '' ]]; then
+            label="Measurement #$GET_MEASUREMENT_COUNT"
+        fi
+
+        echo "$label: " >> $GITHUB_STEP_SUMMARY
         echo "🖥 avg. CPU utilization [%]:" >> $GITHUB_STEP_SUMMARY
-        awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-utilization.txt >> $GITHUB_STEP_SUMMARY
+        awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-lap.txt >> $GITHUB_STEP_SUMMARY
         
         echo "🔋 Total Energy [Joules] :" >> $GITHUB_STEP_SUMMARY
         total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt)
         echo ${total_energy} >> ${GITHUB_STEP_SUMMARY}
-        echo "total_energy=${total_energy}" >> ${GITHUB_OUTPUT}
         
+        echo "🔌 avg. Power [Watts]:" >> $GITHUB_STEP_SUMMARY
+        awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt >> $GITHUB_STEP_SUMMARY
+
+        add_endpoint=$ECO_CI_API_BASE"/v1/ci/measurement/add"
+        metrics_url="https://metrics.green-coding.berlin"
+
+        value=$total_energy
+        value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
+        unit="mJ"
+
+        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"$ECO_CI_WORKFLOW_ID\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\"}"
+
+        killall -9 -q /tmp/eco-ci/demo-reporter || true
+        /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util-lap.txt &
+
+    - if: inputs.task == 'final-measurement'
+      name: get estimation for total energy
+      id: run-total-model
+      shell: bash
+      run: |
+        source /tmp/eco-ci/venv/bin/activate
+
+        if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
+            cat /tmp/eco-cigreen-a/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
+        else
+            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
+            --cpu-cores $ECO_CI_CPU_CORES --cpu-make $ECO_CI_CPU_MAKE \
+            --release-year $ECO_CI_RELEASE_YEAR --ram $ECO_CI_RAM \
+            --cpu-freq $ECO_CI_CPU_FREQ --cpu-chips $ECO_CI_CPU_CHIPS \
+            --vhost-ratio $ECO_CI_VHOST_RATIO --silent > /tmp/eco-ci/energy.txt
+        fi
+
+        lap_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt)
+        add_endpoint=$ECO_CI_API_BASE"/v1/ci/measurement/add"
+        metrics_url="https://metrics.green-coding.berlin"
+
+        value=$total_energy
+        value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
+        unit="mJ"
+
+        label="${{ inputs.label }}"
+        if [[ $label == '' ]]; then
+            label="Final Measurement"
+        fi
+        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"$ECO_CI_WORKFLOW_ID\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\"}"
+
+
+        if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
+            cat /tmp/eco-cigreen-a/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
+        else
+            cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
+            --cpu-cores $ECO_CI_CPU_CORES --cpu-make $ECO_CI_CPU_MAKE \
+            --release-year $ECO_CI_RELEASE_YEAR --ram $ECO_CI_RAM \
+            --cpu-freq $ECO_CI_CPU_FREQ --cpu-chips $ECO_CI_CPU_CHIPS \
+            --vhost-ratio $ECO_CI_VHOST_RATIO --silent > /tmp/eco-ci/energy.txt
+        fi
+
+        # now reset to old venv
+        # deactivate our venv
+        # reactivate the old one, if it was present
+        if [[ $ECO_CI_PREVIOUS_VENV != '' ]]; then
+          source $ECO_CI_PREVIOUS_VENV/bin/activate
+        fi
+
+        echo 'Total Measurement of CI Run: ' >> $GITHUB_STEP_SUMMARY
+        echo "🖥 avg. CPU utilization [%]:" >> $GITHUB_STEP_SUMMARY
+        awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt >> $GITHUB_STEP_SUMMARY
+        
+        echo "🔋 Total Energy [Joules] :" >> $GITHUB_STEP_SUMMARY
+        total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt)
+        echo ${total_energy} >> $GITHUB_STEP_SUMMARY
+
         echo "🔌 avg. Power [Watts]:" >> $GITHUB_STEP_SUMMARY
         awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt >> $GITHUB_STEP_SUMMARY
         echo '📈 Energy graph:' >> $GITHUB_STEP_SUMMARY
@@ -169,27 +323,19 @@ runs:
         cat /tmp/eco-ci/energy.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $GITHUB_STEP_SUMMARY
         echo ' ```' >> $GITHUB_STEP_SUMMARY
 
-    - if:  inputs.task == 'get-measurement'
+    - if:  inputs.task == 'final-measurement'
       name: energy used badge
       id: energy-used-badge
       shell: bash
       run: |
-        api_base="https://api.green-coding.berlin"
-        add_endpoint=$api_base"/v1/ci/badge/add/"
-        get_endpoint=$api_base"/v1/ci/badge/get/"
+        get_endpoint=$ECO_CI_API_BASE"/v1/ci/measurement/get"
         metrics_url="https://metrics.green-coding.berlin"
 
-        value="${{ steps.run-model.outputs.total_energy }}"
-        value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
-        unit="mJ"
         repo_enc=$( echo ${{ github.repository }} | jq -Rr @uri)
         branch_enc=$( echo ${{ inputs.branch }} | jq -Rr @uri)
-        workflow_enc=$( echo ${{ github.workflow }} | jq -Rr @uri)
         run_id_enc=$( echo ${{ github.run_id }} | jq -Rr @uri)
-
-        curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"${{ github.workflow }}\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\"}"
         
         echo "Badge for your README.md" >> $GITHUB_STEP_SUMMARY
         echo ' ```' >> $GITHUB_STEP_SUMMARY
-        echo "[![Energy Used](${get_endpoint}?repo=${repo_enc}&branch=${branch_enc}&workflow=${workflow_enc})](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${workflow_enc})" >> $GITHUB_STEP_SUMMARY
+        echo "[![Energy Used](${get_endpoint}?repo=${repo_enc}&branch=${branch_enc}&workflow=$ECO_CI_WORKFLOW_ID)](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$ECO_CI_WORKFLOW_ID)" >> $GITHUB_STEP_SUMMARY
         echo ' ```' >> $GITHUB_STEP_SUMMARY

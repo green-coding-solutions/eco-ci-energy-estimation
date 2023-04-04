@@ -3,49 +3,81 @@ Eco CI Energy estimation for Github Actions Runner VMs
 
 ## Usage
 
-Here is a sample workflow that just creates a demo load.
+When you use the eco-ci energy estimator, you must call it with one of three tasks:
 
-You have to call `initialize` before doing any of your work and then `start-measurement`, when you want to start measuring.
+- `start-measurement` - Initialize the action starts the measurement. THis must be called, and only once per job.
+- `get-measurement` - Measures the energy at this point in time since either the start-measurement or last get-measurement action call. Outputs the current measurement to the `$GITHUB_STEP_SUMMARY`
+    - This can optionally take a 'label' parameter that will be used as a label for the measurement
+    - It also optionally takes a 'branch' parameter. This uses the {{ github.ref_name }} by default to identify the exact workflow run this energy measurement belongs to, but in case your CI runs against a different branch than what {{ github.ref_name }} gives you, you can set it here.
+- `final-measurement` - Gets a measurement of the *total* energy use of the job since you called start measurement, and displays this alongside a graph to the `$GITHUB_STEP_SUMMARY`. Also provides a link to a badge you can use to display the energy use.
+    - This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge.
+    - The energy displayed on this badge will be slightly different than what is displayed as for the total energy use, as it is a summation of all the previous steps, whereas the total energy shown in this step is a single calculation.
+    - this task also optionally takes the branch and label parameters.
 
-Whenever you want to have some output of energy metrics in your `$GITHUB_STEP_SUMMARY` call `get-measurement`
+
+Here is a sample workflow that runs some python tests.
 
 ```code
-
-
-# This is a basic workflow to help you get started with Actions
-
-name: Energy Test
-
-# Controls when the workflow will run
+name: Daily Tests with Energy Measurement
+run-name: Scheduled - DEV Branch
 on:
-  # Allows you to run this workflow manually from the Actions tab
+  schedule:
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  run-tests:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: green-coding-berlin/eco-ci-energy-estimation@v1
-        with:
-          task: initialize
-
-      - uses: green-coding-berlin/eco-ci-energy-estimation@v1
+      - name: Initialize Energy Estimation
+        uses: green-coding-berlin/eco-ci-energy-estimation@main
         with:
           task: start-measurement
 
-      - name: Doing load
-        run: sleep 5
-        continue-on-error: true
+      - name: 'Checkout repository'
+        uses: actions/checkout@v3
+        with:
+          ref: 'dev'
+          submodules: 'true'
 
-      - uses: green-coding-berlin/eco-ci-energy-estimation@v1
+      - name: Checkout Repo Measurment
+        uses: green-coding-berlin/eco-ci-energy-estimation@main
         with:
           task: get-measurement
-     # end
+          label: 'repo checkout'
+
+      - name: setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+    
+      - name: pip install
+        shell: bash
+        run: |
+          pip install -r requirements.txt
+
+      - name: Checkout Repo Measurment
+        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        with:
+          task: get-measurement
+          label: 'python setup'
+
+      - name: Run Tests
+        shell: bash
+        run: |
+          pytest
+
+      - name: Tests measurement
+        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        with:
+          task: get-measurement
+          label: 'pytest'
+
+      - name: Eco CI Energy Estimation
+        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        with:
+          task: final-measurement
 ```
 
 
@@ -60,6 +92,6 @@ However in Javascript Actions it is not possible to use easily use the Github Ac
 
 Since copying, adapting and maintaining that code was no option we resorted to using the composite Github Action as an alternative.
 
-Here we have to call the Action three times: initialize, start-measurement, end-measurement
+Here we have to call the Action three times: start-measurement, get-measurement, final-measurement
 
 This however also gives us the benefit of making a "lap" and stopping and restarting a measurement with an intermediate metrics output.
