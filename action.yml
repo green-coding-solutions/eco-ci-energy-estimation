@@ -182,8 +182,7 @@ runs:
 
           fi
 
-          #echo "ECO_CI_API_BASE=https://api.green-coding.berlin" >> $GITHUB_ENV
-          echo "ECO_CI_API_BASE=https://32c1-2a02-2454-4e0-c700-a8f5-5564-a6d2-7257.eu.ngrok.io" >> $GITHUB_ENV
+          echo "ECO_CI_API_BASE=https://api.green-coding.berlin" >> $GITHUB_ENV
 
           echo "ECO_CI_INIT=DONE" >> $GITHUB_ENV;
 
