@@ -69,16 +69,19 @@ runs:
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.hash-requirements.outputs.myhash }}
 
-    - if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
+    - if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE' && steps.cache-pip.outputs.cache-hit == 'true'
       name: Inform about cache hit
       continue-on-error: true
       shell: bash
       run: |
-        if [[ ${{ steps.cache-pip.outputs.cache-hit }} == 'true' ]]; then
           echo "Cache hit succeeded! 😀"
-        else
+
+    - if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE' && steps.cache-pip.outputs.cache-hit != 'true'
+      name: Inform about cache hit
+      continue-on-error: true
+      shell: bash
+      run: |
           echo "Cache hit failed! ❌"
-        fi
 
     # this step will just be skipped by pip if packages are copied in from cache
     - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
@@ -204,7 +207,7 @@ runs:
         source /tmp/eco-ci/venv/bin/activate
 
         if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
-            cat /tmp/eco-cigreen-a/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
+            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
         else
             cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
@@ -263,7 +266,7 @@ runs:
         source /tmp/eco-ci/venv/bin/activate
 
         if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
-            cat /tmp/eco-cigreen-a/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
+            cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
         else
             cat /tmp/eco-ci/cpu-util-lap.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
@@ -277,7 +280,7 @@ runs:
         add_endpoint=$ECO_CI_API_BASE"/v1/ci/measurement/add"
         metrics_url="https://metrics.green-coding.berlin"
 
-        value=$total_energy
+        value=$lap_energy
         value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
         unit="mJ"
 
@@ -289,7 +292,7 @@ runs:
 
 
         if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
-            cat /tmp/eco-cigreen-a/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
+            cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
         else
             cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
@@ -338,3 +341,6 @@ runs:
         echo ' ```' >> $GITHUB_STEP_SUMMARY
         echo "[![Energy Used](${get_endpoint}?repo=${repo_enc}&branch=${branch_enc}&workflow=$ECO_CI_WORKFLOW_ID)](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$ECO_CI_WORKFLOW_ID)" >> $GITHUB_STEP_SUMMARY
         echo ' ```' >> $GITHUB_STEP_SUMMARY
+
+        echo "See energy runs here:" >> $GITHUB_STEP_SUMMARY
+        echo "${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$ECO_CI_WORKFLOW_ID" >> $GITHUB_STEP_SUMMARY
