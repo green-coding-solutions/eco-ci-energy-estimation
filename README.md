@@ -80,6 +80,20 @@ jobs:
           task: final-measurement
 ```
 
+## Note on private repos
+ If you are running in a private repo, you must give your job actions read abilities for the github token. This  is because we make an api call to get your workflow_id which uses your $GITHUB_TOKEN, and it needs the correct permissions to do so:
+ ```
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+      - name: Eco CI - Initialize
+        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        with:
+          task: start-measurement
+ ```  
 
 ## Design decisions for the energy estimation action
 The goal of this action is to empower Github Action users to estimate the energy of the Github hosted runner VMs in an easy fashion with minimal integration overhead into existing workflows.
