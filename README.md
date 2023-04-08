@@ -1,5 +1,5 @@
 # eco-ci-energy-estimation
-Eco CI Energy estimation for Github Actions Runner VMs
+Eco CI Energy estimation for Github Actions Runner VMs, more information on Eco CI can be found [here](https://www.green-coding.berlin/projects/eco-ci). Data that is calculated is uploaded to https://metrics.green-coding.berlin/v1/ci/measurement/add so that it can be used to give insights to the community, as well as used for displaying a badge. How to display the badge in your repo is shown in the `GITHUB_STEP_SUMMARY` for the job that calls this action.
 
 ## Usage
 
@@ -8,29 +8,31 @@ When you use the eco-ci energy estimator, you must call it with one of three tas
 - `start-measurement` - Initialize the action starts the measurement. THis must be called, and only once per job.
 - `get-measurement` - Measures the energy at this point in time since either the start-measurement or last get-measurement action call. Outputs the current measurement to the `$GITHUB_STEP_SUMMARY`
     - This can optionally take a 'label' parameter that will be used as a label for the measurement
-    - It also optionally takes a 'branch' parameter. This uses the {{ github.ref_name }} by default to identify the exact workflow run this energy measurement belongs to, but in case your CI runs against a different branch than what {{ github.ref_name }} gives you, you can set it here.
+    - It also optionally takes a 'branch' parameter. This uses the `${{ github.ref_name }}` by default to identify the exact workflow run this energy measurement belongs to, but in case your CI runs against a different branch than what `${{ github.ref_name }}` gives you, you can set it here.
 - `final-measurement` - Gets a measurement of the *total* energy use of the job since you called start measurement, and displays this alongside a graph to the `$GITHUB_STEP_SUMMARY`. Also provides a link to a badge you can use to display the energy use.
     - This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge.
     - The energy displayed on this badge will be slightly different than what is displayed as for the total energy use, as it is a summation of all the previous steps, whereas the total energy shown in this step is a single calculation.
     - this task also optionally takes the branch and label parameters.
 
+Here is a sample workflow that runs some python tests:
 
-Here is a sample workflow that runs some python tests.
-
-```code
+``` yaml
 name: Daily Tests with Energy Measurement
 run-name: Scheduled - DEV Branch
 on:
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
+  
+permissions:
+  read-all
 
 jobs:
   run-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Initialize Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@5ab20ee5329ae02c598a3b967f58121a4d9d8287 #v1.2.0
         with:
           task: start-measurement
 
@@ -41,7 +43,7 @@ jobs:
           submodules: 'true'
 
       - name: Checkout Repo Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@5ab20ee5329ae02c598a3b967f58121a4d9d8287 #v1.2.0
         with:
           task: get-measurement
           label: 'repo checkout'
@@ -58,7 +60,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Checkout Repo Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@5ab20ee5329ae02c598a3b967f58121a4d9d8287 #v1.2.0
         with:
           task: get-measurement
           label: 'python setup'
@@ -69,20 +71,20 @@ jobs:
           pytest
 
       - name: Tests measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@5ab20ee5329ae02c598a3b967f58121a4d9d8287 #v1.2.0
         with:
           task: get-measurement
           label: 'pytest'
 
       - name: Eco CI Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@5ab20ee5329ae02c598a3b967f58121a4d9d8287 #v1.2.0
         with:
           task: final-measurement
 ```
 
 ## Note on private repos
- If you are running in a private repo, you must give your job actions read abilities for the github token. This  is because we make an api call to get your workflow_id which uses your $GITHUB_TOKEN, and it needs the correct permissions to do so:
- ```
+If you are running in a private repo, you must give your job actions `read` abilities for the GITHUB_TOKEN. This is because we make an api call to get your workflow_id which uses your GITHUB_TOKEN, and it needs the correct permissions to do so:
+``` yaml
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -90,7 +92,7 @@ jobs:
       actions: read
     steps:
       - name: Eco CI - Initialize
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@5ab20ee5329ae02c598a3b967f58121a4d9d8287 #v1.2.0
         with:
           task: start-measurement
  ```  
@@ -102,7 +104,7 @@ The initial idea was to use the Javascript Actions of Github Actions that have a
 
 main would initialize the estimation model and then start the measurement. Once the workflow run completes the metrics are outputted to the $GITHUB_STEP_SUMMARY.
 
-However in Javascript Actions it is not possible to use easily use the Github Actions cache. An example how github does it in its own actions can be seen here ... which is brutal to say the least. (To be fair, there seems to be a simpler method available, but we could not find any good documentation on it: https://snyk.io/advisor/npm-package/@actions/cache/functions/@actions%2Fcache.restoreCache)
+However in Javascript Actions it is not possible to use easily use the Github Actions cache. An example how GitHub does it in its own actions can be seen here ... which is brutal to say the least. (To be fair, there seems to be a simpler method available, but we could not find any good documentation on it: https://snyk.io/advisor/npm-package/@actions/cache/functions/@actions%2Fcache.restoreCache)
 
 Since copying, adapting and maintaining that code was no option we resorted to using the composite Github Action as an alternative.
 
