@@ -1,0 +1,41 @@
+name: Test the action locally
+
+on:
+  push:
+    paths-ignore:
+     - 'README.md'
+     - 'LICENSE'
+  pull_request:
+    branches:
+     - main
+  schedule:
+    # only run once a week to show the action is working and preserve as much energy as possible
+    - cron: '22 4 * * 6'
+
+permissions:
+  contents: read
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3
+      
+      - name: Initialize Energy Estimation
+        uses: ./
+        with:
+          task: start-measurement
+    
+      - name: Wait before the next step
+        run: sleep 10
+
+      - name: Test measurement
+        uses: ./
+        with:
+          task: get-measurement
+          label: "Sleep"
+
+      - name: Eco CI Energy Estimation
+        uses: ./
+        with:
+          task: final-measurement
