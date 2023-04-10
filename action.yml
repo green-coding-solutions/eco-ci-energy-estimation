@@ -102,7 +102,7 @@ runs:
       id: variables
       shell: bash
       run: |
-          curl_response=$(curl -s -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/${{ github.repository }}/actions/workflows)
+          curl_response=$(curl -s -H "Authorization: Bearer ${{ github.token }}" ${{ github.api_url }}/repos/${{ github.repository }}/actions/workflows)
           echo 'curl response: ' $curl_response
           workflow_id=$(echo $curl_response | jq '.workflows[] | select(.name == "${{ github.workflow }}") | .id')
           echo 'workflow id: ' $workflow_id
@@ -290,7 +290,6 @@ runs:
             label="Final Measurement"
         fi
         curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"$ECO_CI_WORKFLOW_ID\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\"}"
-
 
         if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
             cat /tmp/eco-ci/cpu-util-total.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent > /tmp/eco-ci/energy.txt
