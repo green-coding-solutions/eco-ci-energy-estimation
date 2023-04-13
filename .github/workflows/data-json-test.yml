@@ -1,0 +1,49 @@
+name: Test data output as json
+
+on:
+  push:
+    branches:
+      - introduce-measurement-output # for testing purposes only on this branch
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize Energy Estimation
+        uses: ./
+        with:
+          task: start-measurement
+
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Checkout Repo Energy Measurment
+        uses: ./
+        with:
+          task: get-measurement
+          label: "checkout"
+          end-data: false
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Node Setup Energy Measurment
+        uses: ./
+        with:
+          task: get-measurement
+          label: 'node setup'
+          send-data: false
+
+      - name: Eco CI Energy Estimation
+        id: data-total
+        uses: ./
+        with:
+          task: display-results
+          send-data: false
+
+      - name: Print data
+        run: |
+          echo "total json: ${{ steps.data-total.outputs.data-total-json }}"
+
