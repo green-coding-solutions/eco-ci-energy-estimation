@@ -20,6 +20,9 @@ outputs:
   data-total-json:
     description: "Contains the data of the total measurement which is retrieved by the 'display-results' task."
     value: ${{ steps.run-total-model.outputs.data-total-json }}
+  data-lap-json:
+    description: "Contains the data of the most recent measurement which is retrieved by the 'get-measurement' task."
+    value: ${{ steps.run-lap-model.outputs.data-lap-json }}
 runs:
   using: 'composite'
   steps:
@@ -250,7 +253,8 @@ runs:
 
             echo "$label: " >> $GITHUB_STEP_SUMMARY
             echo "🖥 avg. CPU utilization [%]:" >> $GITHUB_STEP_SUMMARY
-            awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util.txt >> $GITHUB_STEP_SUMMARY
+            cpu_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util.txt)
+            echo ${cpu_avg} >> $GITHUB_STEP_SUMMARY
 
             echo "🔋 Total Energy [Joules] :" >> $GITHUB_STEP_SUMMARY
             total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt)
@@ -258,7 +262,8 @@ runs:
             echo ${total_energy} >> ${GITHUB_STEP_SUMMARY}
 
             echo "🔌 avg. Power [Watts]:" >> $GITHUB_STEP_SUMMARY
-            awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt >> $GITHUB_STEP_SUMMARY
+            power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt)
+            echo ${power_avg} >> $GITHUB_STEP_SUMMARY
 
             echo "ECO_CI_GET_MEASUREMENT_RAN=true" >> $GITHUB_ENV;
 
@@ -272,6 +277,15 @@ runs:
 
                 curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"$ECO_CI_WORKFLOW_ID\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\"}"
             fi
+
+            # write data to output
+            lap_data_file="/tmp/eco-ci/lap-data.json"
+            repo_enc=$( echo ${{ github.repository }} | jq -Rr @uri)
+            branch_enc=$( echo ${{ inputs.branch }} | jq -Rr @uri)
+            run_id_enc=$( echo ${{ github.run_id }} | jq -Rr @uri)
+            ./.github/scripts/create-and-add-meta.sh --file ${lap_data_file} --repository ${repo_enc} --branch ${branch_enc} --workflow $ECO_CI_WORKFLOW_ID --run_id ${run_id_enc}
+            ./.github/scripts/add-data.sh --file ${lap_data_file} --label "TOTAL" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
+            echo "data-lap-json=$(cat $lap_data_file)" >> $GITHUB_OUTPUT
 
             killall -9 -q /tmp/eco-ci/demo-reporter || true
             /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util.txt &
