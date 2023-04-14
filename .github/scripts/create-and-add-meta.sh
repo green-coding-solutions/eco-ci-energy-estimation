@@ -46,3 +46,6 @@ cat > "$FILE" << EOF
     "run_id": "$RUN_ID"
 }
 EOF
+
+# Remove all line breaks
+tr -d '\n' < "$FILE" > temp && mv temp "$FILE"

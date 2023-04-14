@@ -58,3 +58,6 @@ if [ -s "$FILE" ]; then
 else
     echo "$NEW_STEP" > "$FILE"
 fi
+
+# Remove all line breaks
+tr -d '\n' < "$FILE" > temp && mv temp "$FILE"
