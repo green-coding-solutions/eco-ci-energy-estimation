@@ -9,21 +9,14 @@ jobs:
   test-action:
     runs-on: ubuntu-latest
     steps:
-      - name: Initialize Energy Estimation
-        uses: ./
-        with:
-          task: start-measurement
-
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Checkout Repo Energy Measurment
+      - name: Initialize Energy Estimation
         uses: ./
         with:
-          task: get-measurement
-          label: "checkout"
-          end-data: false
+          task: start-measurement
 
       - uses: actions/setup-node@v3
         with:
@@ -34,6 +27,16 @@ jobs:
         with:
           task: get-measurement
           label: 'node setup'
+          send-data: false
+
+      - name: Wait before the next step
+        run: sleep 10
+
+      - name: Sleep measurement
+        uses: ./
+        with:
+          task: get-measurement
+          label: "sleep"
           send-data: false
 
       - name: Eco CI Energy Estimation
