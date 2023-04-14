@@ -42,16 +42,22 @@ jobs:
           fi
           output='${{ steps.data-node-setup.outputs.data-lap-json }}'
           required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts")
+          fields_count=$(echo "$output" | jq 'keys | length')
+          if [ "${fields_count}" -eq 8 ]; then
+          else
+            echo "output has ${fields_count} instead of 8"
+          fi
           for field in "${required_fields[@]}"; do
             if ! echo "$output" | jq -e --arg field "$field" 'has($field)' >/dev/null; then
               echo "output is missing the field: $field"
               exit 1
             fi
           done
-          if [ $(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -e '.label == "node setup" | if . then 1 else 0 end') -eq 1 ]; then
+          label=$(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -r '.label')
+          if [ "$label" == "node setup" ]; then
             echo "value of 'label' is 'node setup'"
           else
-            echo "value of 'label' must be 'node setup'"
+            echo "value of 'label' is '$label', but it should be 'node setup'"
             exit 1
           fi
 
