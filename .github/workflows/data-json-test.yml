@@ -40,10 +40,10 @@ jobs:
           if [ '${{ steps.data-node-setup.outputs.data-lap-json }}' == '' ]; then
             echo "Output must not be empty"; exit 1;
           fi
-          if ![$(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8')]; then
+          if ! [ $(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8') ]; then
             echo "output has wrong structure"; exit 1;
           fi
-          if ![$(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq '.label == "node setup"')]; then
+          if ! [ $(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq '.label == "node setup"') ]; then
             echo "value of 'label' must be 'node setup'"; exit 1;
           fi
 
@@ -68,10 +68,10 @@ jobs:
           if [ '${{ steps.data-sleep.outputs.data-lap-json }}' == '' ]; then
             echo "Output must not be empty"; exit 1;
           fi
-          if ![$(echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8')]; then
+          if ! [ $(echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8') ]; then
             echo "output has wrong structure"; exit 1;
           fi
-          if ![$(echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq '.label == "sleep"')]; then
+          if ! [ $(echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq '.label == "sleep"') ]; then
             echo "value of 'label' must be 'sleep'"; exit 1;
           fi
 
@@ -92,6 +92,6 @@ jobs:
           if [ '${{ steps.data-total.outputs.data-total-json }}' == '' ]; then
             echo "Output must not be empty"; exit 1;
           fi
-          if ![$(echo '${{ steps.data-total.outputs.data-total-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8')]; then
+          if ! [ $(echo '${{ steps.data-total.outputs.data-total-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8') ]; then
             echo "output has wrong structure"; exit 1;
           fi
