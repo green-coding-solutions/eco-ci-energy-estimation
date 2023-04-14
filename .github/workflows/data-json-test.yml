@@ -47,7 +47,6 @@ jobs:
           send-data: false
 
       - name: Print data
-        # TODO assert not empty and contains expected values
         run: |
           echo "total json: ${{ steps.data-total.outputs.data-total-json }}"
 
