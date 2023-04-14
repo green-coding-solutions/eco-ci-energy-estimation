@@ -37,14 +37,19 @@ jobs:
       - name: Assert node setup output is appropriate
         shell: bash
         run: |
-          if [ '${{ steps.data-node-setup.outputs.data-lap-json }}' == '' ]; then
-            echo "Output must not be empty"; exit 1;
-          fi
+          # setup
           output='${{ steps.data-node-setup.outputs.data-lap-json }}'
+          required_label="node setup"
+          # assertions
+          if [ -z "$output" ]; then
+            echo "Output must not be empty"
+            exit 1
+          fi
           required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts")
+          required_count=${#required_fields[@]}
           fields_count=$(echo "$output" | jq 'keys | length')
-          if ! [ "${fields_count}" -eq 8 ]; then
-            echo "output has ${fields_count} instead of 8"
+          if ! [ "${fields_count}" -eq "${required_count}" ]; then
+            echo "output has ${fields_count} instead of ${required_count}"
             exit 1
           fi
           for field in "${required_fields[@]}"; do
@@ -54,10 +59,10 @@ jobs:
             fi
           done
           label=$(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -r '.label')
-          if [ "$label" == "node setup" ]; then
-            echo "value of 'label' is 'node setup'"
+          if [ "$label" == "$required_label" ]; then
+            echo "value of 'label' is '$required_label'"
           else
-            echo "value of 'label' is '$label', but it should be 'node setup'"
+            echo "value of 'label' is '$label', but it should be '$required_label'"
             exit 1
           fi
 
@@ -79,19 +84,32 @@ jobs:
       - name: Assert sleep output is appropriate
         shell: bash
         run: |
-          if [ '${{ steps.data-sleep.outputs.data-lap-json }}' == '' ]; then
-            echo "Output must not be empty"; exit 1;
+          # setup
+          output='${{ steps.data-sleep.outputs.data-lap-json }}'
+          required_label="sleep"
+          # assertions
+          if [ -z "$output" ]; then
+            echo "Output must not be empty"
+            exit 1
           fi
-          if [ $(echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq -e 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") | if . then 1 else 0 end') -eq 1 ]; then
-            echo "output has correct structure"
-          else
-            echo "output has wrong structure"
-            exit 1;
+          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts")
+          required_count=${#required_fields[@]}
+          fields_count=$(echo "$output" | jq 'keys | length')
+          if ! [ "${fields_count}" -eq "${required_count}" ]; then
+            echo "output has ${fields_count} instead of ${required_count}"
+            exit 1
           fi
-          if [ $(echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq -e '.label == "sleep" | if . then 1 else 0 end') -eq 1 ]; then
-            echo "value of 'label' is 'sleep'"
+          for field in "${required_fields[@]}"; do
+            if ! echo "$output" | jq -e --arg field "$field" 'has($field)' >/dev/null; then
+              echo "output is missing the field: $field"
+              exit 1
+            fi
+          done
+          label=$(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -r '.label')
+          if [ "$label" == "$required_label" ]; then
+            echo "value of 'label' is '$required_label'"
           else
-            echo "value of 'label' must be 'sleep'"
+            echo "value of 'label' is '$label', but it should be '$required_label'"
             exit 1
           fi
 
@@ -109,12 +127,31 @@ jobs:
       - name: Assert total output is appropriate
         shell: bash
         run: |
-          if [ '${{ steps.data-total.outputs.data-total-json }}' == '' ]; then
-            echo "Output must not be empty"; exit 1;
+          # setup
+          output='${{ steps.data-total.outputs.data-total-json }}'
+          required_label="TOTAL"
+          # assertions
+          if [ -z "$output" ]; then
+            echo "Output must not be empty"
+            exit 1
           fi
-          if [ $(echo '${{ steps.data-total.outputs.data-total-json }}' | jq -e 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") | if . then 1 else 0 end') -eq 1 ]; then
-            echo "output has correct structure"
+          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts")
+          required_count=${#required_fields[@]}
+          fields_count=$(echo "$output" | jq 'keys | length')
+          if ! [ "${fields_count}" -eq "${required_count}" ]; then
+            echo "output has ${fields_count} instead of ${required_count}"
+            exit 1
+          fi
+          for field in "${required_fields[@]}"; do
+            if ! echo "$output" | jq -e --arg field "$field" 'has($field)' >/dev/null; then
+              echo "output is missing the field: $field"
+              exit 1
+            fi
+          done
+          label=$(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -r '.label')
+          if [ "$label" == "$required_label" ]; then
+            echo "value of 'label' is '$required_label'"
           else
-            echo "output has wrong structure"
-            exit 1;
+            echo "value of 'label' is '$label', but it should be '$required_label'"
+            exit 1
           fi
