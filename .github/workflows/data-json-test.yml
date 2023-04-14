@@ -47,6 +47,17 @@ jobs:
           send-data: false
 
       - name: Print data
+        # TODO assert not empty and contains expected values
         run: |
           echo "total json: ${{ steps.data-total.outputs.data-total-json }}"
 
+      - name: Assert output is appropriate
+        shell: bash
+        run: |
+          if [ "${{ steps.data-total.outputs.data-total-json }}" == '' ]; then
+            echo "Output must not be empty"; exit 1;
+          fi
+          if ! echo "${{ steps.data-total.outputs.data-total-json }}" | jq '.repository' > /dev/null 2>&1; then
+            echo "output must have 'repository'" >&2
+            exit 1
+          fi
