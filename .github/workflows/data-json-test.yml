@@ -40,11 +40,17 @@ jobs:
           if [ '${{ steps.data-node-setup.outputs.data-lap-json }}' == '' ]; then
             echo "Output must not be empty"; exit 1;
           fi
-          if ! [ $(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8') ]; then
-            echo "output has wrong structure"; exit 1;
+          if [ $(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -e 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") | if . then 1 else 0 end') -eq 1 ]; then
+            echo "output has correct structure"
+          else
+            echo "output has wrong structure"
+            exit 1;
           fi
-          if ! [ $(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq '.label == "node setup"') ]; then
-            echo "value of 'label' must be 'node setup'"; exit 1;
+          if [ $(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -e '.label == "node setup" | if . then 1 else 0 end') -eq 1 ]; then
+            echo "value of 'label' is 'node setup'"
+          else
+            echo "value of 'label' must be 'node setup'"
+            exit 1
           fi
 
       - name: Wait before the next step
@@ -68,11 +74,17 @@ jobs:
           if [ '${{ steps.data-sleep.outputs.data-lap-json }}' == '' ]; then
             echo "Output must not be empty"; exit 1;
           fi
-          if ! [ $(echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8') ]; then
-            echo "output has wrong structure"; exit 1;
+          if [ $(echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq -e 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") | if . then 1 else 0 end') -eq 1 ]; then
+            echo "output has correct structure"
+          else
+            echo "output has wrong structure"
+            exit 1;
           fi
-          if ! [ $(echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq '.label == "sleep"') ]; then
-            echo "value of 'label' must be 'sleep'"; exit 1;
+          if [ $(echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq -e '.label == "sleep" | if . then 1 else 0 end') -eq 1 ]; then
+            echo "value of 'label' is 'sleep'"
+          else
+            echo "value of 'label' must be 'sleep'"
+            exit 1
           fi
 
       - name: Eco CI Energy Estimation
@@ -92,6 +104,9 @@ jobs:
           if [ '${{ steps.data-total.outputs.data-total-json }}' == '' ]; then
             echo "Output must not be empty"; exit 1;
           fi
-          if ! [ $(echo '${{ steps.data-total.outputs.data-total-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8') ]; then
-            echo "output has wrong structure"; exit 1;
+          if [ $(echo '${{ steps.data-total.outputs.data-total-json }}' | jq -e 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") | if . then 1 else 0 end') -eq 1 ]; then
+            echo "output has correct structure"
+          else
+            echo "output has wrong structure"
+            exit 1;
           fi
