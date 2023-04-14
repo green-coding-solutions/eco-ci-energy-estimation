@@ -40,12 +40,14 @@ jobs:
           if [ '${{ steps.data-node-setup.outputs.data-lap-json }}' == '' ]; then
             echo "Output must not be empty"; exit 1;
           fi
-          if [ "$(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -er 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") | if . then 1 else 0 end')" -eq 1 ]; then
-            echo "output has correct structure"
-          else
-            echo "output has wrong structure"
-            exit 1
-          fi
+          output='${{ steps.data-node-setup.outputs.data-lap-json }}'
+          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts")
+          for field in "${required_fields[@]}"; do
+            if ! echo "$output" | jq -e --arg field "$field" 'has($field)' >/dev/null; then
+              echo "output is missing the field: $field"
+              exit 1
+            fi
+          done
           if [ $(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -e '.label == "node setup" | if . then 1 else 0 end') -eq 1 ]; then
             echo "value of 'label' is 'node setup'"
           else
