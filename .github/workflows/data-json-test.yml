@@ -43,9 +43,9 @@ jobs:
           output='${{ steps.data-node-setup.outputs.data-lap-json }}'
           required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts")
           fields_count=$(echo "$output" | jq 'keys | length')
-          if [ "${fields_count}" -eq 8 ]; then
-          else
+          if ! [ "${fields_count}" -eq 8 ]; then
             echo "output has ${fields_count} instead of 8"
+            exit 1
           fi
           for field in "${required_fields[@]}"; do
             if ! echo "$output" | jq -e --arg field "$field" 'has($field)' >/dev/null; then
