@@ -23,21 +23,57 @@ jobs:
           node-version: '18'
 
       - name: Node Setup Energy Measurment
+        id: data-node-setup
         uses: ./
         with:
           task: get-measurement
           label: 'node setup'
           send-data: false
 
+      - name: Print node setup data
+        run: |
+          echo "total json: ${{ steps.data-node-setup.outputs.data-lap-json }}"
+
+      - name: Assert node setup output is appropriate
+        shell: bash
+        run: |
+          if [ '${{ steps.data-node-setup.outputs.data-lap-json }}' == '' ]; then
+            echo "Output must not be empty"; exit 1;
+          fi
+          if ! echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8'; then
+            echo "output has wrong structure"; exit 1;
+          fi
+          if ! echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq '.label == "node setup"'; then
+            echo "value of 'label' must be 'node setup'"; exit 1;
+          fi
+
       - name: Wait before the next step
         run: sleep 10
 
       - name: Sleep measurement
+        id: data-sleep
         uses: ./
         with:
           task: get-measurement
           label: "sleep"
           send-data: false
+
+      - name: Print sleep data
+        run: |
+          echo "total json: ${{ steps.data-sleep.outputs.data-lap-json }}"
+
+      - name: Assert sleep output is appropriate
+        shell: bash
+        run: |
+          if [ '${{ steps.data-sleep.outputs.data-lap-json }}' == '' ]; then
+            echo "Output must not be empty"; exit 1;
+          fi
+          if ! echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") and length == 8'; then
+            echo "output has wrong structure"; exit 1;
+          fi
+          if ! echo '${{ steps.data-sleep.outputs.data-lap-json }}' | jq '.label == "sleep"'; then
+            echo "value of 'label' must be 'sleep'"; exit 1;
+          fi
 
       - name: Eco CI Energy Estimation
         id: data-total
@@ -46,11 +82,11 @@ jobs:
           task: display-results
           send-data: false
 
-      - name: Print data
+      - name: Print total data
         run: |
           echo "total json: ${{ steps.data-total.outputs.data-total-json }}"
 
-      - name: Assert output is appropriate
+      - name: Assert total output is appropriate
         shell: bash
         run: |
           if [ '${{ steps.data-total.outputs.data-total-json }}' == '' ]; then
