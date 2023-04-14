@@ -53,10 +53,10 @@ jobs:
       - name: Assert output is appropriate
         shell: bash
         run: |
-          if [ "${{ steps.data-total.outputs.data-total-json }}" == '' ]; then
+          if [ '${{ steps.data-total.outputs.data-total-json }}' == '' ]; then
             echo "Output must not be empty"; exit 1;
           fi
-          if ! echo "${{ steps.data-total.outputs.data-total-json }}" | jq '.repository' > /dev/null 2>&1; then
+          if ! echo '${{ steps.data-total.outputs.data-total-json }}' | jq '.repository' > /dev/null 2>&1; then
             echo "output must have 'repository'" >&2
             exit 1
           fi
