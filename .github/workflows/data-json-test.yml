@@ -40,7 +40,7 @@ jobs:
           if [ '${{ steps.data-node-setup.outputs.data-lap-json }}' == '' ]; then
             echo "Output must not be empty"; exit 1;
           fi
-          if [ "$(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -er 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") | if . then 1 else 0 end')" -eq 1 ]; then
+          if [ $(echo '${{ steps.data-node-setup.outputs.data-lap-json }}' | jq -er 'has("repository", "branch", "workflow", "run_id", "label", "cpu_avg_percent", "energy_joules", "power_avg_watts") | if . then 1 else 0 end')  + 0 -eq 1 ]; then
             echo "output has correct structure"
           else
             echo "output has wrong structure"
