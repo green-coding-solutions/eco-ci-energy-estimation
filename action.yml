@@ -284,7 +284,7 @@ runs:
             branch_enc=$( echo ${{ inputs.branch }} | jq -Rr @uri)
             run_id_enc=$( echo ${{ github.run_id }} | jq -Rr @uri)
             ./.github/scripts/create-and-add-meta.sh --file ${lap_data_file} --repository ${repo_enc} --branch ${branch_enc} --workflow $ECO_CI_WORKFLOW_ID --run_id ${run_id_enc}
-            ./.github/scripts/add-data.sh --file ${lap_data_file} --label "TOTAL" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
+            ./.github/scripts/add-data.sh --file ${lap_data_file} --label "$label" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
             echo "data-lap-json=$(cat $lap_data_file)" >> $GITHUB_OUTPUT
 
             killall -9 -q /tmp/eco-ci/demo-reporter || true
