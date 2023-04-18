@@ -6,12 +6,12 @@ Eco CI Energy estimation for Github Actions Runner VMs
 When you use the eco-ci energy estimator, you must call it with one of three tasks:
 
 - `start-measurement` - Initialize the action starts the measurement. THis must be called, and only once per job.
-- `get-measurement` - Measures the energy at this point in time since either the start-measurement or last get-measurement action call. Outputs the current measurement to the `$GITHUB_STEP_SUMMARY`
+- `get-measurement` - Measures the energy at this point in time since either the start-measurement or last get-measurement action call. 
     - This can optionally take a 'label' parameter that will be used as a label for the measurement
     - It also optionally takes a 'branch' parameter. This uses the {{ github.ref_name }} by default to identify the exact workflow run this energy measurement belongs to, but in case your CI runs against a different branch than what {{ github.ref_name }} gives you, you can set it here.
     - We send data to our servers in order to build a page to display your energy usage over time at metrics.green-coding.berlin. If you do not wish to send any data over, you can call this step with an optional flag:
     `send-data:false`
-- `display-results` - Shows the energy results of all the get-measurements - the avergae cpu utilization, the total Joules used, and average wattage of the CI run. It will also display a graph of the energy used, and a badge for you to display.
+- `display-results` - Outputs the energy results to the`$GITHUB_STEP_SUMMARY`. Creates a table that shows the energy results of all the get-measurements, and then a final row for the entire run. Displays the avergae cpu utilization, the total Joules used, and average wattage for each measurment+total run. It will also display a graph of the energy used, and a badge for you to display.
     - This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge.
     - this task also optionally takes the branch and label parameters.
     - creating the badge requires sending the energy data to our api. If you do not wish to send any data, call this step with the `send-data: false` flag as well.
