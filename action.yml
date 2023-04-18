@@ -299,7 +299,7 @@ runs:
         total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
         power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy-total.txt)
 
-        final_line="$ECO_CI_MEASUREMENT_TABLE_LINES|Total|${cpu_avg}|${total_energy}|${power_avg}|"
+        final_line="$ECO_CI_MEASUREMENT_TABLE_LINES|Total Run|${cpu_avg}|${total_energy}|${power_avg}|"
         echo -e "$final_line" >> $GITHUB_STEP_SUMMARY
 
         echo '' >> $GITHUB_STEP_SUMMARY
