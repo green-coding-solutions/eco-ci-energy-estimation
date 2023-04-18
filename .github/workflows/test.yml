@@ -28,15 +28,23 @@ jobs:
           task: start-measurement
     
       - name: Wait before the next step
-        run: sleep 10
+        run: sleep 2
 
-      - name: Test measurement
+      - name: Test measurement 1
         uses: ./
         with:
           task: get-measurement
-          label: "Sleep"
+
+      - name: Wait before the next step
+        run: sleep 2
+
+      - name: Test measurement 2
+        uses: ./
+        with:
+          task: get-measurement
+          label: "Sleep #2"
 
       - name: Eco CI Energy Estimation
         uses: ./
         with:
-          task: final-measurement
+          task: display-results
