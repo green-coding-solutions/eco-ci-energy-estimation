@@ -3,9 +3,11 @@ Eco CI Energy estimation for Github Actions Runner VMs
 
 ## Usage
 
-When you use the eco-ci energy estimator, you must call it with one of three tasks:
+When you use the eco-ci energy estimator, you must call it with one of three tasks: `start-measurement`, `get-measurement`, `display-results`. Call `start-measurement` once to initialize the action, `get-measurement` at each point you want to make a spot measurement, and `display-results` at the end send output to your GITHUB_STEP_SUMMARY. 
 
-- `start-measurement` - Initialize the action starts the measurement. THis must be called, and only once per job.
+### Detailed information on the tasks:
+- `start-measurement` - Initialize the action starts the measurement. This must be called, and only once per job.
+    - We use an ascii charting library written in go (https://github.com/guptarohit/asciigraph). For github hosted runners their images come with go so we do not install it. If you are using a private runner instance however, your machine may not have go installed, and this will not work. As we want to minimize what we install on private runner machines to not intefere with your setup, we will not install go. Therefore, you will need to call this step with the `display-graph` flag set to false, and that will skip the installation of this go library.
 - `get-measurement` - Measures the energy at this point in time since either the start-measurement or last get-measurement action call. 
     - This can optionally take a 'label' parameter that will be used as a label for the measurement
     - It also optionally takes a 'branch' parameter. This uses the `{{ github.ref_name }}` by default to identify the exact workflow run this energy measurement belongs to, but in case your CI runs against a different branch than what {{ github.ref_name }} gives you, you can set it here.
@@ -156,6 +158,21 @@ Here is an example demonstrating how this can be achieved:
 
 Note that the steps you want to consume the measurements of need to have an `id` so that you can access the corresponding data from their outputs.
 
+### If running on a private repo without go isntalled
+Make sure to run both the `start-measurement` and `display-results` step with `display-graph` set to false
+```yaml
+      - name: Initialize Measurment
+        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        with:
+          task: start-measurement
+          display-graph: false
+
+      - name: Show Energy Results
+        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        with:
+          task: display-measurement
+          display-graph: false
+```
 
 ## Note on private repos
  If you are running in a private repo, you must give your job actions read permissions for the github token. This  is because we make an api call to get your workflow_id which uses your `$GITHUB_TOKEN`, and it needs the correct permissions to do so:

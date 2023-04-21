@@ -49,7 +49,7 @@ runs:
         mkdir /tmp/eco-ci
         git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
 
-    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
+    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE' && inputs.display-graph == 'true'
       name: Install go asciigraph
       shell: bash
       run: go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
