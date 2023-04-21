@@ -17,6 +17,10 @@ When you use the eco-ci energy estimator, you must call it with one of three tas
     - this task also optionally takes the branch and label parameters.
     - creating the badge requires sending the energy data to our api. If you do not wish to send any data, call this step with the `send-data: false` flag as well.
     - The total measurement of this task is provided as output `data-total-json` in json format (see example below).
+    - We also provide a few optional flags to minimize the output to your github_step_summary if you so desire (each of these are true by default:
+        - `display-table` - set to false to not display the results table
+        - `display-graph` - set to false to not display the energy usage over time graph
+        - `display-badge` - set to false to not display the badge info and link
 
 Here is a sample workflow that runs some python tests.
 
