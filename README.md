@@ -86,7 +86,7 @@ jobs:
       - name: Show Energy Results
         uses: green-coding-berlin/eco-ci-energy-estimation@main
         with:
-          task: display-measurement
+          task: display-results
 ```
 
 ### Continuing on Errors
@@ -116,7 +116,10 @@ If you do not wish to send data, call the `get-measurement` and `display-results
       - name: Show Energy Results
         uses: green-coding-berlin/eco-ci-energy-estimation@main
         with:
-          task: display-measurement
+          task: 
+          
+          
+          
           send-data: false
 ```
 
@@ -149,7 +152,7 @@ Here is an example demonstrating how this can be achieved:
         uses: green-coding-berlin/eco-ci-energy-estimation@main
         id: total-measurement-step
         with:
-          task: display-measurement
+          task: display-results
 
       - name: Print total data
         run: |
@@ -170,7 +173,7 @@ Make sure to run both the `start-measurement` and `display-results` step with `d
       - name: Show Energy Results
         uses: green-coding-berlin/eco-ci-energy-estimation@main
         with:
-          task: display-measurement
+          task: display-results
           display-graph: false
 ```
 
