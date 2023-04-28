@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - introduce-measurement-output # for testing purposes only on this branch
-
+  workflow_dispatch:
+  
 jobs:
   test-data-output-action:
     runs-on: ubuntu-latest
