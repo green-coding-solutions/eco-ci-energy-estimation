@@ -2,8 +2,6 @@ name: Test data output as json
 
 on:
   push:
-    branches:
-      - introduce-measurement-output # for testing purposes only on this branch
   workflow_dispatch:
   
 jobs:
