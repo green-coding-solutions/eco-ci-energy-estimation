@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Initialize Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: start-measurement
 
@@ -50,7 +50,7 @@ jobs:
           submodules: 'true'
 
       - name: Checkout Repo Measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: get-measurement
           label: 'repo checkout'
@@ -67,7 +67,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup Python Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: get-measurement
           label: 'python setup'
@@ -78,13 +78,13 @@ jobs:
           pytest
 
       - name: Tests measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: get-measurement
           label: 'pytest'
 
       - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: display-results
 ```
@@ -95,7 +95,7 @@ We recommend running our action with `continue-on-error:true`, as it is not crit
 
 ```yaml
       - name: Eco CI Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: final-measurement
         continue-on-error: true
@@ -107,14 +107,14 @@ If you do not wish to send data, call the `get-measurement` and `display-results
 
 ```yaml
       - name: Tests measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: get-measurement
           label: 'pytest'
           send-data: false
 
       - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: 
           
@@ -138,7 +138,7 @@ Here is an example demonstrating how this can be achieved:
           submodules: 'true'
 
       - name: Checkout Repo Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         id: checkout-step
         with:
           task: get-measurement
@@ -149,7 +149,7 @@ Here is an example demonstrating how this can be achieved:
           echo "total json: ${{ steps.checkout-step.outputs.data-lap-json }}"      
       
       - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         id: total-measurement-step
         with:
           task: display-results
@@ -165,13 +165,13 @@ Note that the steps you want to consume the measurements of need to have an `id`
 Make sure to run both the `start-measurement` and `display-results` step with `display-graph` set to false
 ```yaml
       - name: Initialize Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: start-measurement
           display-graph: false
 
       - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: display-results
           display-graph: false
@@ -187,7 +187,7 @@ jobs:
       actions: read
     steps:
       - name: Eco CI - Initialize
-        uses: green-coding-berlin/eco-ci-energy-estimation@main
+        uses: green-coding-berlin/eco-ci-energy-estimation@v1
         with:
           task: start-measurement
  ```  
@@ -203,6 +203,6 @@ However, in Javascript Actions it is not possible to easily use the Github Actio
 
 Since copying, adapting and maintaining that code was no option we resorted to using the composite Github Action as an alternative.
 
-Here we have to call the Action three times: `start-measurement`, `get-measurement`, `final-measurement`
+Here we have to call the Action three times: `start-measurement`, `get-measurement`, `display-results`
 
 This however also gives us the benefit of making a "lap" and stopping and restarting a measurement with an intermediate metrics output.
