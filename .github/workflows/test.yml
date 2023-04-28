@@ -20,7 +20,7 @@ jobs:
   test-action:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3
+      - uses: actions/checkout@v3
       
       - name: Initialize Energy Estimation
         uses: ./
