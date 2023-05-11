@@ -38,7 +38,7 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - id: gaurd
+    - id: guard
       if: inputs.task != 'start-measurement' && inputs.task != 'get-measurement' && inputs.task != 'display-results'
       shell: bash
       run: |
