@@ -209,8 +209,9 @@ runs:
                 value=$total_energy
                 value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
                 unit="mJ"
+                eco_ci_model_name=$(echo $ECO_CI_MODEL_NAME | jq -Rr @uri)
 
-                curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"$ECO_CI_WORKFLOW_ID\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\"}"
+                curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"cpu\":\"$eco_ci_model_name\",\"commit_hash\":\"${{ github.sha }}\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"$ECO_CI_WORKFLOW_ID\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\"}"
             fi
 
             # write data to output
