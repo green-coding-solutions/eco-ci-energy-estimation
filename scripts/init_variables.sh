@@ -32,7 +32,7 @@ elif [[ "$model_name" == *"8370C"* ]]; then
 
 elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
     echo "Found E5-2673 v4 model"
-    echo "ECO_CI_MODEL_NAME='E5-2673'" >> $GITHUB_ENV
+    echo "ECO_CI_MODEL_NAME=E5-2673" >> $GITHUB_ENV
 
     echo "ECO_CI_TDP=165" >> $GITHUB_ENV;
     echo "ECO_CI_CPU_THREADS=52" >> $GITHUB_ENV;
