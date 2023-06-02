@@ -1,0 +1,32 @@
+name: Update Tag
+run-name: Update ${{ github.event.inputs.tag }} tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        type: choice
+        description: The tag to update
+        required: true
+        options:
+          - v1
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Git config
+      run: |
+        git config user.name eco-ci
+        git config user.email eco-ci@green-coding.berlin
+
+    - name: Update tag
+      run: |
+        git pull origin --tags
+        git tag -d ${{ github.event.inputs.tag }}
+        git tag ${{ github.event.inputs.tag }}
+        git push origin --tags --force
