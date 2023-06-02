@@ -44,6 +44,7 @@ runs:
       run: |
           echo 'Please call the Eco-CI Energy Estimation with a valid task name: start-measurement, get-measurement, or display-results' >> $GITHUB_STEP_SUMMARY
           echo "Eco-CI task was called with ${{inputs.task}} instead" >> $GITHUB_STEP_SUMMARY
+          fail('Invalid task name specified')
 
     - id: initialize
       if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
