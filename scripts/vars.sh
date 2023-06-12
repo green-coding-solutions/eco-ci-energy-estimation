@@ -122,7 +122,7 @@ function cpu_vars_fill {
     # double check these values with someone 
     elif [[ "$model_name" == *"AMD EPYC 7B12"* ]]; then
         echo "Found EPYC 7B12 model"
-        add_var "MODEL_NAME" "8171M";
+        add_var "MODEL_NAME" "EPYC_7B12";
 
         add_var "TDP" 240;
         add_var "CPU_THREADS" 64;
