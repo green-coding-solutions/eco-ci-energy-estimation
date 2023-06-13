@@ -111,7 +111,7 @@ runs:
       name: Running estimation model
       shell: bash
       run: |
-        ${{github.action_path}}/scripts/make_measurement.sh -l "${{inputs.label}}" -r "${{ github.run_id }}" -b "${{inputs.branch}}" -R "${{ github.repository }}" -c ${{ github.sha }} -sd ${{inputs.send-data}}
+        ${{github.action_path}}/scripts/make_measurement.sh -l "${{inputs.label}}" -r "${{ github.run_id }}" -b "${{inputs.branch}}" -R "${{ github.repository }}" -c ${{ github.sha }} -sd ${{inputs.send-data}} -s "github"
         lap_data_file="/tmp/eco-ci/lap-data.json"
         echo "data-lap-json=$(cat $lap_data_file)" >> $GITHUB_OUTPUT
 

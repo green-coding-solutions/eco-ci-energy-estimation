@@ -5,7 +5,6 @@ source "$(dirname "$0")/vars.sh" read_vars
 
 function make_measurement() {
     # check wc -l of cpu-util is greater than 0
-    echo "DMM: DEBUG: checking cpu-util.txt"
     echo $(cat /tmp/eco-ci/cpu-util.txt)
     if [[ $(wc -l < /tmp/eco-ci/cpu-util.txt) -gt 0 ]]; then
         # first activate our venv
@@ -64,7 +63,7 @@ function make_measurement() {
             unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
 
-            curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"cpu\":\"$model_name_uri\",\"commit_hash\":\"${commit_hash}\",\"repo\":\"${repo}\",\"branch\":\"${branch}\",\"workflow\":\"$WORKFLOW_ID\",\"run_id\":\"${run_id}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\",\"duration\":\"$time\"}"
+            curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"cpu\":\"$model_name_uri\",\"commit_hash\":\"${commit_hash}\",\"repo\":\"${repo}\",\"branch\":\"${branch}\",\"workflow\":\"$WORKFLOW_ID\",\"run_id\":\"${run_id}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"$source\",\"duration\":\"$time\"}"
         fi
 
         # write data to output
@@ -112,7 +111,12 @@ while [[ $# -gt 0 ]]; do
         send_data="$2"
         shift
         ;;
-        \?) echo "Invalid option -$OPTARG" >&2
+        -s|--source)
+        source="$2"
+        shift
+        ;;
+        \?) 
+        echo "Invalid option -$OPTARG" >&2
         ;;
     esac
     shift
