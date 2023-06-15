@@ -10,7 +10,7 @@ cache:
             if [[ -d /tmp/eco-ci ]]; then
                 rm -rf /tmp/eco-ci
             fi
-            git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/eco-ci-energy-estimation /tmp/eco-ci/main
+            git clone --depth 1 --single-branch --branch 318-refactor-standalone-scripts https://github.com/green-coding-berlin/eco-ci-energy-estimation /tmp/eco-ci/main
             /tmp/eco-ci/main/scripts/setup.sh initialize -r false -g false
             /tmp/eco-ci/main/scripts/setup.sh setup_python
       
