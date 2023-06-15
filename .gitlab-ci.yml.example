@@ -1,0 +1,25 @@
+image: ubuntu:22.04
+include:
+  remote: 'https://raw.githubusercontent.com/green-coding-berlin/eco-ci-energy-estimation/318-refactor-standalone-scripts/eco-ci-gitlab.yml'
+
+stages:
+  - test
+
+test-job:
+  stage: test
+  script:
+    - export ECO_CI_SEND_DATA=true
+    - !reference [.initialize_energy_estimator, script]
+    - !reference [.start_measurement, script]
+    - sleep 10s # Your main pipeline logic here
+    - export ECO_CI_LABEL="measurement 1"
+    - !reference [.get_measurement, script]
+    - sleep 3s # more of your pipeline logic here
+    - export ECO_CI_LABEL="measurement 2"
+    - !reference [.get_measurement, script]
+    - !reference [.display_results, script]
+
+  artifacts:
+    paths:
+      - eco-ci-output.txt
+      - eco-ci-total-data.json
