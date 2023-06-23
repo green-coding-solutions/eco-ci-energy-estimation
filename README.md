@@ -1,30 +1,15 @@
-# eco-ci-energy-estimation
-Eco CI Energy estimation for Github Actions Runner VMs
+# Eco-CI
+
+Eco-CI is a project aimed at estimating energy consumption in continuous integration (CI) environments. It provides functionality to calculate the energy consumption of CI jobs based on the power consumption characteristics of the underlying hardware.
 
 ## Usage
 
-When you use the eco-ci energy estimator, you must call it with one of three tasks: `start-measurement`, `get-measurement`, `display-results`. Call `start-measurement` once to initialize the action, `get-measurement` at each point you want to make a spot measurement, and `display-results` at the end send output to your GITHUB_STEP_SUMMARY. 
+Eco-CI supports both GitHub and GitLab as CI platforms. When you integrate it into your pipeline, you must call the start-measurement script to begin collecting power consumption data, then call the get-measurement script each time you wish to make a spot measurement. When you call get-measurment, you can also assign a label to it to more easily identify the measurement. At the end, call the display-results to see all the measurement results, overall total usage, and export the data. 
 
-### Detailed information on the tasks:
-- `start-measurement` - Initialize the action starts the measurement. This must be called, and only once per job.
-    - We use an ascii charting library written in go (https://github.com/guptarohit/asciigraph). For github hosted runners their images come with go so we do not install it. If you are using a private runner instance however, your machine may not have go installed, and this will not work. As we want to minimize what we install on private runner machines to not intefere with your setup, we will not install go. Therefore, you will need to call this step with the `display-graph` flag set to false, and that will skip the installation of this go library.
-- `get-measurement` - Measures the energy at this point in time since either the start-measurement or last get-measurement action call. 
-    - This can optionally take a 'label' parameter that will be used as a label for the measurement
-    - It also optionally takes a 'branch' parameter. This uses the `{{ github.ref_name }}` by default to identify the exact workflow run this energy measurement belongs to, but in case your CI runs against a different branch than what {{ github.ref_name }} gives you, you can set it here.
-    - We send data to our servers in order to build a page to display your energy usage over time at metrics.green-coding.berlin. If you do not wish to send any data over, you can call this step with an optional flag:
-    `send-data:false`
-    - The measurement of this task is provided as output `data-lap-json` in json format (see example below).
-- `display-results` - Outputs the energy results to the`$GITHUB_STEP_SUMMARY`. Creates a table that shows the energy results of all the get-measurements, and then a final row for the entire run. Displays the avergae cpu utilization, the total Joules used, and average wattage for each measurment+total run. It will also display a graph of the energy used, and a badge for you to display.
-    - This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge.
-    - this task also optionally takes the branch and label parameters.
-    - creating the badge requires sending the energy data to our api. If you do not wish to send any data, call this step with the `send-data: false` flag as well.
-    - The total measurement of this task is provided as output `data-total-json` in json format (see example below).
-    - We also provide a few optional flags to minimize the output to your github_step_summary if you so desire (each of these are true by default:
-        - `display-table` - set to false to not display the results table
-        - `display-graph` - set to false to not display the energy usage over time graph
-        - `display-badge` - set to false to not display the badge info and link
+Follow the instructions below to integrate Eco-CI into your CI pipeline:
 
-Here is a sample workflow that runs some python tests.
+### Github:
+To use Eco-CI in your github workflow, call it with the relevant task name (start-measurement, get-measurement, or display-results). Here is a sample workflow that runs some python tests with eco-ci integrated.
 
 ```yaml
 name: Daily Tests with Energy Measurement
@@ -32,7 +17,6 @@ run-name: Scheduled - DEV Branch
 on:
   schedule:
     - cron: '0 0 * * *'
-  workflow_dispatch:
 
 jobs:
   run-tests:
@@ -89,7 +73,29 @@ jobs:
           task: display-results
 ```
 
-### Continuing on Errors
+#### Github Action Mandatory and Optional Variables:
+- task: (required) (options are `start-measurement`, `get-measurement`, `display-results`)
+    - `start-measurement` - Initialize the action starts the measurement. This must be called, and only once per job.
+    - `get-measurement` - Measures the energy at this point in time since either the start-measurement or last get-measurement action call. 
+    - `display-results` - Outputs the energy results to the`$GITHUB_STEP_SUMMARY`. Creates a table that shows the energy results of all the get-measurements, and then a final row for the entire run. Displays the avergae cpu utilization, the total Joules used, and average wattage for each measurment+total run. It will also display a graph of the energy used, and a badge for you to display.
+        - This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge.
+        - The total measurement of this task is provided as output `data-total-json` in json format (see example below).
+- branch: (optional) (default: ${{ github.ref_name }})
+    - Used with `get_measurement` and `display_results` to correctly identify this CI run for the Badge. 
+- label: (optional) (default: 'measurement ##')
+    - Used with `get_measurement` and `display_results` to identify the measurement
+- send-data: (optional) (default: true)
+    - Send metrics data to metrics.green-coding.berlin to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (github or gitlab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
+- display-table: (optional) (default: true)
+    - call during the `display-graph` step to either show/hide the energy reading table results in the output
+- display-graph: (optional) (default: true)
+    - We use an ascii charting library written in go (https://github.com/guptarohit/asciigraph). For github hosted runners their images come with go so we do not install it. If you are using a private runner instance however, your machine may not have go installed, and this will not work. As we want to minimize what we install on private runner machines to not intefere with your setup, we will not install go. Therefore, you will need to call `start-measurement` with the `display-graph` flag set to false, and that will skip the installation of this go library.
+- display-badge: (optional) (default: true)
+    - used with display-results
+    - Shows the badge for the ci run during display-results step
+    - automatically false if send-data is also false
+
+#### Continuing on Errors
 
 We recommend running our action with `continue-on-error:true`, as it is not critical to the success of your workflow, but rather a nice feature to have.
 
@@ -101,29 +107,7 @@ We recommend running our action with `continue-on-error:true`, as it is not crit
         continue-on-error: true
 ```
 
-### Opt-out from Sending Measurement Data
-
-If you do not wish to send data, call the `get-measurement` and `display-results` steps with `send-data: false`
-
-```yaml
-      - name: Tests measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
-        with:
-          task: get-measurement
-          label: 'pytest'
-          send-data: false
-
-      - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
-        with:
-          task: 
-          
-          
-          
-          send-data: false
-```
-
-### Consuming the Measurements as JSON
+#### Consuming the Measurements as JSON
 
 For both tasks `get-measurement` and `display-results` the lap measurements and total measurement can be consumed in JSON format.
 You can use the outputs `data-lap-json` or `data-total-json` respectively.
@@ -161,23 +145,7 @@ Here is an example demonstrating how this can be achieved:
 
 Note that the steps you want to consume the measurements of need to have an `id` so that you can access the corresponding data from their outputs.
 
-### If running on a private repo without go isntalled
-Make sure to run both the `start-measurement` and `display-results` step with `display-graph` set to false
-```yaml
-      - name: Initialize Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
-        with:
-          task: start-measurement
-          display-graph: false
-
-      - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
-        with:
-          task: display-results
-          display-graph: false
-```
-
-## Note on private repos
+#### Note on private repos
  If you are running in a private repo, you must give your job actions read permissions for the github token. This  is because we make an api call to get your workflow_id which uses your `$GITHUB_TOKEN`, and it needs the correct permissions to do so:
  ```yaml
 jobs:
@@ -192,17 +160,76 @@ jobs:
           task: start-measurement
  ```  
 
-## Design decisions for the energy estimation action
-The goal of this action is to empower Github Action users to estimate the energy of the Github hosted runner VMs in an easy fashion with minimal integration overhead into existing workflows.
+### Gitlab:
+To use Eco-CI in your gitlab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
+```
+include:
+  remote: 'https://github.com/green-coding-berlin/eco-ci-energy-estimation/blob/318-refactor-standalone-scripts/eco-ci-gitlab.yml'
+```
 
-The initial idea was to use the Javascript Actions of Github Actions that have a nice callback mechanism through their main and post action.
+and you call the various scripts in your pipeline with call like this:
+- !reference [.<function-name>, script]
 
-main would initialize the estimation model and then start the measurement. Once the workflow run completes the metrics are outputted to the `$GITHUB_STEP_SUMMARY`.
+where function name is one of the following:
+`initialize_energy_estimator` - used to setup the machine for measurement. Needs to be called once per VM job.
+`start_measurement` - begin the measurment
+`get_measurement` - make a spot measurment here. If you wish to label the measurement, you need to set the ECO_CI_LABEL environment variable right before this call.
+`display_results` - will print all the measurement values to the jobs-output and prepare the artifacts, which must be exported in the normal gitlab way.
 
-However, in Javascript Actions it is not possible to easily use the Github Actions cache. An example how github does it in its own actions can be seen here ... which is brutal to say the least. (To be fair, there seems to be a simpler method available, but we could not find any good documentation on it: https://snyk.io/advisor/npm-package/@actions/cache/functions/@actions%2Fcache.restoreCache)
+You also need to export the ECO_CI_SEND_DATA variable to either true or false, depending on if you wish to send data to our API, which will allow us to present you with a badge, and our front-end to show your resutls. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (github or gitlab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
 
-Since copying, adapting and maintaining that code was no option we resorted to using the composite Github Action as an alternative.
+Then, for each job you need to export the artifacts:
 
-Here we have to call the Action three times: `start-measurement`, `get-measurement`, `display-results`
+```
+artifacts:
+    paths:
+      - eco-ci-output.txt
+      - eco-ci-total-data.json
+```
 
-This however also gives us the benefit of making a "lap" and stopping and restarting a measurement with an intermediate metrics output.
+Here is a sample .gitlab-ci.yml example file to illustrate:
+
+```
+image: ubuntu:22.04
+include:
+  remote: 'https://github.com/green-coding-berlin/eco-ci-energy-estimation/blob/318-refactor-standalone-scripts/eco-ci-gitlab.yml'
+
+stages:
+  - test
+
+test-job:
+  stage: test
+  script:
+    - export ECO_CI_SEND_DATA=true
+    - !reference [.initialize_energy_estimator, script]
+    - !reference [.start_measurement, script]
+
+    - sleep 10s # Your main pipeline logic here
+    - export ECO_CI_LABEL="measurement 1"
+    - !reference [.get_measurement, script]
+
+    - sleep 3s # more of your pipeline logic here
+    - export ECO_CI_LABEL="measurement 2"
+    - !reference [.get_measurement, script]
+
+    - !reference [.display_results, script]
+
+  artifacts:
+    paths:
+      - eco-ci-output.txt
+      - eco-ci-total-data.json
+  ```
+
+
+### How does it work?
+- The Eco-CI at its core makes its energy estimations based on an XGBoost Machine Learning model we have created based on the SpecPower database. The model and further information can be found here: https://github.com/green-coding-berlin/spec-power-model
+- When you initialize the Eco-CI, it downloads the XGBoost model onto the machine, as well as a small program to track the cpu utilization over a period of time. This tracking begins when you call the start_measurement function. Then, each time you call get-measurement, it will take the cpu-utilization data collected (either from the start, or since the last get-measurement call) and make an energy estimation based on the detected hardware (mainly cpu data) and utilization.
+
+### Limitations
+- At the moment this will only work with linux based pipelines, mainly tested on ubuntu images.
+
+- If you have your pipelines split over multiple VM's (often the case with many jobs) ,you have to treat each VM as a seperate machine for the purposes of measuring and setting up Eco-CI.
+
+- The XGBoost model requires the CPU to have a fixed frequency setting. This is typical for cloud testing, but not always the case. 
+
+- The XGBoost model data is trained via the SpecPower database, which was mostly collected on compute machines. Results will be off for non big cloud servers and also for machines that are memory heavy or machines which rely more heavily on their GPU's for computations.

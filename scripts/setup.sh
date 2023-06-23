@@ -18,10 +18,8 @@ function initialize {
     # install go ascii
     
     if [[ $install_go == true ]]; then
-        echo "DMM: DEBUG: installing go"
         go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
         ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph)
-        echo "DMM: DEBUG: asciigraph location: $ascii_graph_path"
     fi
 
     # check for gcc

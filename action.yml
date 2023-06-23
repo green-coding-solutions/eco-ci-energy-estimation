@@ -52,7 +52,7 @@ runs:
       shell: bash
       run: |
         # call the initialize function of setup.sh
-        ${{github.action_path}}/scripts/setup.sh initialize
+        ${{github.action_path}}/scripts/setup.sh initialize -g ${{inputs.display-graph}}
 
       # To identify the hash for our cache we cannot use the classic mechansim of
       # hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt')
