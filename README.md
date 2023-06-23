@@ -74,23 +74,23 @@ jobs:
 ```
 
 #### Github Action Mandatory and Optional Variables:
-- task: (required) (options are `start-measurement`, `get-measurement`, `display-results`)
+- `task`: (required) (options are `start-measurement`, `get-measurement`, `display-results`)
     - `start-measurement` - Initialize the action starts the measurement. This must be called, and only once per job.
     - `get-measurement` - Measures the energy at this point in time since either the start-measurement or last get-measurement action call. 
     - `display-results` - Outputs the energy results to the`$GITHUB_STEP_SUMMARY`. Creates a table that shows the energy results of all the get-measurements, and then a final row for the entire run. Displays the avergae cpu utilization, the total Joules used, and average wattage for each measurment+total run. It will also display a graph of the energy used, and a badge for you to display.
         - This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge.
         - The total measurement of this task is provided as output `data-total-json` in json format (see example below).
-- branch: (optional) (default: ${{ github.ref_name }})
+- `branch`: (optional) (default: ${{ github.ref_name }})
     - Used with `get_measurement` and `display_results` to correctly identify this CI run for the Badge. 
-- label: (optional) (default: 'measurement ##')
+- `label`: (optional) (default: 'measurement ##')
     - Used with `get_measurement` and `display_results` to identify the measurement
-- send-data: (optional) (default: true)
+- `send-data`: (optional) (default: true)
     - Send metrics data to metrics.green-coding.berlin to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (github or gitlab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
-- display-table: (optional) (default: true)
+- `display-table`: (optional) (default: true)
     - call during the `display-graph` step to either show/hide the energy reading table results in the output
-- display-graph: (optional) (default: true)
+- `display-graph`: (optional) (default: true)
     - We use an ascii charting library written in go (https://github.com/guptarohit/asciigraph). For github hosted runners their images come with go so we do not install it. If you are using a private runner instance however, your machine may not have go installed, and this will not work. As we want to minimize what we install on private runner machines to not intefere with your setup, we will not install go. Therefore, you will need to call `start-measurement` with the `display-graph` flag set to false, and that will skip the installation of this go library.
-- display-badge: (optional) (default: true)
+- `display-badge`: (optional) (default: true)
     - used with display-results
     - Shows the badge for the ci run during display-results step
     - automatically false if send-data is also false
@@ -168,8 +168,9 @@ include:
 ```
 
 and you call the various scripts in your pipeline with call like this:
+```
 - !reference [.<function-name>, script]
-
+```
 where function name is one of the following:
 `initialize_energy_estimator` - used to setup the machine for measurement. Needs to be called once per VM job.
 `start_measurement` - begin the measurment
