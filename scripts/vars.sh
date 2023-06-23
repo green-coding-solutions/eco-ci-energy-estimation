@@ -56,7 +56,7 @@ function cpu_vars_fill {
         add_var "CPU_CORES" 26;
         add_var "CPU_MAKE" "intel";
         add_var "RELEASE_YEAR" 2019;
-        add_var "RAM" 7;
+        add_var "RAM" 182;
         add_var "CPU_FREQ" 2600;
         add_var "CPU_CHIPS" 1;
         add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
@@ -70,7 +70,7 @@ function cpu_vars_fill {
         add_var "CPU_CORES" 32;
         add_var "CPU_MAKE" "intel";
         add_var "RELEASE_YEAR" 2021;
-        add_var "RAM" 7;
+        add_var "RAM" 224;
         add_var "CPU_FREQ" 2800;
         add_var "CPU_CHIPS" 1;
         add_var "VHOST_RATIO" $(echo "2/64" | bc -l);
@@ -84,7 +84,7 @@ function cpu_vars_fill {
         add_var "CPU_CORES" 26;
         add_var "CPU_MAKE" "intel";
         add_var "RELEASE_YEAR" 2018;
-        add_var "RAM" 7;
+        add_var "RAM" 182;
         add_var "CPU_FREQ" 2300;
         add_var "CPU_CHIPS" 1;
         add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
@@ -98,7 +98,7 @@ function cpu_vars_fill {
         add_var "CPU_CORES" 12;
         add_var "CPU_MAKE" "intel";
         add_var "RELEASE_YEAR" 2015;
-        add_var "RAM" 7;
+        add_var "RAM" 84;
         add_var "CPU_FREQ" 2400;
         add_var "CPU_CHIPS" 1;
         add_var "VHOST_RATIO" $(echo "2/24" | bc -l);
@@ -113,7 +113,7 @@ function cpu_vars_fill {
         add_var "CPU_CORES" 26;
         add_var "CPU_MAKE" "intel";
         add_var "RELEASE_YEAR" 2018;
-        add_var "RAM" 7;
+        add_var "RAM" 182;
         add_var "CPU_FREQ" 2600;
         add_var "CPU_CHIPS" 1;
         add_var "VHOST_RATIO" $(echo "2/52" | bc -l);    
@@ -129,7 +129,7 @@ function cpu_vars_fill {
         add_var "CPU_CORES" 64;
         add_var "CPU_MAKE" "amd";
         add_var "RELEASE_YEAR" 2021;
-        add_var "RAM" 8;
+        add_var "RAM" 512;
         add_var "CPU_FREQ" 2250;
         add_var "CPU_CHIPS" 1; # see if we can find reference for this
         add_var "VHOST_RATIO" $(echo "1/64" | bc -l);
