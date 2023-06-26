@@ -95,9 +95,12 @@ function display_results {
             cat /tmp/eco-ci/energy-total.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $output
         fi
     fi
-
+    echo "DMM: repo: ${repo}"
     repo_enc=$( echo ${repo} | jq -Rr @uri)
+    echo "DMM: repo enc: ${repo_enc}"
+    echo "DMM: branch: ${branch}"
     branch_enc=$( echo ${branch} | jq -Rr @uri)
+    echo "DMM: branch_enc: ${branch_enc}"
 
     if [[ ${send_data} == 'true' && ${display_badge} == 'true' ]]; then
         get_endpoint=$API_BASE"/v1/ci/measurement/get"
@@ -114,7 +117,9 @@ function display_results {
 
     # write data to output
     total_data_file="/tmp/eco-ci/total-data.json"
+    echo "DMM: run_id: ${run_id}"
     run_id_enc=$( echo ${run_id} | jq -Rr @uri)
+    echo "DMM: run_id_enc: ${run_id_enc}"
     source "$(dirname "$0")/create-and-add-meta.sh" --file ${total_data_file} --repository ${repo_enc} --branch ${branch_enc} --workflow $WORKFLOW_ID --run_id ${run_id_enc}
     source "$(dirname "$0")/add-data.sh" --file ${total_data_file} --label "TOTAL" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
 
