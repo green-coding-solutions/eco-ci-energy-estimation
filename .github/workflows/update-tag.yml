@@ -9,6 +9,7 @@ on:
         description: The tag to update
         required: true
         options:
+          - v2
           - v1
 
 jobs:
