@@ -164,7 +164,7 @@ jobs:
 To use Eco-CI in your gitlab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
 ```
 include:
-  remote: 'https://github.com/green-coding-berlin/eco-ci-energy-estimation/blob/318-refactor-standalone-scripts/eco-ci-gitlab.yml'
+  remote: 'https://github.com/green-coding-berlin/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml'
 ```
 
 and you call the various scripts in your pipeline with call like this:
@@ -177,7 +177,14 @@ where function name is one of the following:
 `get_measurement` - make a spot measurment here. If you wish to label the measurement, you need to set the ECO_CI_LABEL environment variable right before this call.
 `display_results` - will print all the measurement values to the jobs-output and prepare the artifacts, which must be exported in the normal gitlab way.
 
-You also need to export the ECO_CI_SEND_DATA variable to either true or false, depending on if you wish to send data to our API, which will allow us to present you with a badge, and our front-end to show your resutls. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (github or gitlab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
+By default, we send data to our API, which will allow us to present you with a badge, and a front-end display to review your results. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (github or gitlab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
+
+If you do not wish to send us data, you can set this global variable in your pipeline:
+
+```
+variables:
+  ECO_CI_SEND_DATA: "false"
+```
 
 Then, for each job you need to export the artifacts:
 
@@ -193,7 +200,7 @@ Here is a sample .gitlab-ci.yml example file to illustrate:
 ```
 image: ubuntu:22.04
 include:
-  remote: 'https://github.com/green-coding-berlin/eco-ci-energy-estimation/blob/318-refactor-standalone-scripts/eco-ci-gitlab.yml'
+  remote: 'https://github.com/green-coding-berlin/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml'
 
 stages:
   - test
@@ -201,7 +208,6 @@ stages:
 test-job:
   stage: test
   script:
-    - export ECO_CI_SEND_DATA=true
     - !reference [.initialize_energy_estimator, script]
     - !reference [.start_measurement, script]
 
@@ -218,7 +224,6 @@ test-job:
   artifacts:
     paths:
       - eco-ci-output.txt
-      - eco-ci-total-data.json
   ```
 
 

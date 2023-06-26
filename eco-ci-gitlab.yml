@@ -2,6 +2,16 @@ cache:
     paths:
         - /tmp/eco-ci/venv/
 
+variables:
+  ECO_CI_SEND_DATA: "true"
+  ECO_CI_DISPLAY_BADGE: "true" # true
+  ECO_CI_DISPLAY_TABLE: "true" # true
+  ECO_CI_DISPLAY_GRAPH: "false" # false
+
+cache:
+    paths:
+        - /tmp/eco-ci/venv/
+
 .initialize_energy_estimator:
     script:
         - |
@@ -10,7 +20,7 @@ cache:
             if [[ -d /tmp/eco-ci ]]; then
                 rm -rf /tmp/eco-ci
             fi
-            git clone --depth 1 --single-branch --branch 318-refactor-standalone-scripts https://github.com/green-coding-berlin/eco-ci-energy-estimation /tmp/eco-ci/main
+            git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/eco-ci-energy-estimation /tmp/eco-ci/main
             /tmp/eco-ci/main/scripts/setup.sh initialize -r false -g false
             /tmp/eco-ci/main/scripts/setup.sh setup_python
       
@@ -33,10 +43,7 @@ cache:
         - echo 'running eco-ci display script'
         - |
             FORMAT_CLR="\e[44m" && TXT_CLEAR="\e[0m"
-            display_badge=true
-            display_table=true
-            display_graph=false
             repo=$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
-            /tmp/eco-ci/main/scripts/display_results.sh -b $CI_COMMIT_REF_NAME -db $display_badge -r $CI_PIPELINE_ID -R $repo -dt $display_table -dg $display_graph -sd $ECO_CI_SEND_DATA -s "gitlab"
+            /tmp/eco-ci/main/scripts/display_results.sh -b $CI_COMMIT_REF_NAME -db $ECO_CI_DISPLAY_BADGE -r $CI_PIPELINE_ID -R $repo -dt $ECO_CI_DISPLAY_TABLE -dg $ECO_CI_DISPLAY_GRAPH -sd $ECO_CI_SEND_DATA -s "gitlab"
         - echo -e "$FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$TXT_CLEAR"
         - cp /tmp/eco-ci/output.txt ./eco-ci-output.txt
