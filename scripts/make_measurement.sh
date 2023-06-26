@@ -7,7 +7,12 @@ function make_measurement() {
     # check wc -l of cpu-util is greater than 0
     echo $(cat /tmp/eco-ci/cpu-util.txt)
     if [[ $(wc -l < /tmp/eco-ci/cpu-util.txt) -gt 0 ]]; then
-        # first activate our venv
+        # if a previous venv is already active,
+        if type deactivate &>/dev/null
+        then
+           deactivate
+        fi
+        # then activate our venv
         source /tmp/eco-ci/venv/bin/activate
 
         ## make a note that we cannot use --energy, skew the result as we do not have an input delay.
@@ -23,6 +28,8 @@ function make_measurement() {
             --vhost-ratio $VHOST_RATIO --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         fi
 
+        # now reset to old venv
+        deactivate 
         # reactivate the old venv, if it was present
         if [[ $PREVIOUS_VENV != '' ]]; then
           source $PREVIOUS_VENV/bin/activate
