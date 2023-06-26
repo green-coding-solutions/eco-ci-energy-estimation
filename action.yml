@@ -48,34 +48,11 @@ runs:
 
     - id: initialize
       if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
-      name: Clone the repo for the XGBoost estimation model
+      name: Setup
       shell: bash
       run: |
-        if [[ -d /tmp/eco-ci ]]; then
-          rm -rf /tmp/eco-ci
-        fi
-        mkdir /tmp/eco-ci
-        git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
-
-    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE' && inputs.display-graph == 'true'
-      name: Install go asciigraph
-      shell: bash
-      run: go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
-
-    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
-      name: Compiling reporter
-      shell: bash
-      run: gcc /tmp/eco-ci/spec-power-model/demo-reporter/cpu-utilization.c -o /tmp/eco-ci/demo-reporter
-
-    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
-      name: Create a venv, and backup old
-      shell: bash
-      run: |
-        python3.10 -m venv /tmp/eco-ci/venv
-        export ECO_CI_PREVIOUS_VENV=''
-        if [[ $VIRTUAL_ENV == '' ]]; then
-          export ECO_CI_PREVIOUS_VENV=$VIRTUAL_ENV
-        fi
+        # call the initialize function of setup.sh
+        ${{github.action_path}}/scripts/setup.sh initialize -g ${{inputs.display-graph}}
 
       # To identify the hash for our cache we cannot use the classic mechansim of
       # hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt')
@@ -114,32 +91,6 @@ runs:
       run: |
         echo "Cache hit failed! ❌"
 
-    # this step will just be skipped by pip if packages are copied in from cache
-    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
-      name: Installing requirements
-      shell: bash
-      run: |
-        # first activate our venv
-        source /tmp/eco-ci/venv/bin/activate
-        python3.10 -m pip install -r /tmp/eco-ci/spec-power-model/requirements.txt
-        # now reset to old venv
-        deactivate our venv
-        # reactivate the old one, if it was present
-        if [[ $ECO_CI_PREVIOUS_VENV != '' ]]; then
-          source $ECO_CI_PREVIOUS_VENV/bin/activate
-        fi
-
-    - if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
-      name: init variables
-      shell: bash
-      run: |
-        curl_response=$(curl -s -H "Authorization: Bearer ${{github.token}}" ${{ github.api_url }}/repos/${{ github.repository }}/actions/workflows)
-        workflow_id=$(echo $curl_response | jq '.workflows[] | select(.name == "${{ github.workflow }}") | .id')
-        echo "ECO_CI_WORKFLOW_ID=$workflow_id" >> $GITHUB_ENV
-
-        ${{github.action_path}}/scripts/init_variables.sh
-        echo "ECO_CI_API_BASE=https://api.green-coding.berlin" >> $GITHUB_ENV
-        echo "ECO_CI_INIT=DONE" >> $GITHUB_ENV;
 
     - if:  inputs.task == 'start-measurement'
       name: Starting measurement
@@ -147,11 +98,12 @@ runs:
       # if measurement is started first time the reporter might not have run already
       # we prefer this over manual startint / stopping as it is less error prone for users
       run: |
-        killall -9 -q /tmp/eco-ci/demo-reporter || true
-        /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util.txt &
-        # start a timer
-        date +%s > /tmp/eco-ci/timer.txt
-        date +%s > /tmp/eco-ci/timer-total.txt
+        ${{github.action_path}}/scripts/setup.sh setup_python
+        curl_response=$(curl -s -H "Authorization: Bearer ${{github.token}}" ${{ github.api_url }}/repos/${{ github.repository }}/actions/workflows)
+        workflow_id=$(echo $curl_response | jq '.workflows[] | select(.name == "${{ github.workflow }}") | .id')
+        ${{github.action_path}}/scripts/vars.sh add_var "WORKFLOW_ID" $workflow_id
+        ${{github.action_path}}/scripts/setup.sh start_measurement
+        echo "ECO_CI_INIT=DONE" >> $GITHUB_ENV;
 
 
     - if:  inputs.task == 'get-measurement'
@@ -159,146 +111,16 @@ runs:
       name: Running estimation model
       shell: bash
       run: |
-        # check wc -l of cpu-util is greater than 0
-        if [[ $(wc -l < /tmp/eco-ci/cpu-util.txt) -gt 0 ]]; then
-            # first activate our venv
-            source /tmp/eco-ci/venv/bin/activate
-
-            ## make a note that we cannot use --energy, skew the result as we do not have an input delay.
-            # this works because demo-reporter is 1/second
-            if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
-                cat /tmp/eco-ci/cpu-util.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
-            else
-                cat /tmp/eco-ci/cpu-util.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-                --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
-                --cpu-cores $ECO_CI_CPU_CORES --cpu-make $ECO_CI_CPU_MAKE \
-                --release-year $ECO_CI_RELEASE_YEAR --ram $ECO_CI_RAM \
-                --cpu-freq $ECO_CI_CPU_FREQ --cpu-chips $ECO_CI_CPU_CHIPS \
-                --vhost-ratio $ECO_CI_VHOST_RATIO --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
-            fi
-
-            # now reset to old venv
-            # deactivate our venv
-            # reactivate the old one, if it was present
-            if [[ $ECO_CI_PREVIOUS_VENV != '' ]]; then
-              source $ECO_CI_PREVIOUS_VENV/bin/activate
-            fi
-
-            if [[ $GET_MEASUREMENT_COUNT == '' ]]; then
-                export GET_MEASUREMENT_COUNT=1
-            else
-                export GET_MEASUREMENT_COUNT=$((GET_MEASUREMENT_COUNT+1))
-            fi
-
-            label="${{ inputs.label }}"
-            if [[ $label == '' ]]; then
-                label="Measurement #$GET_MEASUREMENT_COUNT"
-            fi
-
-            # this is the time in seconds that the measurement took
-            measurement_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer.txt)))
-
-            cpu_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util.txt)
-            total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt)
-            power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt)
-
-            # Append the information gathered here to an ENV variable string that will form the table to be 
-            # shown during display-results
-            display_line="$ECO_CI_MEASUREMENT_TABLE_LINES|${label}|${cpu_avg}|${total_energy}|${power_avg}|${measurement_time}|"
-            echo "ECO_CI_MEASUREMENT_TABLE_LINES=${display_line}\n" >> $GITHUB_ENV
-
-            echo ${total_energy} >> /tmp/eco-ci/energy-values.txt            
-            echo "ECO_CI_GET_MEASUREMENT_RAN=true" >> $GITHUB_ENV;
-
-            if [[ ${{ inputs.send-data }} == 'true' ]]; then
-                add_endpoint=$ECO_CI_API_BASE"/v1/ci/measurement/add"
-                metrics_url="https://metrics.green-coding.berlin"
-
-                value=$total_energy
-                value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
-                unit="mJ"
-                eco_ci_model_name=$(echo $ECO_CI_MODEL_NAME | jq -Rr @uri)
-
-                curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"cpu\":\"$eco_ci_model_name\",\"commit_hash\":\"${{ github.sha }}\",\"repo\":\"${{ github.repository }}\",\"branch\":\"${{ inputs.branch }}\",\"workflow\":\"$ECO_CI_WORKFLOW_ID\",\"run_id\":\"${{ github.run_id }}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"github\",\"duration\":\"$measurement_time\"}"
-            fi
-
-            # write data to output
-            lap_data_file="/tmp/eco-ci/lap-data.json"
-            repo_enc=$( echo ${{ github.repository }} | jq -Rr @uri)
-            branch_enc=$( echo ${{ inputs.branch }} | jq -Rr @uri)
-            run_id_enc=$( echo ${{ github.run_id }} | jq -Rr @uri)
-            ${{github.action_path}}/scripts/create-and-add-meta.sh --file ${lap_data_file} --repository ${repo_enc} --branch ${branch_enc} --workflow $ECO_CI_WORKFLOW_ID --run_id ${run_id_enc}
-            ${{github.action_path}}/scripts/add-data.sh --file ${lap_data_file} --label "$label" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
-            echo "data-lap-json=$(cat $lap_data_file)" >> $GITHUB_OUTPUT
-
-            killall -9 -q /tmp/eco-ci/demo-reporter || true
-            /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util.txt &
-            date +%s > /tmp/eco-ci/timer.txt
-        else
-            echo "Skipping measurement as no data was collected since last call"
-        fi
+        ${{github.action_path}}/scripts/make_measurement.sh -l "${{inputs.label}}" -r "${{ github.run_id }}" -b "${{inputs.branch}}" -R "${{ github.repository }}" -c ${{ github.sha }} -sd ${{inputs.send-data}} -s "github"
+        lap_data_file="/tmp/eco-ci/lap-data.json"
+        echo "data-lap-json=$(cat $lap_data_file)" >> $GITHUB_OUTPUT
 
     - if: inputs.task == 'display-results'
       name: get estimation for total energy
       id: run-total-model
       shell: bash
       run: |
-        if [[ $ECO_CI_GET_MEASUREMENT_RAN != 'true' ]]; then
-            echo "Running a measurement to have at least one result to display."
-            if [[ "$ECO_CI_MODEL_NAME" == "unknown" ]]; then
-                cat /tmp/eco-ci/cpu-util.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
-            else
-                cat /tmp/eco-ci/cpu-util.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
-                --tdp $ECO_CI_TDP --cpu-threads $ECO_CI_CPU_THREADS \
-                --cpu-cores $ECO_CI_CPU_CORES --cpu-make $ECO_CI_CPU_MAKE \
-                --release-year $ECO_CI_RELEASE_YEAR --ram $ECO_CI_RAM \
-                --cpu-freq $ECO_CI_CPU_FREQ --cpu-chips $ECO_CI_CPU_CHIPS \
-                --vhost-ratio $ECO_CI_VHOST_RATIO --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
-            fi
-        fi
-
-        if [[ ${{ inputs.display-table }} == 'true' ]]; then
-            echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" >> $GITHUB_STEP_SUMMARY
-            echo "|---|---|---|---|---|" >> $GITHUB_STEP_SUMMARY
-
-            cpu_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
-            total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
-            power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy-total.txt)
-
-            # this is the time in seconds that the measurement took
-            measurement_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
-
-            final_line="$ECO_CI_MEASUREMENT_TABLE_LINES|Total Run|${cpu_avg}|${total_energy}|${power_avg}|${measurement_time}|"
-            echo -e "$final_line" >> $GITHUB_STEP_SUMMARY
-            echo '' >> $GITHUB_STEP_SUMMARY
-        fi
-
-        if [[ ${{ inputs.display-graph }} == 'true' ]]; then
-            echo '📈 Energy graph:' >> $GITHUB_STEP_SUMMARY
-            echo '```bash' >> $GITHUB_STEP_SUMMARY
-            echo ' ' >> $GITHUB_STEP_SUMMARY
-            cat /tmp/eco-ci/energy-total.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $GITHUB_STEP_SUMMARY
-            echo ' ```' >> $GITHUB_STEP_SUMMARY
-        fi
-        repo_enc=$( echo ${{ github.repository }} | jq -Rr @uri)
-        branch_enc=$( echo ${{ inputs.branch }} | jq -Rr @uri)
-
-        if [[ ${{ inputs.send-data }} == 'true' && ${{ inputs.display-badge }} == 'true' ]]; then
-            get_endpoint=$ECO_CI_API_BASE"/v1/ci/measurement/get"
-            metrics_url="https://metrics.green-coding.berlin"
-
-            echo "Badge for your README.md" >> $GITHUB_STEP_SUMMARY
-            echo ' ```' >> $GITHUB_STEP_SUMMARY
-            echo "[![Energy Used](${get_endpoint}?repo=${repo_enc}&branch=${branch_enc}&workflow=$ECO_CI_WORKFLOW_ID)](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$ECO_CI_WORKFLOW_ID)" >> $GITHUB_STEP_SUMMARY
-            echo ' ```' >> $GITHUB_STEP_SUMMARY
-
-            echo "See energy runs here:" >> $GITHUB_STEP_SUMMARY
-            echo "${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$ECO_CI_WORKFLOW_ID" >> $GITHUB_STEP_SUMMARY
-        fi
-
-        # write data to output
+        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -s "github"
+        cat "/tmp/eco-ci/output.txt" >> $GITHUB_STEP_SUMMARY
         total_data_file="/tmp/eco-ci/total-data.json"
-        run_id_enc=$( echo ${{ github.run_id }} | jq -Rr @uri)
-        ${{github.action_path}}/scripts/create-and-add-meta.sh --file ${total_data_file} --repository ${repo_enc} --branch ${branch_enc} --workflow $ECO_CI_WORKFLOW_ID --run_id ${run_id_enc}
-        ${{github.action_path}}/scripts/add-data.sh --file ${total_data_file} --label "TOTAL" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
         echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
