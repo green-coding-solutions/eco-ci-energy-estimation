@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Initialize Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         with:
           task: start-measurement
 
@@ -34,7 +34,7 @@ jobs:
           submodules: 'true'
 
       - name: Checkout Repo Measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         with:
           task: get-measurement
           label: 'repo checkout'
@@ -51,7 +51,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup Python Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         with:
           task: get-measurement
           label: 'python setup'
@@ -62,13 +62,13 @@ jobs:
           pytest
 
       - name: Tests measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         with:
           task: get-measurement
           label: 'pytest'
 
       - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         with:
           task: display-results
 ```
@@ -101,7 +101,7 @@ We recommend running our action with `continue-on-error:true`, as it is not crit
 
 ```yaml
       - name: Eco CI Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         with:
           task: final-measurement
         continue-on-error: true
@@ -122,7 +122,7 @@ Here is an example demonstrating how this can be achieved:
           submodules: 'true'
 
       - name: Checkout Repo Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         id: checkout-step
         with:
           task: get-measurement
@@ -133,7 +133,7 @@ Here is an example demonstrating how this can be achieved:
           echo "total json: ${{ steps.checkout-step.outputs.data-lap-json }}"      
       
       - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         id: total-measurement-step
         with:
           task: display-results
@@ -155,7 +155,7 @@ jobs:
       actions: read
     steps:
       - name: Eco CI - Initialize
-        uses: green-coding-berlin/eco-ci-energy-estimation@v1
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         with:
           task: start-measurement
  ```  
