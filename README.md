@@ -80,6 +80,7 @@ jobs:
     - `display-results` - Outputs the energy results to the`$GITHUB_STEP_SUMMARY`. Creates a table that shows the energy results of all the get-measurements, and then a final row for the entire run. Displays the avergae cpu utilization, the total Joules used, and average wattage for each measurment+total run. It will also display a graph of the energy used, and a badge for you to display.
         - This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge.
         - The total measurement of this task is provided as output `data-total-json` in json format (see example below).
+        - Can be used with `pr-comment` flag (see below) to post the results as a comment on the PR.
 - `branch`: (optional) (default: ${{ github.ref_name }})
     - Used with `get_measurement` and `display_results` to correctly identify this CI run for the Badge. 
 - `label`: (optional) (default: 'measurement ##')
@@ -94,6 +95,9 @@ jobs:
     - used with display-results
     - Shows the badge for the ci run during display-results step
     - automatically false if send-data is also false
+- `pr-comment`: (optional) (default: false)
+    - used with display-results
+    - if on, will post a comment on the PR issue with the Eco-CI results
 
 #### Continuing on Errors
 

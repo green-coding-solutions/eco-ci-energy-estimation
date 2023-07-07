@@ -5,15 +5,16 @@ source "$(dirname "$0")/vars.sh" read_vars
 
 function display_results {
     output="/tmp/eco-ci/output.txt"
+    output_multiline="/tmp/eco-ci/output-multiline.txt"
 
     if [[ $MEASUREMENT_RAN != true ]]; then
         echo "Running a measurement to have at least one result to display."
         source /tmp/eco-ci/venv/bin/activate
 
         if [[ "$MODEL_NAME" == "unknown" ]]; then
-            cat /tmp/eco-ci/cpu-util.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            cat /tmp/eco-ci/cpu-util.txt | python3. /tmp/eco-ci/spec-power-model/xgb.py --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         else
-            cat /tmp/eco-ci/cpu-util.txt | python3.10 /tmp/eco-ci/spec-power-model/xgb.py \
+            cat /tmp/eco-ci/cpu-util.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
@@ -50,6 +51,22 @@ function display_results {
           max_measurement_number=$measurement_number
         done
 
+        echo "Eco-Ci Output:<br/><br/>" >> $output_multiline
+        echo "Total Energy [Joules]: $total_energy<br/>" >> $output_multiline
+        echo "Total Avg. CPU Utilization: $cpu_avg<br/>" >> $output_multiline
+        echo "Total Avg. Power [Watts]: $power_avg<br/>" >> $output_multiline
+        echo "Total Duration [seconds]: $time<br/>" >> $output_multiline
+        echo "--------------------------------<br/>" >> $output_multiline
+
+        for (( i=1; i<=$max_measurement_number; i++ )); do
+            echo "Label $i: $(eval echo \$label_$i)<br/>" >> $output_multiline
+            echo "Energy Used [Joules]: $(eval echo \$total_energy_$i)<br/>" >> $output_multiline
+            echo "Avg. CPU Utilization: $(eval echo \$cpu_avg_$i)<br/>" >> $output_multiline
+            echo "Avg. Power [Watts]: $(eval echo \$power_avg_$i)<br/>" >> $output_multiline
+            echo "Duration [seconds]: $(eval echo \$time_$i)<br/>" >> $output_multiline
+            echo "--------------------------------<br/>" >> $output_multiline
+        done
+
         if [[ $source == 'github' ]]; then
             echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" >> $output
             echo "|---|---|---|---|---|" >> $output
@@ -63,20 +80,7 @@ function display_results {
             # echo -e "$final_line" >> $output
             echo '' >> $output
         elif [[ $source == 'gitlab' ]]; then
-            echo "Total Energy [Joules]: $total_energy" >> $output
-            echo "Total Avg. CPU Utilization: $cpu_avg" >> $output
-            echo "Total Avg. Power [Watts]: $power_avg" >> $output
-            echo "Total Duration [seconds]: $time" >> $output
-            echo "----------------" >> $output
-
-            for (( i=1; i<=$max_measurement_number; i++ )); do
-                echo "Label $i: $(eval echo \$label_$i)" >> $output
-                echo "Energy Used [Joules]: $(eval echo \$total_energy_$i)" >> $output
-                echo "Avg. CPU Utilization: $(eval echo \$cpu_avg_$i)" >> $output
-                echo "Avg. Power [Watts]: $(eval echo \$power_avg_$i)" >> $output
-                echo "Duration [seconds]: $(eval echo \$time_$i)" >> $output
-                echo "----------------" >> $output
-            done
+            echo $(cat "/tmp/eco-ci/output-short.txt") >> $output
         fi
 
 
