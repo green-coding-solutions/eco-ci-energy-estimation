@@ -37,7 +37,7 @@ function initialize {
 
 function setup_python {
     # Create a venv, and backup old
-    python3.10 -m venv /tmp/eco-ci/venv
+    python3 -m venv /tmp/eco-ci/venv
 
     if [[ $VIRTUAL_ENV != '' ]]; then
        $PREVIOUS_VENV=$VIRTUAL_ENV
@@ -47,7 +47,7 @@ function setup_python {
     #  Installing requirements
     # first activate our venv
     source /tmp/eco-ci/venv/bin/activate
-    python3.10 -m pip install -r /tmp/eco-ci/spec-power-model/requirements.txt
+    python3 -m pip install -r /tmp/eco-ci/spec-power-model/requirements.txt
     # now reset to old venv
     deactivate our venv
     # reactivate the old one, if it was present

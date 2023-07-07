@@ -28,6 +28,9 @@ inputs:
     description: 'Shows the badge for the ci run during display-results step'
     default: true
     required: false
+  pr-comment:
+    description: 'Add a comment to the PR with the results during display-results step'
+    default: false
 outputs:
   data-total-json:
     description: "Contains the data of the total measurement which is retrieved by the 'display-results' task."
@@ -51,6 +54,22 @@ runs:
       name: Setup
       shell: bash
       run: |
+        if command -v python3 &>/dev/null; then
+            echo "Python is already installed."
+        else
+            echo "Python is not installed. Installing..."
+            apt-get update
+            apt-get install -y python3.10 python3.10-venv
+            echo "Python has been installed."
+        fi
+
+        python_version=$(python3 --version 2>&1)
+        python_major_version=$(python3 -c 'import sys; print(sys.version_info[0])')
+        python_minor_version=$(python3 -c 'import sys; print(sys.version_info[1])')
+        python_cache_path="${base_root}venv/lib/python${python_major_version}.${python_minor_version}/site-packages"
+        echo "python_cache_path=$python_cache_path" >> $GITHUB_OUTPUT
+
+
         # call the initialize function of setup.sh
         ${{github.action_path}}/scripts/setup.sh initialize -g ${{inputs.display-graph}}
 
@@ -72,7 +91,7 @@ runs:
         cache-name: cache-pip-packages
       with:
         # npm cache files are stored in `~/.npm` on Linux/macOS
-        path: /tmp/eco-ci/venv/lib/python3.10/site-packages
+        path: ${{ steps.initialize.outputs.python_cache_path }}
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.hash-requirements.outputs.myhash }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.hash-requirements.outputs.myhash }}
@@ -124,3 +143,19 @@ runs:
         cat "/tmp/eco-ci/output.txt" >> $GITHUB_STEP_SUMMARY
         total_data_file="/tmp/eco-ci/total-data.json"
         echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
+
+    - if: github.event_name == 'pull_request' && inputs.task == 'display-results' && inputs.pr-comment == 'true'
+      name: Comment on Pull Request
+      id: pr-comment
+      shell: bash
+      env:
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        COMMENT=$(cat "/tmp/eco-ci/output-multiline.txt")
+
+        API_URL="${{ github.api_url }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+        curl -X POST -H "Authorization: Bearer ${{github.token}}" -d @- $API_URL <<EOF
+        {
+          "body": "$COMMENT"
+        }
+        EOF
