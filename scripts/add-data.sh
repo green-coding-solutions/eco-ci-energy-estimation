@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Parse named parameters
 while [[ $# -gt 0 ]]; do
