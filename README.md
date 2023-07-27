@@ -16,7 +16,7 @@ name: Daily Tests with Energy Measurement
 run-name: Scheduled - DEV Branch
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 12 * * *'
 
 jobs:
   run-tests:
