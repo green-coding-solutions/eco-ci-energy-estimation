@@ -11,7 +11,7 @@ on:
   schedule:
     # only run once a week to show the action is working and preserve as much energy as possible
     # Reason being that we pull our ML model and this could have changed in the meantim
-    - cron: '22 4 * * 6'
+    - cron: '22 9 * * 6'
 
 permissions:
   contents: read
