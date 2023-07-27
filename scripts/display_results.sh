@@ -51,6 +51,7 @@ function display_results {
           max_measurement_number=$measurement_number
         done
 
+        ## Used for display in the PR comment body
         echo "Eco-Ci Output:<br/><br/>" >> $output_multiline
         echo "Total Energy [Joules]: $total_energy<br/>" >> $output_multiline
         echo "Total Avg. CPU Utilization: $cpu_avg<br/>" >> $output_multiline
@@ -67,6 +68,7 @@ function display_results {
             echo "--------------------------------<br/>" >> $output_multiline
         done
 
+        ## Used for the main output display for github (step summary) / gitlab (artifacts)
         if [[ $source == 'github' ]]; then
             echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" >> $output
             echo "|---|---|---|---|---|" >> $output
@@ -80,7 +82,20 @@ function display_results {
             # echo -e "$final_line" >> $output
             echo '' >> $output
         elif [[ $source == 'gitlab' ]]; then
-            echo $(cat "/tmp/eco-ci/output-short.txt") >> $output
+            echo "Total Energy [Joules]: $total_energy" >> $output
+            echo "Total Avg. CPU Utilization: $cpu_avg" >> $output
+            echo "Total Avg. Power [Watts]: $power_avg" >> $output
+            echo "Total Duration [seconds]: $time" >> $output
+            echo "----------------" >> $output
+
+            for (( i=1; i<=$max_measurement_number; i++ )); do
+                echo "Label $i: $(eval echo \$label_$i)" >> $output
+                echo "Energy Used [Joules]: $(eval echo \$total_energy_$i)" >> $output
+                echo "Avg. CPU Utilization: $(eval echo \$cpu_avg_$i)" >> $output
+                echo "Avg. Power [Watts]: $(eval echo \$power_avg_$i)" >> $output
+                echo "Duration [seconds]: $(eval echo \$time_$i)" >> $output
+                echo "----------------" >> $output
+            done
         fi
 
 
