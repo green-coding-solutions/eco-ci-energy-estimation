@@ -28,46 +28,63 @@ function display_results {
         fi
     fi
 
-    if [[ ${display_table} == 'true' ]]; then
-        cpu_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
-        total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
-        power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy-total.txt)
-        time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+    cpu_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
+    total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
+    power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy-total.txt)
+    time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
-        # get series of measurement values
-        for varname in ${!measurement_@}; do
-          # Extract the measurement number from the variable name
-          measurement_number="${varname#*_}"
-          # Extract the value of the current measurement variable
-          measurement_value="${!varname}"
-          
-          # Use eval to assign individual variables based on the measurement value
-          eval "label_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $2}')"
-          eval "cpu_avg_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $4}')"
-          eval "total_energy_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $6}')"
-          eval "power_avg_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $8}')"
-          eval "time_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $10}')"
+    # Get series of measurement values
+    for varname in ${!measurement_@}; do
+        # Extract the measurement number from the variable name
+        measurement_number="${varname#*_}"
+        # Extract the value of the current measurement variable
+        measurement_value="${!varname}"
 
-          max_measurement_number=$measurement_number
-        done
+        # Use eval to assign individual variables based on the measurement value
+        eval "label_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $2}')"
+        eval "cpu_avg_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $4}')"
+        eval "total_energy_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $6}')"
+        eval "power_avg_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $8}')"
+        eval "time_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $10}')"
 
-        ## Used for display in the PR comment body
-        echo "Eco-Ci Output:<br/><br/>" >> $output_multiline
-        echo "Total Energy [Joules]: $total_energy<br/>" >> $output_multiline
-        echo "Total Avg. CPU Utilization: $cpu_avg<br/>" >> $output_multiline
-        echo "Total Avg. Power [Watts]: $power_avg<br/>" >> $output_multiline
-        echo "Total Duration [seconds]: $time<br/>" >> $output_multiline
+        max_measurement_number=$measurement_number
+    done
+
+    ## Used for display in the PR comment body
+    echo "Eco-Ci Output:<br/><br/>" >> $output_multiline
+    echo "Total Energy [Joules]: $total_energy<br/>" >> $output_multiline
+    echo "Total Avg. CPU Utilization: $cpu_avg<br/>" >> $output_multiline
+    echo "Total Avg. Power [Watts]: $power_avg<br/>" >> $output_multiline
+    echo "Total Duration [seconds]: $time<br/>" >> $output_multiline
+    echo "--------------------------------<br/>" >> $output_multiline
+
+    for (( i=1; i<=$max_measurement_number; i++ )); do
+        echo "Label $i: $(eval echo \$label_$i)<br/>" >> $output_multiline
+        echo "Energy Used [Joules]: $(eval echo \$total_energy_$i)<br/>" >> $output_multiline
+        echo "Avg. CPU Utilization: $(eval echo \$cpu_avg_$i)<br/>" >> $output_multiline
+        echo "Avg. Power [Watts]: $(eval echo \$power_avg_$i)<br/>" >> $output_multiline
+        echo "Duration [seconds]: $(eval echo \$time_$i)<br/>" >> $output_multiline
         echo "--------------------------------<br/>" >> $output_multiline
+    done
+
+    ## Gitlab Specific Output
+    if [[ $source == 'gitlab' ]]; then
+        echo "\"$CI_JOB_NAME: Energy [Joules]:\" $total_energy" | tee -a $output metrics.txt
+        echo "\"$CI_JOB_NAME: Avg. CPU Utilization:\" $cpu_avg" | tee -a $output metrics.txt
+        echo "\"$CI_JOB_NAME: Avg. Power [Watts]:\" $power_avg" | tee -a $output metrics.txt
+        echo "\"$CI_JOB_NAME: Duration [seconds]:\" $time" | tee -a $output metrics.txt
+        echo "----------------" >> $output
 
         for (( i=1; i<=$max_measurement_number; i++ )); do
-            echo "Label $i: $(eval echo \$label_$i)<br/>" >> $output_multiline
-            echo "Energy Used [Joules]: $(eval echo \$total_energy_$i)<br/>" >> $output_multiline
-            echo "Avg. CPU Utilization: $(eval echo \$cpu_avg_$i)<br/>" >> $output_multiline
-            echo "Avg. Power [Watts]: $(eval echo \$power_avg_$i)<br/>" >> $output_multiline
-            echo "Duration [seconds]: $(eval echo \$time_$i)<br/>" >> $output_multiline
-            echo "--------------------------------<br/>" >> $output_multiline
+            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$label_$i): Energy Used [Joules]:\" $(eval echo \$total_energy_$i)" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$label_$i): Avg. CPU Utilization:\" $(eval echo \$cpu_avg_$i)" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$label_$i): Avg. Power [Watts]:\" $(eval echo \$power_avg_$i)" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$label_$i): Duration [seconds]:\" $(eval echo \$time_$i)" | tee -a $output metrics.txt
+            echo "----------------" >> $output
         done
-
+    fi
+    
+    if [[ ${display_table} == 'true' ]]; then
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
         if [[ $source == 'github' ]]; then
             echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" >> $output
@@ -78,28 +95,8 @@ function display_results {
             do
                 echo "|$(eval echo \$label_$i)|$(eval echo \$cpu_avg_$i)|$(eval echo \$total_energy_$i)|$(eval echo \$power_avg_$i)|$(eval echo \$time_$i)|" >> $output
             done
-
-            # echo -e "$final_line" >> $output
             echo '' >> $output
-        elif [[ $source == 'gitlab' ]]; then
-            echo "Total Energy [Joules]: $total_energy" >> $output
-            echo "Total Avg. CPU Utilization: $cpu_avg" >> $output
-            echo "Total Avg. Power [Watts]: $power_avg" >> $output
-            echo "Total Duration [seconds]: $time" >> $output
-            echo "----------------" >> $output
-
-            for (( i=1; i<=$max_measurement_number; i++ )); do
-                echo "Label $i: $(eval echo \$label_$i)" >> $output
-                echo "Energy Used [Joules]: $(eval echo \$total_energy_$i)" >> $output
-                echo "Avg. CPU Utilization: $(eval echo \$cpu_avg_$i)" >> $output
-                echo "Avg. Power [Watts]: $(eval echo \$power_avg_$i)" >> $output
-                echo "Duration [seconds]: $(eval echo \$time_$i)" >> $output
-                echo "----------------" >> $output
-            done
         fi
-
-
-
     fi
 
     if [[ ${display_graph} == 'true' ]]; then
