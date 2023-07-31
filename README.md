@@ -190,13 +190,15 @@ variables:
   ECO_CI_SEND_DATA: "false"
 ```
 
-Then, for each job you need to export the artifacts:
+Then, for each job you need to export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of Gitlab's [Metric Report](https://docs.gitlab.com/ee/ci/testing/metrics_reports.html) artifact (which we output to the default metrics.txt):
 
 ```
 artifacts:
     paths:
       - eco-ci-output.txt
       - eco-ci-total-data.json
+    reports:
+      metrics: metrics.txt
 ```
 
 Here is a sample .gitlab-ci.yml example file to illustrate:
@@ -228,6 +230,8 @@ test-job:
   artifacts:
     paths:
       - eco-ci-output.txt
+    reports:
+      metrics: metrics.txt
   ```
 
 
