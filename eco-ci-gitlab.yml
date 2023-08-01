@@ -40,7 +40,8 @@ cache:
             -l "$ECO_CI_LABEL" \
             -r $CI_PIPELINE_ID \
             -b $CI_COMMIT_REF_NAME \
-            -R $repo -c $CI_COMMIT_SHA \
+            -R $repo \
+            -c $CI_COMMIT_SHA \
             -sd $ECO_CI_SEND_DATA \
             -s "gitlab" \
 
