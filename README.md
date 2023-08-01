@@ -168,7 +168,7 @@ jobs:
 To use Eco-CI in your gitlab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
 ```
 include:
-  remote: 'https://github.com/green-coding-berlin/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml'
+  remote: 'https://raw.githubusercontent.com/green-coding-berlin/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
 ```
 
 and you call the various scripts in your pipeline with call like this:
@@ -206,7 +206,7 @@ Here is a sample .gitlab-ci.yml example file to illustrate:
 ```
 image: ubuntu:22.04
 include:
-  remote: 'https://github.com/green-coding-berlin/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml'
+  remote: 'https://raw.githubusercontent.com/green-coding-berlin/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
 
 stages:
   - test
