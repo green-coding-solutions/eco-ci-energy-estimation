@@ -5,7 +5,7 @@ source "$(dirname "$0")/vars.sh" read_vars
 
 function display_results {
     output="/tmp/eco-ci/output.txt"
-    output_multiline="/tmp/eco-ci/output-multiline.txt"
+    output_pr="/tmp/eco-ci/output-pr.txt"
 
     if [[ $MEASUREMENT_RAN != true ]]; then
         echo "Running a measurement to have at least one result to display."
@@ -50,23 +50,6 @@ function display_results {
         max_measurement_number=$measurement_number
     done
 
-    ## Used for display in the PR comment body
-    # echo "Eco-Ci Output:<br/><br/>" >> $output_multiline
-    # echo "Total Energy [Joules]: $total_energy<br/>" >> $output_multiline
-    # echo "Total Avg. CPU Utilization: $cpu_avg<br/>" >> $output_multiline
-    # echo "Total Avg. Power [Watts]: $power_avg<br/>" >> $output_multiline
-    # echo "Total Duration [seconds]: $time<br/>" >> $output_multiline
-    # echo "--------------------------------<br/>" >> $output_multiline
-
-    # for (( i=1; i<=$max_measurement_number; i++ )); do
-    #     echo "Label $i: $(eval echo \$label_$i)<br/>" >> $output_multiline
-    #     echo "Energy Used [Joules]: $(eval echo \$total_energy_$i)<br/>" >> $output_multiline
-    #     echo "Avg. CPU Utilization: $(eval echo \$cpu_avg_$i)<br/>" >> $output_multiline
-    #     echo "Avg. Power [Watts]: $(eval echo \$power_avg_$i)<br/>" >> $output_multiline
-    #     echo "Duration [seconds]: $(eval echo \$time_$i)<br/>" >> $output_multiline
-    #     echo "--------------------------------<br/>" >> $output_multiline
-    # done
-
     ## Gitlab Specific Output
     if [[ $source == 'gitlab' ]]; then
         echo "\"$CI_JOB_NAME: Energy [Joules]:\" $total_energy" | tee -a $output metrics.txt
@@ -87,25 +70,26 @@ function display_results {
     if [[ ${display_table} == 'true' ]]; then
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
         if [[ $source == 'github' ]]; then
-            echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_multiline
-            echo "|---|---|---|---|---|" | tee -a $output $output_multiline
-            echo "|Total Run|$cpu_avg|$total_energy|$power_avg|$time|" | tee -a $output $output_multiline
+            echo "Eco-CI Output: " >> $output
+            echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
+            echo "|---|---|---|---|---|" | tee -a $output $output_pr
+            echo "|Total Run|$cpu_avg|$total_energy|$power_avg|$time|" | tee -a $output $output_pr
             #display measurument lines in table summary
             for (( i=1; i<=$max_measurement_number; i++ ))
             do
-                echo "|$(eval echo \$label_$i)|$(eval echo \$cpu_avg_$i)|$(eval echo \$total_energy_$i)|$(eval echo \$power_avg_$i)|$(eval echo \$time_$i)|" | tee -a $output $output_multiline
+                echo "|$(eval echo \$label_$i)|$(eval echo \$cpu_avg_$i)|$(eval echo \$total_energy_$i)|$(eval echo \$power_avg_$i)|$(eval echo \$time_$i)|" | tee -a $output $output_pr
             done
-            echo '' | tee -a $output $output_multiline
+            echo '' | tee -a $output $output_pr
         fi
     fi
 
     if [[ ${display_graph} == 'true' ]]; then
         if [[ $source == 'github' ]]; then
-            echo '📈 Energy graph:' >> $output
-            echo '```bash' >> $output
-            echo ' ' >> $output
-            cat /tmp/eco-ci/energy-total.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $output
-            echo ' ```' >> $output
+            echo '📈 Energy graph:' | tee -a $output $output_pr
+            echo '```bash' | tee -a $output $output_pr
+            echo ' ' | tee -a $output $output_pr
+            cat /tmp/eco-ci/energy-total.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" | tee -a $output $output_pr
+            echo ' ```' | tee -a $output $output_pr
         elif [[ $source == 'gitlab' ]]; then
             echo '📈 Energy graph:' >> $output
             cat /tmp/eco-ci/energy-total.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $output
