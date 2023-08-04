@@ -70,7 +70,7 @@ function display_results {
     if [[ ${display_table} == 'true' ]]; then
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
         if [[ $source == 'github' ]]; then
-            echo "Eco-CI Output: " >> $output
+            echo "Eco-CI Output: " >> $output_pr
             echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
             echo "|---|---|---|---|---|" | tee -a $output $output_pr
             echo "|Total Run|$cpu_avg|$total_energy|$power_avg|$time|" | tee -a $output $output_pr
