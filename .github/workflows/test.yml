@@ -49,3 +49,4 @@ jobs:
         uses: ./
         with:
           task: display-results
+          pr-comment: true

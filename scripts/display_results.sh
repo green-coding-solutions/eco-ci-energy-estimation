@@ -51,21 +51,21 @@ function display_results {
     done
 
     ## Used for display in the PR comment body
-    echo "Eco-Ci Output:<br/><br/>" >> $output_multiline
-    echo "Total Energy [Joules]: $total_energy<br/>" >> $output_multiline
-    echo "Total Avg. CPU Utilization: $cpu_avg<br/>" >> $output_multiline
-    echo "Total Avg. Power [Watts]: $power_avg<br/>" >> $output_multiline
-    echo "Total Duration [seconds]: $time<br/>" >> $output_multiline
-    echo "--------------------------------<br/>" >> $output_multiline
+    # echo "Eco-Ci Output:<br/><br/>" >> $output_multiline
+    # echo "Total Energy [Joules]: $total_energy<br/>" >> $output_multiline
+    # echo "Total Avg. CPU Utilization: $cpu_avg<br/>" >> $output_multiline
+    # echo "Total Avg. Power [Watts]: $power_avg<br/>" >> $output_multiline
+    # echo "Total Duration [seconds]: $time<br/>" >> $output_multiline
+    # echo "--------------------------------<br/>" >> $output_multiline
 
-    for (( i=1; i<=$max_measurement_number; i++ )); do
-        echo "Label $i: $(eval echo \$label_$i)<br/>" >> $output_multiline
-        echo "Energy Used [Joules]: $(eval echo \$total_energy_$i)<br/>" >> $output_multiline
-        echo "Avg. CPU Utilization: $(eval echo \$cpu_avg_$i)<br/>" >> $output_multiline
-        echo "Avg. Power [Watts]: $(eval echo \$power_avg_$i)<br/>" >> $output_multiline
-        echo "Duration [seconds]: $(eval echo \$time_$i)<br/>" >> $output_multiline
-        echo "--------------------------------<br/>" >> $output_multiline
-    done
+    # for (( i=1; i<=$max_measurement_number; i++ )); do
+    #     echo "Label $i: $(eval echo \$label_$i)<br/>" >> $output_multiline
+    #     echo "Energy Used [Joules]: $(eval echo \$total_energy_$i)<br/>" >> $output_multiline
+    #     echo "Avg. CPU Utilization: $(eval echo \$cpu_avg_$i)<br/>" >> $output_multiline
+    #     echo "Avg. Power [Watts]: $(eval echo \$power_avg_$i)<br/>" >> $output_multiline
+    #     echo "Duration [seconds]: $(eval echo \$time_$i)<br/>" >> $output_multiline
+    #     echo "--------------------------------<br/>" >> $output_multiline
+    # done
 
     ## Gitlab Specific Output
     if [[ $source == 'gitlab' ]]; then
@@ -87,15 +87,15 @@ function display_results {
     if [[ ${display_table} == 'true' ]]; then
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
         if [[ $source == 'github' ]]; then
-            echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" >> $output
-            echo "|---|---|---|---|---|" >> $output
-            echo "|Total Run|$cpu_avg|$total_energy|$power_avg|$time|" >> $output
+            echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_multiline
+            echo "|---|---|---|---|---|" | tee -a $output $output_multiline
+            echo "|Total Run|$cpu_avg|$total_energy|$power_avg|$time|" | tee -a $output $output_multiline
             #display measurument lines in table summary
             for (( i=1; i<=$max_measurement_number; i++ ))
             do
-                echo "|$(eval echo \$label_$i)|$(eval echo \$cpu_avg_$i)|$(eval echo \$total_energy_$i)|$(eval echo \$power_avg_$i)|$(eval echo \$time_$i)|" >> $output
+                echo "|$(eval echo \$label_$i)|$(eval echo \$cpu_avg_$i)|$(eval echo \$total_energy_$i)|$(eval echo \$power_avg_$i)|$(eval echo \$time_$i)|" | tee -a $output $output_multiline
             done
-            echo '' >> $output
+            echo '' | tee -a $output $output_multiline
         fi
     fi
 
