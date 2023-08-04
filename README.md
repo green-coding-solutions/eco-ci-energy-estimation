@@ -97,7 +97,9 @@ jobs:
     - automatically false if send-data is also false
 - `pr-comment`: (optional) (default: false)
     - used with display-results
-    - if on, will post a comment on the PR issue with the Eco-CI results
+    - if on, will post a comment on the PR issue with the Eco-CI results. only occurs if the triggering event is a pull_request
+    - remember to set `pull-requests: write` to true in your workflow file
+
 
 #### Continuing on Errors
 

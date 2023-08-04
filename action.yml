@@ -151,11 +151,11 @@ runs:
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        COMMENT=$(cat "/tmp/eco-ci/output-multiline.txt")
+        COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
 
         API_URL="${{ github.api_url }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
         curl -X POST -H "Authorization: Bearer ${{github.token}}" -d @- $API_URL <<EOF
         {
-          "body": "$COMMENT"
+          "body": $COMMENT
         }
         EOF
