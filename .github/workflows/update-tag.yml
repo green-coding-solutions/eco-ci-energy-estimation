@@ -9,6 +9,7 @@ on:
         description: The tag to update
         required: true
         options:
+          - v2.1
           - v2
           - v1
 
