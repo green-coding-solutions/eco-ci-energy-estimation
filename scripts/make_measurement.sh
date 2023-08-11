@@ -70,7 +70,8 @@ function make_measurement() {
             unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
 
-            curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"cpu\":\"$model_name_uri\",\"commit_hash\":\"${commit_hash}\",\"repo\":\"${repo}\",\"branch\":\"${branch}\",\"workflow\":\"$WORKFLOW_ID\",\"run_id\":\"${run_id}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"$source\", \"cpu_util_avg\":\"$cpu_avg\", \"duration\":\"$time\"}"
+            #curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"cpu\":\"$model_name_uri\",\"commit_hash\":\"${commit_hash}\",\"repo\":\"${repo}\",\"branch\":\"${branch}\",\"workflow\":\"$WORKFLOW_ID\",\"run_id\":\"${run_id}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"$source\", \"cpu_util_avg\":\"$cpu_avg\", \"duration\":\"$time\"}"
+            curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{\"value\":\"$value_mJ\",\"unit\":\"$unit\",\"cpu\":\"$model_name_uri\",\"commit_hash\":\"${commit_hash}\",\"repo\":\"${repo}\",\"branch\":\"${branch}\",\"workflow\":\"$WORKFLOW_ID\",\"run_id\":\"${run_id}\",\"project_id\":\"\",\"label\":\"$label\", \"source\":\"$source\", \"duration\":\"$time\"}"
         fi
 
         # write data to output
