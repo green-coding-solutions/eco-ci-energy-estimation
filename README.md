@@ -97,7 +97,9 @@ jobs:
     - automatically false if send-data is also false
 - `pr-comment`: (optional) (default: false)
     - used with display-results
-    - if on, will post a comment on the PR issue with the Eco-CI results
+    - if on, will post a comment on the PR issue with the Eco-CI results. only occurs if the triggering event is a pull_request
+    - remember to set `pull-requests: write` to true in your workflow file
+
 
 #### Continuing on Errors
 
@@ -168,7 +170,7 @@ jobs:
 To use Eco-CI in your gitlab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
 ```
 include:
-  remote: 'https://github.com/green-coding-berlin/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml'
+  remote: 'https://raw.githubusercontent.com/green-coding-berlin/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
 ```
 
 and you call the various scripts in your pipeline with call like this:
@@ -190,13 +192,15 @@ variables:
   ECO_CI_SEND_DATA: "false"
 ```
 
-Then, for each job you need to export the artifacts:
+Then, for each job you need to export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of Gitlab's [Metric Report](https://docs.gitlab.com/ee/ci/testing/metrics_reports.html) artifact (which we output to the default metrics.txt):
 
 ```
 artifacts:
     paths:
       - eco-ci-output.txt
       - eco-ci-total-data.json
+    reports:
+      metrics: metrics.txt
 ```
 
 Here is a sample .gitlab-ci.yml example file to illustrate:
@@ -204,7 +208,7 @@ Here is a sample .gitlab-ci.yml example file to illustrate:
 ```
 image: ubuntu:22.04
 include:
-  remote: 'https://github.com/green-coding-berlin/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml'
+  remote: 'https://raw.githubusercontent.com/green-coding-berlin/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
 
 stages:
   - test
@@ -228,6 +232,8 @@ test-job:
   artifacts:
     paths:
       - eco-ci-output.txt
+    reports:
+      metrics: metrics.txt
   ```
 
 
