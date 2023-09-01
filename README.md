@@ -9,7 +9,7 @@ Eco-CI supports both GitHub and GitLab as CI platforms. When you integrate it in
 Follow the instructions below to integrate Eco-CI into your CI pipeline:
 
 ### Github:
-To use Eco-CI in your github workflow, call it with the relevant task name (start-measurement, get-measurement, or display-results). Here is a sample workflow that runs some python tests with eco-ci integrated.
+To use Eco-CI in your GitHub workflow, call it with the relevant task name (start-measurement, get-measurement, or display-results). Here is a sample workflow that runs some python tests with eco-ci integrated.
 
 ```yaml
 name: Daily Tests with Energy Measurement
@@ -18,12 +18,15 @@ on:
   schedule:
     - cron: '0 0 * * *'
 
+permissions:
+  read-all
+
 jobs:
   run-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Initialize Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
         with:
           task: start-measurement
 
@@ -34,7 +37,7 @@ jobs:
           submodules: 'true'
 
       - name: Checkout Repo Measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
         with:
           task: get-measurement
           label: 'repo checkout'
@@ -51,7 +54,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup Python Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
         with:
           task: get-measurement
           label: 'python setup'
@@ -62,13 +65,13 @@ jobs:
           pytest
 
       - name: Tests measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
         with:
           task: get-measurement
           label: 'pytest'
 
       - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
         with:
           task: display-results
 ```
@@ -86,11 +89,11 @@ jobs:
 - `label`: (optional) (default: 'measurement ##')
     - Used with `get_measurement` and `display_results` to identify the measurement
 - `send-data`: (optional) (default: true)
-    - Send metrics data to metrics.green-coding.berlin to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (github or gitlab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
+    - Send metrics data to metrics.green-coding.berlin to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
 - `display-table`: (optional) (default: true)
     - call during the `display-graph` step to either show/hide the energy reading table results in the output
 - `display-graph`: (optional) (default: true)
-    - We use an ascii charting library written in go (https://github.com/guptarohit/asciigraph). For github hosted runners their images come with go so we do not install it. If you are using a private runner instance however, your machine may not have go installed, and this will not work. As we want to minimize what we install on private runner machines to not intefere with your setup, we will not install go. Therefore, you will need to call `start-measurement` with the `display-graph` flag set to false, and that will skip the installation of this go library.
+    - We use an ascii charting library written in go (https://github.com/guptarohit/asciigraph). For GitHub hosted runners their images come with go so we do not install it. If you are using a private runner instance however, your machine may not have go installed, and this will not work. As we want to minimize what we install on private runner machines to not intefere with your setup, we will not install go. Therefore, you will need to call `start-measurement` with the `display-graph` flag set to false, and that will skip the installation of this go library.
 - `display-badge`: (optional) (default: true)
     - used with display-results
     - Shows the badge for the ci run during display-results step
@@ -107,7 +110,7 @@ We recommend running our action with `continue-on-error:true`, as it is not crit
 
 ```yaml
       - name: Eco CI Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
         with:
           task: final-measurement
         continue-on-error: true
@@ -128,7 +131,7 @@ Here is an example demonstrating how this can be achieved:
           submodules: 'true'
 
       - name: Checkout Repo Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
         id: checkout-step
         with:
           task: get-measurement
@@ -152,7 +155,7 @@ Here is an example demonstrating how this can be achieved:
 Note that the steps you want to consume the measurements of need to have an `id` so that you can access the corresponding data from their outputs.
 
 #### Note on private repos
- If you are running in a private repo, you must give your job actions read permissions for the github token. This  is because we make an api call to get your workflow_id which uses your `$GITHUB_TOKEN`, and it needs the correct permissions to do so:
+ If you are running in a private repo, you must give your job actions `read` permissions for the GITHUB_TOKEN. This  is because we make an api call to get your workflow_id which uses your `$GITHUB_TOKEN`, and it needs the correct permissions to do so:
  ```yaml
 jobs:
   test:
@@ -161,13 +164,13 @@ jobs:
       actions: read
     steps:
       - name: Eco CI - Initialize
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
         with:
           task: start-measurement
  ```  
 
-### Gitlab:
-To use Eco-CI in your gitlab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
+### GitLab:
+To use Eco-CI in your GitLab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
 ```
 include:
   remote: 'https://raw.githubusercontent.com/green-coding-berlin/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
@@ -181,9 +184,9 @@ where function name is one of the following:
 `initialize_energy_estimator` - used to setup the machine for measurement. Needs to be called once per VM job.
 `start_measurement` - begin the measurment
 `get_measurement` - make a spot measurment here. If you wish to label the measurement, you need to set the ECO_CI_LABEL environment variable right before this call.
-`display_results` - will print all the measurement values to the jobs-output and prepare the artifacts, which must be exported in the normal gitlab way.
+`display_results` - will print all the measurement values to the jobs-output and prepare the artifacts, which must be exported in the normal GitLab way.
 
-By default, we send data to our API, which will allow us to present you with a badge, and a front-end display to review your results. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (github or gitlab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
+By default, we send data to our API, which will allow us to present you with a badge, and a front-end display to review your results. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
 
 If you do not wish to send us data, you can set this global variable in your pipeline:
 
@@ -192,7 +195,7 @@ variables:
   ECO_CI_SEND_DATA: "false"
 ```
 
-Then, for each job you need to export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of Gitlab's [Metric Report](https://docs.gitlab.com/ee/ci/testing/metrics_reports.html) artifact (which we output to the default metrics.txt):
+Then, for each job you need to export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of GitLab's [Metric Report](https://docs.gitlab.com/ee/ci/testing/metrics_reports.html) artifact (which we output to the default metrics.txt):
 
 ```
 artifacts:
