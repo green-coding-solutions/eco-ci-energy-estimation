@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Initialize Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
         with:
           task: start-measurement
 
@@ -37,7 +37,7 @@ jobs:
           submodules: 'true'
 
       - name: Checkout Repo Measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'repo checkout'
@@ -54,7 +54,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup Python Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'python setup'
@@ -65,13 +65,13 @@ jobs:
           pytest
 
       - name: Tests measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'pytest'
 
       - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
         with:
           task: display-results
 ```
@@ -110,7 +110,7 @@ We recommend running our action with `continue-on-error:true`, as it is not crit
 
 ```yaml
       - name: Eco CI Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         with:
           task: final-measurement
         continue-on-error: true
@@ -131,7 +131,7 @@ Here is an example demonstrating how this can be achieved:
           submodules: 'true'
 
       - name: Checkout Repo Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         id: checkout-step
         with:
           task: get-measurement
@@ -164,7 +164,7 @@ jobs:
       actions: read
     steps:
       - name: Eco CI - Initialize
-        uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2
+        uses: green-coding-berlin/eco-ci-energy-estimation@v2
         with:
           task: start-measurement
  ```  
@@ -252,3 +252,13 @@ test-job:
 - The XGBoost model requires the CPU to have a fixed frequency setting. This is typical for cloud testing, but not always the case. 
 
 - The XGBoost model data is trained via the SpecPower database, which was mostly collected on compute machines. Results will be off for non big cloud servers and also for machines that are memory heavy or machines which rely more heavily on their GPU's for computations.
+
+### Note on the integration
+- If you use dependabot and want to get updates, we recommend using the hash notation
+  + `uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2`
+  + Note that this hash is just an example. You find the latest current hash under *Tags*
+
+- If you want the extension to automatically update within a version number, use the convenient @v2 form
+  + `uses: green-coding-berlin/eco-ci-energy-estimation@v2 # will pick the latest minor v2. for example v2.2`
+ 
+
