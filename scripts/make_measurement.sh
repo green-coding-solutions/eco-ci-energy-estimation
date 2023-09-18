@@ -64,7 +64,7 @@ function make_measurement() {
         if [[ $send_data == 'true' ]]; then
             add_endpoint=$API_BASE"/v1/ci/measurement/add"
             #metrics_url="https://metrics.green-coding.berlin"
-            metrics_url="https://bd6a-2a02-2454-4e1-a300-2920-43b8-d927-46f0.ngrok-free.app"
+            metrics_url="https://2c1a-2a02-2454-4e1-a300-2920-43b8-d927-46f0.ngrok-free.app"
 
             value=$total_energy
             value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
