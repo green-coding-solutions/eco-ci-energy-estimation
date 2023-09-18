@@ -141,6 +141,7 @@ while [[ $# -gt 0 ]]; do
         -n|--name)
         workflow_name="$2"
         shift
+        ;;
         \?) 
         echo "Invalid option -$OPTARG" >&2
         ;;
