@@ -18,12 +18,6 @@ function initialize {
     # install go ascii
     
     if [[ $install_go == true ]]; then
-        # || true here because this line technically fails with:
-            # no required module provides package github.com/guptarohit/asciigraph/cmd/asciigraph: go.mod file not found in current directory or any parent directory; see 'go help modules'
-        # the solution would be either to `go mod init` to create a go.mod file for this directory... but are not making a go package here so this doesn't seem appropriate
-        # the other solution would be to set the environment variable `go env -w GO111MODULE=auto`... but I can't seem to get any already-set value ahead of time reliably, and do not want to overwrite
-        # any user environment settings.
-        # So, we ignore this error for now, as functionally the asciigraph still is installed and works for Eco-CI
         go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
     fi
 
@@ -46,7 +40,7 @@ function setup_python {
 
     VENV_VALUE=${VIRTUAL_ENV:-}
     PREVIOUS_VENV=''
-    
+
     if [[ $VENV_VALUE != '' ]]; then
        PREVIOUS_VENV=$VENV_VALUE
        source "$(dirname "$0")/vars.sh" add_var PREVIOUS_VENV $PREVIOUS_VENV

@@ -5,8 +5,24 @@ set -euo pipefail
 source "$(dirname "$0")/vars.sh" read_vars
 
 function make_measurement() {
+    # First get values, in case any are unbound
+    # this will set them to an empty string if they are missing entirely
+    MODEL_NAME=${MODEL_NAME:-}
+    TDP=${TDP:-}
+    CPU_THREADS=${CPU_THREADS:-}
+    CPU_CORES=${CPU_CORES:-}
+    CPU_MAKE=${CPU_MAKE:-}
+    RELEASE_YEAR=${RELEASE_YEAR:-}
+    RAM=${RAM:-}
+    CPU_FREQ=${CPU_FREQ:-}
+    CPU_CHIPS=${CPU_CHIPS:-}
+    VHOST_RATIO=${VHOST_RATIO:-}
+    PREVIOUS_VENV=${PREVIOUS_VENV:-}
+    MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
+    WORKFLOW_ID=${WORKFLOW_ID:-}
+    API_BASE=${API_BASE:-}
+
     # check wc -l of cpu-util is greater than 0
-    echo $(cat /tmp/eco-ci/cpu-util.txt)
     if [[ $(wc -l < /tmp/eco-ci/cpu-util.txt) -gt 0 ]]; then
         # if a previous venv is already active,
         if type deactivate &>/dev/null
@@ -94,6 +110,14 @@ function make_measurement() {
 
 while [[ $# -gt 0 ]]; do
     opt="$1"
+    label=""
+    run_id=""
+    branch=""
+    repo=""
+    commit_hash=""
+    send_data=""
+    source=""
+
     case $opt in
         -l|--label) 
         label="$2"

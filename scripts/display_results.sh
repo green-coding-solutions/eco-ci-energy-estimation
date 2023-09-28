@@ -5,6 +5,25 @@ set -euo pipefail
 source "$(dirname "$0")/vars.sh" read_vars
 
 function display_results {
+    # First get values, in case any are unbound
+    # this will set them to an empty string if they are missing entirely
+    MEASUREMENT_RAN=${MEASUREMENT_RAN:-}
+    MODEL_NAME=${MODEL_NAME:-}
+    TDP=${TDP:-}
+    CPU_THREADS=${CPU_THREADS:-}
+    CPU_CORES=${CPU_CORES:-}
+    CPU_MAKE=${CPU_MAKE:-}
+    RELEASE_YEAR=${RELEASE_YEAR:-}
+    RAM=${RAM:-}
+    CPU_FREQ=${CPU_FREQ:-}
+    CPU_CHIPS=${CPU_CHIPS:-}
+    VHOST_RATIO=${VHOST_RATIO:-}
+    PREVIOUS_VENV=${PREVIOUS_VENV:-}
+    MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
+    WORKFLOW_ID=${WORKFLOW_ID:-}
+    API_BASE=${API_BASE:-}
+
+
     output="/tmp/eco-ci/output.txt"
     output_pr="/tmp/eco-ci/output-pr.txt"
 
@@ -122,6 +141,15 @@ function display_results {
 
 while [[ $# -gt 0 ]]; do
     opt="$1"
+
+    branch=""
+    display_badge=""
+    run_id=""
+    repo=""
+    display_table=""
+    display_graph=""
+    send_data=""
+    source=""
 
     case $opt in
         -b|--branch) 
