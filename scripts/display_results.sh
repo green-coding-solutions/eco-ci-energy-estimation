@@ -134,6 +134,9 @@ function display_results {
     # write data to output
     total_data_file="/tmp/eco-ci/total-data.json"
     run_id_enc=$( echo ${run_id} | jq -Rr @uri)
+
+    echo "show create-and-add-meta.sh output"
+    echo "--file $total_data_file --repository $repo_enc --branch $branch_enc --workflow $WORKFLOW_ID --run_id $run_id_enc"
     source "$(dirname "$0")/create-and-add-meta.sh" --file ${total_data_file} --repository ${repo_enc} --branch ${branch_enc} --workflow $WORKFLOW_ID --run_id ${run_id_enc}
     source "$(dirname "$0")/add-data.sh" --file ${total_data_file} --label "TOTAL" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
 
