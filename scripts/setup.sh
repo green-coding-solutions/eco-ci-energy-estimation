@@ -18,9 +18,7 @@ function initialize {
     # install go ascii
     
     if [[ $install_go == true ]]; then
-        echo "GO ENV:"
-        go env
-        go version
+        go mod init
         go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest 2>/dev/null
         ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph)
     fi
