@@ -20,23 +20,9 @@ function initialize {
     if [[ $install_go == true ]]; then
         echo "GO ENV:"
         go env
-        echo "GO111MODULE Before: $GO111MODULE"
-        # Save the original value of GO111MODULE (if it was set)
-        original_go111module="${GO111MODULE:-}"
-
-        # Temporarily unset GO111MODULE to avoid module checks
-        unset GO111MODULE
-
-        if go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest 2>/dev/null; then
-            ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph)
-            echo "ascii_graph_path: $ascii_graph_path"
-        else
-            echo "Failed to install asciigraph. Continuing without it."
-        fi
-
-        # Restore GO111MODULE to its original value (if it was set)
-        export GO111MODULE="$original_go111module"
-        echo "GO111MODULE After: $GO111MODULE"
+        go version
+        go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest 2>/dev/null
+        ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph)
     fi
 
     # check for gcc
