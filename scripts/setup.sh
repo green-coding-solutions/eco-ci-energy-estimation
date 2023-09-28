@@ -15,13 +15,17 @@ function initialize {
     git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
 
     ## Reimplement ascii graph when we find a better library
-    # also remember to look for and check for display_graphs
     # install go ascii
     
+    # sending the error to /dev/null because this returns with the following error normally:
+        # no required module provides package github.com/guptarohit/asciigraph/cmd/asciigraph: go.mod file not found in current directory or any parent directory; see 'go help modules'
+    # but the module works perfectly fine despite this error, and I don't think we should `go mod init` as we are not building a go module
     if [[ $install_go == true ]]; then
-        go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
-        ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph)
-        echo "ascii_graph_path: $ascii_graph_path"
+        if go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest 2>/dev/null; then
+            ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph)
+        else
+            echo "Failed to install asciigraph. Continuing without it."
+        fi
     fi
 
     # check for gcc
