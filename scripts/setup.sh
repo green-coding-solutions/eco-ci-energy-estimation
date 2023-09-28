@@ -24,9 +24,7 @@ function initialize {
         # the other solution would be to set the environment variable `go env -w GO111MODULE=auto`... but I can't seem to get any already-set value ahead of time reliably, and do not want to overwrite
         # any user environment settings.
         # So, we ignore this error for now, as functionally the asciigraph still is installed and works for Eco-CI
-        go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest || true
-        ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph) || true
-        echo $ascii_graph_path
+        go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
     fi
 
     # check for gcc
@@ -46,8 +44,11 @@ function setup_python {
     # Create a venv, and backup old
     python3 -m venv /tmp/eco-ci/venv
 
-    if [[ $VIRTUAL_ENV != '' ]]; then
-       $PREVIOUS_VENV=$VIRTUAL_ENV
+    VENV_VALUE=${VIRTUAL_ENV:-}
+    PREVIOUS_VENV=''
+    
+    if [[ $VENV_VALUE != '' ]]; then
+       PREVIOUS_VENV=$VENV_VALUE
        source "$(dirname "$0")/vars.sh" add_var PREVIOUS_VENV $PREVIOUS_VENV
     fi
 
