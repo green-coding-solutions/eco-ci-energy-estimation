@@ -100,7 +100,7 @@ esac
 install_go=true
 reset=true
 
-while [[ $# -gt 0 ]]; do
+while [[ $# -gt 1 ]]; do
     opt="$2"
 
     case $opt in
