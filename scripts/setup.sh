@@ -25,7 +25,8 @@ function initialize {
         # any user environment settings.
         # So, we ignore this error for now, as functionally the asciigraph still is installed and works for Eco-CI
         go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest || true
-        ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph)
+        ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph) || true
+        echo $ascii_graph_path
     fi
 
     # check for gcc
