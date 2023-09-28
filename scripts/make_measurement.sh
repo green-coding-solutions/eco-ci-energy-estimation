@@ -96,6 +96,8 @@ function make_measurement() {
         branch_enc=$( echo $branch | jq -Rr @uri)
         run_id_enc=$( echo ${run_id} | jq -Rr @uri)
 
+        echo "show create-and-add-meta.sh output"
+        echo "--file $total_data_file --repository $repo_enc --branch $branch_enc --workflow $WORKFLOW_ID --run_id $run_id_enc"
 
         source "$(dirname "$0")/create-and-add-meta.sh" --file ${lap_data_file} --repository ${repo_enc} --branch ${branch_enc} --workflow $WORKFLOW_ID --run_id ${run_id_enc}
         source "$(dirname "$0")/add-data.sh" --file ${lap_data_file} --label "$label" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
@@ -110,6 +112,7 @@ function make_measurement() {
 
 while [[ $# -gt 0 ]]; do
     opt="$1"
+
     label=""
     run_id=""
     branch=""
