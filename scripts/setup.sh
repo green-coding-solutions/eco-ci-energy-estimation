@@ -21,6 +21,7 @@ function initialize {
     if [[ $install_go == true ]]; then
         go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
         ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph)
+        echo "ascii_graph_path: $ascii_graph_path"
     fi
 
     # check for gcc
