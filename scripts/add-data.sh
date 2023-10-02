@@ -50,14 +50,15 @@ if [ ! -f "$FILE" ]; then
 fi
 
 # Define the data point to add to the JSON file
-read -r -d '' NEW_STEP << EOM
+NEW_STEP=$(cat <<EOM
 {
     "label": "$LABEL",
-    "cpu_avg_percent": $CPU,
-    "energy_joules": $ENERGY,
-    "power_avg_watts": $POWER
+    "cpu_avg_percent": "$CPU",
+    "energy_joules": "$ENERGY",
+    "power_avg_watts": "$POWER"
 }
 EOM
+)
 
 # Add the data point to the JSON file
 if [ -s "$FILE" ]; then
