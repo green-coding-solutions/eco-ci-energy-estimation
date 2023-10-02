@@ -39,6 +39,7 @@ jobs:
         uses: ./
         with:
           task: get-measurement
+          send-data: false
 
       - name: Wait before the next step
         run: sleep 2
@@ -48,9 +49,11 @@ jobs:
         with:
           task: get-measurement
           label: "Sleep #2"
+          send-data: false
 
       - name: Eco CI Energy Estimation
         uses: ./
         with:
           task: display-results
           pr-comment: true
+          send-data: false
