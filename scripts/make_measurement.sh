@@ -99,8 +99,8 @@ function make_measurement() {
         echo "show create-and-add-meta.sh output"
         echo "--file $lap_data_file --repository $repo_enc --branch $branch_enc --workflow $WORKFLOW_ID --run_id $run_id_enc"
 
-        source "$(dirname "$0")/create-and-add-meta.sh" --file ${lap_data_file} --repository ${repo_enc} --branch ${branch_enc} --workflow $WORKFLOW_ID --run_id ${run_id_enc}
-        source "$(dirname "$0")/add-data.sh" --file ${lap_data_file} --label "$label" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
+        source "$(dirname "$0")/create-and-add-meta.sh" --file "${lap_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
+        source "$(dirname "$0")/add-data.sh" --file "${lap_data_file}" --label "$label" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}"
 
         killall -9 -q /tmp/eco-ci/demo-reporter || true
         /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util.txt &
@@ -110,16 +110,16 @@ function make_measurement() {
     fi  
  }
 
+label=""
+run_id=""
+branch=""
+repo=""
+commit_hash=""
+send_data=""
+source=""
+
 while [[ $# -gt 0 ]]; do
     opt="$1"
-
-    label=""
-    run_id=""
-    branch=""
-    repo=""
-    commit_hash=""
-    send_data=""
-    source=""
 
     case $opt in
         -l|--label) 

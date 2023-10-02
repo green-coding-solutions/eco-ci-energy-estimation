@@ -1,6 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
+FILE=""
+LABEL=""
+CPU=""
+ENERGY=""
+POWER=""
+
 # Parse named parameters
 while [[ $# -gt 0 ]]; do
     key="$1"

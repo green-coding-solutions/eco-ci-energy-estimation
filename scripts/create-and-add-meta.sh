@@ -1,6 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
+FILE=""
+REPOSITORY=""
+BRANCH=""
+WORKFLOW=""
+RUN_ID=""
+
 # Parse named parameters
 while [[ $# -gt 0 ]]; do
     key="$1"
