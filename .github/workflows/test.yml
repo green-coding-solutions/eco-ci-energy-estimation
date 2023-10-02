@@ -1,4 +1,4 @@
-name: Test the action locally
+name: test-action
 
 on:
   push:
