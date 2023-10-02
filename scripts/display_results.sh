@@ -1,9 +1,29 @@
 #!/bin/bash
+set -euo pipefail
 
 # Call the function to read and set the variables
 source "$(dirname "$0")/vars.sh" read_vars
 
 function display_results {
+    # First get values, in case any are unbound
+    # this will set them to an empty string if they are missing entirely
+    MEASUREMENT_RAN=${MEASUREMENT_RAN:-}
+    MODEL_NAME=${MODEL_NAME:-}
+    TDP=${TDP:-}
+    CPU_THREADS=${CPU_THREADS:-}
+    CPU_CORES=${CPU_CORES:-}
+    CPU_MAKE=${CPU_MAKE:-}
+    RELEASE_YEAR=${RELEASE_YEAR:-}
+    RAM=${RAM:-}
+    CPU_FREQ=${CPU_FREQ:-}
+    CPU_CHIPS=${CPU_CHIPS:-}
+    VHOST_RATIO=${VHOST_RATIO:-}
+    PREVIOUS_VENV=${PREVIOUS_VENV:-}
+    MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
+    WORKFLOW_ID=${WORKFLOW_ID:-}
+    API_BASE=${API_BASE:-}
+
+
     output="/tmp/eco-ci/output.txt"
     output_pr="/tmp/eco-ci/output-pr.txt"
 
@@ -114,10 +134,22 @@ function display_results {
     # write data to output
     total_data_file="/tmp/eco-ci/total-data.json"
     run_id_enc=$( echo ${run_id} | jq -Rr @uri)
-    source "$(dirname "$0")/create-and-add-meta.sh" --file ${total_data_file} --repository ${repo_enc} --branch ${branch_enc} --workflow $WORKFLOW_ID --run_id ${run_id_enc}
-    source "$(dirname "$0")/add-data.sh" --file ${total_data_file} --label "TOTAL" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
+
+    echo "show create-and-add-meta.sh output"
+    echo "--file $total_data_file --repository $repo_enc --branch $branch_enc --workflow $WORKFLOW_ID --run_id $run_id_enc"
+    source "$(dirname "$0")/create-and-add-meta.sh" --file "${total_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
+    source "$(dirname "$0")/add-data.sh" --file "${total_data_file}" --label "TOTAL" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}"
 
 }
+
+branch=""
+display_badge=""
+run_id=""
+repo=""
+display_table=""
+display_graph=""
+send_data=""
+source=""
 
 while [[ $# -gt 0 ]]; do
     opt="$1"

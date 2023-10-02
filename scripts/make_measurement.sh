@@ -1,11 +1,28 @@
 #!/bin/bash
+set -euo pipefail
 
 # Call the function to read and set the variables
 source "$(dirname "$0")/vars.sh" read_vars
 
 function make_measurement() {
+    # First get values, in case any are unbound
+    # this will set them to an empty string if they are missing entirely
+    MODEL_NAME=${MODEL_NAME:-}
+    TDP=${TDP:-}
+    CPU_THREADS=${CPU_THREADS:-}
+    CPU_CORES=${CPU_CORES:-}
+    CPU_MAKE=${CPU_MAKE:-}
+    RELEASE_YEAR=${RELEASE_YEAR:-}
+    RAM=${RAM:-}
+    CPU_FREQ=${CPU_FREQ:-}
+    CPU_CHIPS=${CPU_CHIPS:-}
+    VHOST_RATIO=${VHOST_RATIO:-}
+    PREVIOUS_VENV=${PREVIOUS_VENV:-}
+    MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
+    WORKFLOW_ID=${WORKFLOW_ID:-}
+    API_BASE=${API_BASE:-}
+
     # check wc -l of cpu-util is greater than 0
-    echo $(cat /tmp/eco-ci/cpu-util.txt)
     if [[ $(wc -l < /tmp/eco-ci/cpu-util.txt) -gt 0 ]]; then
         # if a previous venv is already active,
         if type deactivate &>/dev/null
@@ -79,9 +96,11 @@ function make_measurement() {
         branch_enc=$( echo $branch | jq -Rr @uri)
         run_id_enc=$( echo ${run_id} | jq -Rr @uri)
 
+        echo "show create-and-add-meta.sh output"
+        echo "--file $lap_data_file --repository $repo_enc --branch $branch_enc --workflow $WORKFLOW_ID --run_id $run_id_enc"
 
-        source "$(dirname "$0")/create-and-add-meta.sh" --file ${lap_data_file} --repository ${repo_enc} --branch ${branch_enc} --workflow $WORKFLOW_ID --run_id ${run_id_enc}
-        source "$(dirname "$0")/add-data.sh" --file ${lap_data_file} --label "$label" --cpu ${cpu_avg} --energy ${total_energy} --power ${power_avg}
+        source "$(dirname "$0")/create-and-add-meta.sh" --file "${lap_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
+        source "$(dirname "$0")/add-data.sh" --file "${lap_data_file}" --label "$label" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}"
 
         killall -9 -q /tmp/eco-ci/demo-reporter || true
         /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util.txt &
@@ -91,8 +110,17 @@ function make_measurement() {
     fi  
  }
 
+label=""
+run_id=""
+branch=""
+repo=""
+commit_hash=""
+send_data=""
+source=""
+
 while [[ $# -gt 0 ]]; do
     opt="$1"
+
     case $opt in
         -l|--label) 
         label="$2"

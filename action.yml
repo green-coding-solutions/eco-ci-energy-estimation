@@ -118,9 +118,15 @@ runs:
       # we prefer this over manual startint / stopping as it is less error prone for users
       run: |
         ${{github.action_path}}/scripts/setup.sh setup_python
-        curl_response=$(curl -s -H "Authorization: Bearer ${{github.token}}" ${{ github.api_url }}/repos/${{ github.repository }}/actions/workflows)
-        workflow_id=$(echo $curl_response | jq '.workflows[] | select(.name == "${{ github.workflow }}") | .id')
-        ${{github.action_path}}/scripts/vars.sh add_var "WORKFLOW_ID" $workflow_id
+
+        if ${{inputs.send-data}}; then
+          curl_response=$(curl -s -H "Authorization: Bearer ${{github.token}}" ${{ github.api_url }}/repos/${{ github.repository }}/actions/workflows)
+          workflow_id=$(echo $curl_response | jq '.workflows[] | select(.name == "${{ github.workflow }}") | .id')
+          ${{github.action_path}}/scripts/vars.sh add_var "WORKFLOW_ID" $workflow_id
+        else
+          ${{github.action_path}}/scripts/vars.sh add_var "WORKFLOW_ID" ${{github.workflow}}
+        fi
+        
         ${{github.action_path}}/scripts/setup.sh start_measurement
         echo "ECO_CI_INIT=DONE" >> $GITHUB_ENV;
 

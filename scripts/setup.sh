@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Call the function to read and set the variables
 source "$(dirname "$0")/vars.sh" read_vars
@@ -14,12 +15,10 @@ function initialize {
     git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
 
     ## Reimplement ascii graph when we find a better library
-    # also remember to look for and check for display_graphs
     # install go ascii
     
     if [[ $install_go == true ]]; then
         go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
-        ascii_graph_path=$(go list -f '{{.Target}}' github.com/guptarohit/asciigraph/cmd/asciigraph)
     fi
 
     # check for gcc
@@ -39,8 +38,11 @@ function setup_python {
     # Create a venv, and backup old
     python3 -m venv /tmp/eco-ci/venv
 
-    if [[ $VIRTUAL_ENV != '' ]]; then
-       $PREVIOUS_VENV=$VIRTUAL_ENV
+    VENV_VALUE=${VIRTUAL_ENV:-}
+    PREVIOUS_VENV=''
+
+    if [[ $VENV_VALUE != '' ]]; then
+       PREVIOUS_VENV=$VENV_VALUE
        source "$(dirname "$0")/vars.sh" add_var PREVIOUS_VENV $PREVIOUS_VENV
     fi
 
@@ -99,7 +101,7 @@ esac
 install_go=true
 reset=true
 
-while [[ $# -gt 0 ]]; do
+while [[ $# -gt 1 ]]; do
     opt="$2"
 
     case $opt in
