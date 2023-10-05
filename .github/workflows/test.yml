@@ -53,4 +53,5 @@ jobs:
         uses: ./
         with:
           task: display-results
-          pr-comment: true
+          display-graph: false
+          display-table: false
