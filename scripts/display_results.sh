@@ -46,6 +46,7 @@ function display_results {
         if [[ $PREVIOUS_VENV != '' ]]; then
           source $PREVIOUS_VENV/bin/activate
         fi
+        max_measurement_number=1
     fi
 
     cpu_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
