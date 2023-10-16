@@ -8,10 +8,6 @@ variables:
   ECO_CI_DISPLAY_TABLE: "true" # true
   ECO_CI_DISPLAY_GRAPH: "false" # false
 
-cache:
-    paths:
-        - /tmp/eco-ci/venv/
-
 .initialize_energy_estimator:
     script:
         - |
