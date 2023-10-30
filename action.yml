@@ -180,7 +180,7 @@ runs:
         # query="query { repository(owner: \"${{ github.repository_owner }}\", name: \"${{ github.repository }}\") { issues(last:20, states:CLOSED) { edges { node { title url labels(first:5) { edges { node { name } } } } } } } }"
         FULL_REPO="${{ github.repository }}"
         REPO_NAME="${FULL_REPO#*/}"
-        query='query { repository(owner: \"${{ github.repository_owner }}\", name: \"'$REPO_NAME'\") {description}}'
+        query='query { repository(owner: \"${{ github.repository_owner }}\", name: \"'$REPO_NAME'\") {pullRequest(number: '$PR_NUMBER') comments(first: 100) { nodes { body author { login } } } } }'
         echo "DMM---"
         echo "$query"
         RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "{\"query\":\"$query\"}" https://api.github.com/graphql)
