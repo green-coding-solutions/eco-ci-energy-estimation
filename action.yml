@@ -182,7 +182,7 @@ runs:
         )
 
         # Send the GraphQL query to the GitHub API
-        RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "$query" https://api.github.com/graphql)
+        RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "{"query:" "$query"}" https://api.github.com/graphql)
         echo "DMM---"
         echo "$RESPONSE"
         # Extract and print the comments
