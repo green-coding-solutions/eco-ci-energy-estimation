@@ -160,18 +160,40 @@ runs:
         PR_NUMBER="${{ github.event.pull_request.number }}"
 
         # Define the GraphQL query to retrieve comments for the PR
+        # query=$(cat <<EOF
+        # query{
+        #     repository(owner: "${{ github.repository_owner }}", name: "${{ github.repository }}") {
+        #         pullRequest(number: $PR_NUMBER) {
+        #             comments(first: 100) {
+        #                 nodes {
+        #                     body
+        #                     author {
+        #                         login
+        #                     }
+        #                 }
+        #             }
+        #         }
+        #     }
+        # }
+        # EOF
+        # )
         query=$(cat <<EOF
         query{
             repository(owner: "${{ github.repository_owner }}", name: "${{ github.repository }}") {
-                pullRequest(number: $PR_NUMBER) {
-                    comments(first: 100) {
-                        nodes {
-                            body
-                            author {
-                                login
-                            }
+                issues(last:20, states:CLOSED) {
+                  edges {
+                    node {
+                      title
+                      url
+                      labels(first:5) {
+                        edges {
+                          node {
+                            name
+                          }
                         }
+                      }
                     }
+                  }
                 }
             }
         }
