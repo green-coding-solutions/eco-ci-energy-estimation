@@ -183,11 +183,11 @@ runs:
 
         # Send the GraphQL query to the GitHub API
         RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "$query" https://api.github.com/graphql)
-
+        echo "DMM---"
+        echo "$RESPONSE"
         # Extract and print the comments
         COMMENT1=$(echo $RESPONSE | jq .)
         COMMENTS=$(echo "$RESPONSE" | jq -r '.data.repository.pullRequest.reviewThreads.edges[].node.comments.nodes[].body')
-        echo "DMM---"
         echo "$COMMENT1"
         echo "$COMMENTS"
         echo "---DMM"
