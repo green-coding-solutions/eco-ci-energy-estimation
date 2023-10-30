@@ -156,9 +156,8 @@ runs:
       name: Minimize Old Comment and Post New Comment
       id: minimize-comment
       shell: bash
-      with:
-        script: |
-          RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" https://api.github.com/graphql)
-          echo "DMM---"
-          echo $RESPONSE
-          echo "---DMM"
+      run: |
+        RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" https://api.github.com/graphql)
+        echo "DMM---"
+        echo $RESPONSE
+        echo "---DMM"
