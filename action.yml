@@ -152,7 +152,7 @@ runs:
         total_data_file="/tmp/eco-ci/total-data.json"
         echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
 
-    - if: github.event_name == 'pull_request' && inputs.task == 'display-results' && inputs.pr-comment == 'true'
+    - if: github.event_name == 'pull_request' && inputs.task == 'test' && inputs.pr-comment == 'true'
       name: Minimize Old Comment and Post New Comment
       id: minimize-comment
       shell: bash
