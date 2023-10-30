@@ -178,8 +178,9 @@ runs:
         # EOF
         # )
         # query="query { repository(owner: \"${{ github.repository_owner }}\", name: \"${{ github.repository }}\") { issues(last:20, states:CLOSED) { edges { node { title url labels(first:5) { edges { node { name } } } } } } } }"
-
-        query='query { repository(owner: \"${{ github.repository_owner }}\", name: \"${{ github.repository#*/ }}\") {description}}'
+        REPO_NAME="${{ github.repository }}"
+        REPO_NAME="${REPO_NAME#*/}"
+        query='query { repository(owner: \"${{ github.repository_owner }}\", name: \"$REPO_NAME\") {description}}'
         echo "DMM---"
         echo "$query"
         RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "{\"query\":\"$query\"}" https://api.github.com/graphql)
