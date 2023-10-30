@@ -161,7 +161,7 @@ runs:
 
         # Define the GraphQL query to retrieve comments for the PR
         query=$(cat <<EOF
-        {
+        query{
           repository(owner: "${{ github.repository_owner }}", name: "${{ github.repository }}") {
             pullRequest(number: $PR_NUMBER) {
               reviewThreads(first: 100) {
@@ -181,9 +181,9 @@ runs:
         EOF
         )
 
-        # Send the GraphQL query to the GitHub API
-        RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "{"query:" "$query"}" https://api.github.com/graphql)
         echo "DMM---"
+        echo "$query"
+        RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "{"query:" "$query"}" https://api.github.com/graphql)
         echo "$RESPONSE"
         # Extract and print the comments
         COMMENT1=$(echo $RESPONSE | jq .)
