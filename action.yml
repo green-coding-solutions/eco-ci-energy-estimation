@@ -157,7 +157,37 @@ runs:
       id: minimize-comment
       shell: bash
       run: |
-        RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" https://api.github.com/graphql)
+        PR_NUMBER="${{ github.event.pull_request.number }}"
+
+        # Define the GraphQL query to retrieve comments for the PR
+        query=$(cat <<EOF
+        {
+          repository(owner: "${{ github.repository_owner }}", name: "${{ github.repository }}") {
+            pullRequest(number: $PR_NUMBER) {
+              reviewThreads(first: 100) {
+                edges {
+                  node {
+                    comments() {
+                      nodes {
+                        body
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        EOF
+        )
+
+        # Send the GraphQL query to the GitHub API
+        RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "$query" https://api.github.com/graphql)
+
+        # Extract and print the comments
+        COMMENT1=$(echo $RESPONSE | jq .)
+        COMMENTS=$(echo "$RESPONSE" | jq -r '.data.repository.pullRequest.reviewThreads.edges[].node.comments.nodes[].body')
         echo "DMM---"
-        echo $RESPONSE
+        echo "$COMMENT1"
+        echo "$COMMENTS"
         echo "---DMM"
