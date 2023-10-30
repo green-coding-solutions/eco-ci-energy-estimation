@@ -160,35 +160,30 @@ runs:
         PR_NUMBER="${{ github.event.pull_request.number }}"
 
         # Define the GraphQL query to retrieve comments for the PR
-        # query=$(cat <<EOF
-        # query{
-        #   repository(owner: "${{ github.repository_owner }}", name: "${{ github.repository }}") {
-        #     pullRequest(number: $PR_NUMBER) {
-        #       reviewThreads(first: 100) {
-        #         edges {
-        #           node {
-        #             comments() {
-        #               nodes {
-        #                 body
-        #               }
-        #             }
-        #           }
-        #         }
-        #       }
-        #     }
-        #   }
-        # }
-        # EOF
-        # )
+        query=$(cat <<EOF
+        query{
+            repository(owner: "${{ github.repository_owner }}", name: "${{ github.repository }}") {
+                pullRequest(number: $PR_NUMBER) {
+                    comments(first: 100) {
+                        nodes {
+                            body
+                            author {
+                                login
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        EOF
+        )
 
-        query="query { viewer { login }}"
+        # query="query { viewer { login }}"
         echo "DMM---"
         echo "$query"
         RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "{\"query\":\"$query\"}" https://api.github.com/graphql)
         echo "$RESPONSE"
         # Extract and print the comments
-        COMMENT1=$(echo $RESPONSE | jq .)
-        COMMENTS=$(echo "$RESPONSE" | jq -r '.data.repository.pullRequest.reviewThreads.edges[].node.comments.nodes[].body')
-        echo "$COMMENT1"
+        COMMENTS=$(echo $RESPONSE | jq .)
         echo "$COMMENTS"
         echo "---DMM"
