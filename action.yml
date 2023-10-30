@@ -176,18 +176,7 @@ runs:
         #     }
         #   }
         # }'
-        query='query {
-          search(query: \"repo: '${{ github.repository }}' is:pr is:open Eco-CI in:body author:github-actions\", last:10, type:ISSUE){
-            edges{
-              node{
-                ... on PullRequest{
-                  body
-                  title
-                }
-              }
-            }
-          }
-        }'
+        query='query { search(query: \"repo: '${{ github.repository }}' is:pr is:open Eco-CI in:body author:github-actions\", last:10, type:ISSUE){ edges{ node{ ... on PullRequest{ body title } } } } }'
         echo "DMM---"
         echo "$query"
         RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "{\"query\":\"$query\"}" https://api.github.com/graphql)
