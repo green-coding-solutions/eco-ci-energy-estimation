@@ -183,7 +183,7 @@ runs:
 
         echo "DMM---"
         echo "$query"
-        RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "{\"query:\" \"$query\"}" https://api.github.com/graphql)
+        RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "{\"query\":\"$query\"}" https://api.github.com/graphql)
         echo "$RESPONSE"
         # Extract and print the comments
         COMMENT1=$(echo $RESPONSE | jq .)
