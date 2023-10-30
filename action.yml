@@ -153,32 +153,12 @@ runs:
         echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
 
     - if: github.event_name == 'pull_request' && inputs.task == 'display-results' && inputs.pr-comment == 'true'
-      name: Comment on Pull Request
-      id: pr-comment
-      shell: bash
-      env:
-        PR_NUMBER: ${{ github.event.pull_request.number }}
-      run: |
-        COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
-        OLD_COMMENT_URL=$(curl -s -H "Authorization: Bearer ${{ github.token }}" "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" | jq -r ".[] | select(.user.login == \"${{ github.actor }}\") | .url")
-        echo "DMM: OLD_COMMENT_URL:"
-        echo $OLD_COMMENT_URL
-
-        if [ -n "$OLD_COMMENT_URL" ]; then
-          # Retrieve the existing comment
-          echo "DMM: Got into old comment editing block..."
-          OLD_COMMENT=$(curl -s -H "Authorization: Bearer ${{ github.token }}" "$OLD_COMMENT_URL" | jq -r .body)
-
-          # Enclose the old comment within a collapsible details element
-          MINIMIZED_COMMENT="<details><summary>Minimized Comment</summary>\n$OLD_COMMENT\n</details>"
-
-          # Update the existing comment with the minimized content
-          curl -X PATCH -H "Authorization: Bearer ${{ github.token }}" -d "{\"body\": \"$MINIMIZED_COMMENT\"}" "$OLD_COMMENT_URL"
-        fi
-
-        API_URL="${{ github.api_url }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
-        curl -X POST -H "Authorization: Bearer ${{github.token}}" -d @- $API_URL <<EOF
-        {
-          "body": $COMMENT
-        }
-        EOF
+      name: Minimize Old Comment and Post New Comment
+      id: minimize-comment
+      uses: actions/github-script@v5
+      with:
+        script: |
+          RESPONSE = curl -H "Authorization: bearer ${{ github.token }}" https://api.github.com/graphql
+          echo "DMM---"
+          echo $RESPONSE
+          echo "---DMM"
