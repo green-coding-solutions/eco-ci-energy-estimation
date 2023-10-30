@@ -177,28 +177,7 @@ runs:
         # }
         # EOF
         # )
-        query=$(cat <<EOF
-        query{
-            repository(owner: "${{ github.repository_owner }}", name: "${{ github.repository }}") {
-                issues(last:20, states:CLOSED) {
-                  edges {
-                    node {
-                      title
-                      url
-                      labels(first:5) {
-                        edges {
-                          node {
-                            name
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-            }
-        }
-        EOF
-        )
+        query="query{ repository(owner: \"${{ github.repository_owner }}\", name: \"${{ github.repository }}\") { issues(last:20, states:CLOSED) { edges { node { title url labels(first:5) { edges { node { name } } } } } } } }"
 
         # query="query { viewer { login }}"
         echo "DMM---"
