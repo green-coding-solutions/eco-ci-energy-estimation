@@ -42,7 +42,7 @@ runs:
   using: 'composite'
   steps:
     - id: guard
-      if: inputs.task != 'start-measurement' && inputs.task != 'get-measurement' && inputs.task != 'display-results'
+      if: inputs.task != 'start-measurement' && inputs.task != 'get-measurement' && inputs.task != 'display-results' && inputs.task != 'test'
       shell: bash
       run: |
           echo 'Please call the Eco-CI Energy Estimation with a valid task name: start-measurement, get-measurement, or display-results' >> $GITHUB_STEP_SUMMARY
