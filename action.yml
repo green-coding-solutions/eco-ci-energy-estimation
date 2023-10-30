@@ -163,7 +163,19 @@ runs:
         FULL_REPO="${{ github.repository }}"
         REPO_NAME="${FULL_REPO#*/}"
         # query='query { repository(owner: \"${{ github.repository_owner }}\", name: \"'$REPO_NAME'\") { pullRequest(number: '$PR_NUMBER') { comments(first: 100) { nodes { body author { login } } } } } }'
-        query='query { repository(owner: \"${{ github.repository_owner }}\", name: \"'$REPO_NAME'\") { pullRequest(number: '$PR_NUMBER') { comments(first: 100) { nodes { body author { login } } } } } }'
+        # query='query { repository(owner: \"${{ github.repository_owner }}\", name: \"'$REPO_NAME'\") { pullRequest(number: '$PR_NUMBER') { comments(first: 100) { nodes { body author { login } } } } } }'
+        # query='query {
+        #   search(query: \"repo: '${{ github.repository }}' is:pr is:open Eco-CI in:body author:github-actions\", last:10, type:ISSUE){
+        #     edges{
+        #       node{
+        #         ... on PullRequest{
+        #           body
+        #           title
+        #         }
+        #       }
+        #     }
+        #   }
+        # }'
         query='query {
           search(query: \"repo: '${{ github.repository }}' is:pr is:open Eco-CI in:body author:github-actions\", last:10, type:ISSUE){
             edges{
