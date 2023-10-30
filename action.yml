@@ -158,7 +158,7 @@ runs:
       uses: actions/github-script@v5
       with:
         script: |
-          RESPONSE = curl -H "Authorization: bearer ${{ github.token }}" https://api.github.com/graphql
+          RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" https://api.github.com/graphql)
           echo "DMM---"
           echo $RESPONSE
           echo "---DMM"
