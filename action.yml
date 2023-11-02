@@ -156,8 +156,10 @@ runs:
       name: Minimize Old Comment and Post New Comment
       id: minimize-comment
       shell: bash
+      env:
+        PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments")
+        COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
 
         # Use jq to parse the comments and get comments made by this bot
         echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username)' | while read -r comment; do
@@ -171,7 +173,8 @@ runs:
         done
 
         NEW_COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
-
+        echo "DMM --"
+        echo $NEW_COMMENT
         API_URL="${{ github.api_url }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
         curl -X POST -H "Authorization: Bearer ${{github.token}}" -d @- $API_URL <<EOF
         {
