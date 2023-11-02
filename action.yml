@@ -165,7 +165,6 @@ runs:
         echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username)' | while read -r comment; do
             COMMENT_ID=$(echo "$comment" | jq -r '.id')
             COMMENT_BODY=$(echo "$comment" | jq -r '.body')
-            # remove "<details><summary>Collapsed comment</summary>\n\n" and "\n\n</details>" from the comment body if its already there
             COMMENT_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')     
             PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>$COMMENT_BODY</details>" '{"body": $body}')
             curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
@@ -173,8 +172,6 @@ runs:
         done
 
         NEW_COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
-        echo "DMM --"
-        echo $NEW_COMMENT
         API_URL="${{ github.api_url }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
         curl -X POST -H "Authorization: Bearer ${{github.token}}" -d @- $API_URL <<EOF
         {
