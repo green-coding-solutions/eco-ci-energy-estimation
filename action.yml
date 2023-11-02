@@ -154,7 +154,7 @@ runs:
 
     - if: github.event_name == 'pull_request' && inputs.pr-comment == 'true'
       name: Minimize Old Comment and Post New Comment
-      id: minimize-comment
+      id: pr-comment
       shell: bash
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
