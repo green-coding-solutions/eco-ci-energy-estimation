@@ -149,27 +149,32 @@ runs:
       run: |
         ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -s "github"
         cat "/tmp/eco-ci/output.txt" >> $GITHUB_STEP_SUMMARY
-        total_data_file="/tmp/eco-ci/total-data.json"
-        echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
+        total_data_file="/tmp/eco-ci/total-data.json
+"        echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
 
     - if: github.event_name == 'pull_request' && inputs.task == 'test' && inputs.pr-comment == 'true'
       name: Minimize Old Comment and Post New Comment
       id: minimize-comment
       shell: bash
       run: |
-        PR_NUMBER="${{ github.event.pull_request.number }}"
+        COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments")
 
-       
-        FULL_REPO="${{ github.repository }}"
-        REPO_NAME="${FULL_REPO#*/}"
+        # Use jq to parse the comments and get comments made by this bot
+        echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username)' | while read -r comment; do
+            COMMENT_ID=$(echo "$comment" | jq -r '.id')
+            COMMENT_BODY=$(echo "$comment" | jq -r '.body')
+            # remove "<details><summary>Collapsed comment</summary>\n\n" and "\n\n</details>" from the comment body if its already there
+            COMMENT_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')     
+            PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>$COMMENT_BODY</details>" '{"body": $body}')
+            curl -s -H "$HEADER" -H "$ACCEPT_HEADER" -X PATCH -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
+            echo "Comment $COMMENT_ID collapsed."
+        done
 
-        # query='query { search(query: \"repo: '${{ github.repository }}' is:pr is:open Eco-CI in:body author:github-actions number:'$PR_NUMBER'\", last:10, type:ISSUE){ edges{ node{ ... on PullRequest{ body title } } } } }'
-        query='query { search(query: \"repo:'${{ github.repository }}' is:pr is:open number:'$PR_NUMBER'\", last:10, type:ISSUE){ edges{ node{ ... on PullRequest{ body title } } } } }'
-        echo "DMM---"
-        echo "$query"
-        RESPONSE=$(curl -H "Authorization: bearer ${{ github.token }}" -X POST -d "{\"query\":\"$query\"}" https://api.github.com/graphql)
-        echo "$RESPONSE"
-        # Extract and print the comments
-        COMMENTS=$(echo $RESPONSE | jq .)
-        echo "$COMMENTS"
-        echo "---DMM"
+        NEW_COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
+
+        API_URL="${{ github.api_url }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+        curl -X POST -H "Authorization: Bearer ${{github.token}}" -d @- $API_URL <<EOF
+        {
+          "body": $NEW_COMMENT
+        }
+        EOF
