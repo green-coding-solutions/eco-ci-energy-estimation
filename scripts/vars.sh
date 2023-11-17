@@ -131,10 +131,9 @@ function cpu_vars_fill {
         add_var "RAM" 512;
         add_var "CPU_FREQ" 2450;
         add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/64" | bc -l);
+        add_var "VHOST_RATIO" $(echo "4/128" | bc -l);
 
     # gitlab uses this one
-    # double check these values with someone 
     elif [[ "$model_name" == *"AMD EPYC 7B12"* ]]; then
         echo "Found EPYC 7B12 model"
         add_var "MODEL_NAME" "EPYC_7B12";
