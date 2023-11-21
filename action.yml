@@ -167,7 +167,7 @@ runs:
             COMMENT_BODY=$(echo "$comment" | jq -r '.body')
             COMMENT_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>\n\n//g' | sed 's/\n\n<\/details>//g')     
             PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>\n\n$COMMENT_BODY\n\n</details>" '{"body": $body}')
-            curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
+            curl --data-binary -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/issues/comments/$COMMENT_ID" 
             echo "Comment $COMMENT_ID collapsed."
         done
 
