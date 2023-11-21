@@ -165,11 +165,15 @@ runs:
         echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username)' | while read -r comment; do
             COMMENT_ID=$(echo "$comment" | jq -r '.id')
             COMMENT_BODY=$(echo "$comment" | jq -r '.body')
-            COMMENT_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>\n\n//g' | sed 's/\n\n<\/details>//g')     
-            PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>\n\n$COMMENT_BODY\n\n</details>" '{"body": $body}')
-            curl --data-binary -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/issues/comments/$COMMENT_ID" 
+            COMMENT_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>\n\n//g' | sed 's/\n\n<\/details>//g')
+
+            # Use printf to interpret escape sequences
+            PAYLOAD=$(printf '{"body": "<details><summary>Old Energy Estimation</summary>\n\n%s\n\n</details>"}' "$COMMENT_BODY")
+            
+            curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/issues/comments/$COMMENT_ID" 
             echo "Comment $COMMENT_ID collapsed."
         done
+
 
         NEW_COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
         API_URL="${{ github.api_url }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
