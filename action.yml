@@ -31,6 +31,10 @@ inputs:
   pr-comment:
     description: 'Add a comment to the PR with the results during display-results step'
     default: false
+  api-base:
+      description: 'Base URL of the Github API to send data to. Default is api.github.com, but can be changed to your hostname if you have Github Enterprise'
+      default: 'api.github.com'
+      required: false
 outputs:
   data-total-json:
     description: "Contains the data of the total measurement which is retrieved by the 'display-results' task."
@@ -159,7 +163,7 @@ runs:
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
+        COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
 
         # Use jq to parse the comments and get comments made by this bot
         echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username)' | while read -r comment; do
@@ -167,7 +171,7 @@ runs:
             COMMENT_BODY=$(echo "$comment" | jq -r '.body')
             COMMENT_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')     
             PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>$COMMENT_BODY</details>" '{"body": $body}')
-            curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
+            curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
             echo "Comment $COMMENT_ID collapsed."
         done
 
