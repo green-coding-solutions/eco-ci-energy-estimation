@@ -176,7 +176,7 @@ runs:
         done
 
         NEW_COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
-        API_URL="${{ github.api_url }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+        API_URL="https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
         curl -X POST -H "Authorization: Bearer ${{github.token}}" -d @- $API_URL <<EOF
         {
           "body": $NEW_COMMENT
