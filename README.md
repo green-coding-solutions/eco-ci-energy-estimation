@@ -102,6 +102,9 @@ jobs:
     - used with display-results
     - if on, will post a comment on the PR issue with the Eco-CI results. only occurs if the triggering event is a pull_request
     - remember to set `pull-requests: write` to true in your workflow file
+- `api-base`: (optional) (default: 'api.github.com')
+    - Eco-CI uses the github api to post/edit PR comments
+    - set to github's default api, but can be changed if you are using github enterprise
 
 
 #### Continuing on Errors
