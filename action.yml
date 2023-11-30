@@ -169,9 +169,9 @@ runs:
             ## indenting (or more accurately, not indenting) here is important, otherwise newlines are not properly sent/processed
             PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>
 
-$INNER_BODY
+        $INNER_BODY
 
-</details>" '{"body": $body}')
+        </details>" '{"body": $body}')
             curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
             echo "Comment $COMMENT_ID collapsed."
         done
