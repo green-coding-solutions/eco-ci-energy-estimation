@@ -31,6 +31,10 @@ inputs:
   pr-comment:
     description: 'Add a comment to the PR with the results during display-results step'
     default: false
+  api-base:
+      description: 'Base URL of the Github API to send data to. Default is api.github.com, but can be changed to your hostname if you have Github Enterprise'
+      default: 'api.github.com'
+      required: false
 outputs:
   data-total-json:
     description: "Contains the data of the total measurement which is retrieved by the 'display-results' task."
@@ -159,7 +163,7 @@ runs:
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
+        COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
 
         echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username and (.body | index("Eco-CI") // false))' | while read -r comment; do
             COMMENT_ID=$(echo "$comment" | jq -r '.id')
@@ -172,12 +176,12 @@ runs:
         $INNER_BODY
 
         </details>" '{"body": $body}')
-            curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
+            curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
             echo "Comment $COMMENT_ID collapsed."
         done
 
         NEW_COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
-        API_URL="${{ github.api_url }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+        API_URL="https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
         curl -X POST -H "Authorization: Bearer ${{github.token}}" -d @- $API_URL <<EOF
         {
           "body": $NEW_COMMENT
