@@ -166,7 +166,7 @@ runs:
             COMMENT_BODY=$(echo "$comment" | jq -r '.body')
             INNER_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')     
             
-            ## indenting (or more accurately, not indenting) here is important, otherwise newlines are not properly sent/processed
+            ## indentation here is important, otherwise newlines are not properly sent/processed
             PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>
 
         $INNER_BODY
