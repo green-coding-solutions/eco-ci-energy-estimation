@@ -62,8 +62,7 @@ function start_measurement {
     # call init_variables
     source "$(dirname "$0")/vars.sh" cpu_vars
 
-    # source "$(dirname "$0")/vars.sh" add_var API_BASE "https://api.green-coding.berlin"
-    source "$(dirname "$0")/vars.sh" add_var API_BASE "https://b67e-62-214-9-98.ngrok-free.app"
+    source "$(dirname "$0")/vars.sh" add_var API_BASE "https://api.green-coding.berlin"
     source "$(dirname "$0")/vars.sh" add_var INIT "DONE"
 
     # start measurement
