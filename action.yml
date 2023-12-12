@@ -165,12 +165,17 @@ runs:
       run: |
         COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
 
-        # Use jq to parse the comments and get comments made by this bot
-        echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username)' | while read -r comment; do
+        echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username and (.body | index("Eco-CI") // false))' | while read -r comment; do
             COMMENT_ID=$(echo "$comment" | jq -r '.id')
             COMMENT_BODY=$(echo "$comment" | jq -r '.body')
-            COMMENT_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')     
-            PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>$COMMENT_BODY</details>" '{"body": $body}')
+            INNER_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')     
+            
+            ## indentation here is important, otherwise newlines are not properly sent/processed
+            PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>
+
+        $INNER_BODY
+
+        </details>" '{"body": $body}')
             curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
             echo "Comment $COMMENT_ID collapsed."
         done
