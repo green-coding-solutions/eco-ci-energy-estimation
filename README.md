@@ -89,7 +89,7 @@ jobs:
 - `label`: (optional) (default: 'measurement ##')
     - Used with `get_measurement` and `display_results` to identify the measurement
 - `send-data`: (optional) (default: true)
-    - Send metrics data to metrics.green-coding.berlin to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
+    - Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.io/ci-index.html 
 - `display-table`: (optional) (default: true)
     - call during the `display-graph` step to either show/hide the energy reading table results in the output
 - `display-graph`: (optional) (default: true)
@@ -189,7 +189,7 @@ where function name is one of the following:
 `get_measurement` - make a spot measurment here. If you wish to label the measurement, you need to set the ECO_CI_LABEL environment variable right before this call.
 `display_results` - will print all the measurement values to the jobs-output and prepare the artifacts, which must be exported in the normal GitLab way.
 
-By default, we send data to our API, which will allow us to present you with a badge, and a front-end display to review your results. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
+By default, we send data to our API, which will allow us to present you with a badge, and a front-end display to review your results. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.io/ci-index.html 
 
 If you do not wish to send us data, you can set this global variable in your pipeline:
 
