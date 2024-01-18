@@ -121,7 +121,7 @@ function display_results {
 
     if [[ ${send_data} == 'true' && ${display_badge} == 'true' ]]; then
         get_endpoint=$API_BASE"/v1/ci/measurement/get"
-        metrics_url="https://metrics.green-coding.berlin"
+        metrics_url="https://metrics.green-coding.io"
 
         echo "Badge for your README.md:" >> $output
         echo ' ```' >> $output

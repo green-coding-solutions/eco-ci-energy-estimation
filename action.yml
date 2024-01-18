@@ -13,7 +13,7 @@ inputs:
     default: null
     required: false
   send-data:
-    description: 'Send metrics data to metrics.green-coding.berlin to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
+    description: 'Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
     default: true
     required: false
   display-table: 
