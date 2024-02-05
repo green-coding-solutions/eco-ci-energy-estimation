@@ -12,7 +12,7 @@ function initialize {
         mkdir /tmp/eco-ci
     fi
     
-    git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
+    git clone --depth 1 --single-branch --branch main https://github.com/green-coding-solutions/spec-power-model /tmp/eco-ci/spec-power-model
 
     ## Reimplement ascii graph when we find a better library
     # install go ascii
