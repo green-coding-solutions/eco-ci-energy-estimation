@@ -77,6 +77,9 @@ runs:
         # call the initialize function of setup.sh
         ${{github.action_path}}/scripts/setup.sh initialize -g ${{inputs.display-graph}}
 
+        cat /proc/cpuinfo
+        lscpu
+
       # To identify the hash for our cache we cannot use the classic mechansim of
       # hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt')
       # hashFiles is restricted to ONLY work in the GITHUB_WORKSPACE which is for the calling action
