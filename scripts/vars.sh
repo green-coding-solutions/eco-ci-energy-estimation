@@ -88,7 +88,6 @@ function cpu_vars_fill {
         add_var "RAM" 128;
         add_var "CPU_FREQ" 2300;
         add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "8/16" | bc -l);
 
     elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
         echo "Found E5-2673 v4 model"
