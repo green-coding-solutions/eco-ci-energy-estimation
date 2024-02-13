@@ -76,6 +76,20 @@ function cpu_vars_fill {
         add_var "CPU_CHIPS" 1;
         add_var "VHOST_RATIO" $(echo "2/64" | bc -l);
 
+        elif [[ "$model_name" == *"9880H"* ]]; then
+        echo "Found 9880H model"
+        add_var "MODEL_NAME" "9880H"
+
+        add_var "TDP" 45;
+        add_var "CPU_THREADS" 16;
+        add_var "CPU_CORES" 8;
+        add_var "CPU_MAKE" "intel";
+        add_var "RELEASE_YEAR" 2019;
+        add_var "RAM" 128;
+        add_var "CPU_FREQ" 2300;
+        add_var "CPU_CHIPS" 1;
+        add_var "VHOST_RATIO" $(echo "8/16" | bc -l);
+
     elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
         echo "Found E5-2673 v4 model"
         add_var "MODEL_NAME" "E5-2673v4";
