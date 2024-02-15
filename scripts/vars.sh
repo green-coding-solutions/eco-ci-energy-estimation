@@ -76,7 +76,7 @@ function cpu_vars_fill {
         add_var "CPU_CHIPS" 1;
         add_var "VHOST_RATIO" $(echo "2/64" | bc -l);
 
-        elif [[ "$model_name" == *"9880H"* ]]; then
+    elif [[ "$model_name" == *"9880H"* ]]; then
         echo "Found 9880H model"
         add_var "MODEL_NAME" "9880H"
 
