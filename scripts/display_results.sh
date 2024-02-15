@@ -31,15 +31,23 @@ function display_results {
         echo "Running a measurement to have at least one result to display."
         source /tmp/eco-ci/venv/bin/activate
 
+
         if [[ "$MODEL_NAME" == "unknown" ]]; then
-            cat /tmp/eco-ci/cpu-util.txt | python3. /tmp/eco-ci/spec-power-model/xgb.py --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
-        else
+            cat /tmp/eco-ci/cpu-util.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+        elif [[ -n "$VHOST_RATIO" ]]; then
             cat /tmp/eco-ci/cpu-util.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
             --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
             --vhost-ratio $VHOST_RATIO --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+        else
+            cat /tmp/eco-ci/cpu-util.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
+            --tdp $TDP --cpu-threads $CPU_THREADS \
+            --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
+            --release-year $RELEASE_YEAR --ram $RAM \
+            --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
+            --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         fi
 
         # reactivate the old venv, if it was present
