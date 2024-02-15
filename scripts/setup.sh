@@ -12,7 +12,7 @@ function initialize {
         mkdir /tmp/eco-ci
     fi
     
-    git clone --depth 1 --single-branch --branch main https://github.com/green-coding-berlin/spec-power-model /tmp/eco-ci/spec-power-model
+    git clone --depth 1 --single-branch --branch main https://github.com/green-coding-solutions/spec-power-model /tmp/eco-ci/spec-power-model
 
     ## Reimplement ascii graph when we find a better library
     # install go ascii
@@ -62,7 +62,7 @@ function start_measurement {
     # call init_variables
     source "$(dirname "$0")/vars.sh" cpu_vars
 
-    source "$(dirname "$0")/vars.sh" add_var API_BASE "https://api.green-coding.berlin"
+    source "$(dirname "$0")/vars.sh" add_var API_BASE "https://api.green-coding.io"
     source "$(dirname "$0")/vars.sh" add_var INIT "DONE"
 
     # start measurement

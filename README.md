@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Initialize Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
         with:
           task: start-measurement
 
@@ -37,7 +37,7 @@ jobs:
           submodules: 'true'
 
       - name: Checkout Repo Measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'repo checkout'
@@ -54,7 +54,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup Python Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'python setup'
@@ -65,13 +65,13 @@ jobs:
           pytest
 
       - name: Tests measurement
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'pytest'
 
       - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
         with:
           task: display-results
 ```
@@ -89,7 +89,7 @@ jobs:
 - `label`: (optional) (default: 'measurement ##')
     - Used with `get_measurement` and `display_results` to identify the measurement
 - `send-data`: (optional) (default: true)
-    - Send metrics data to metrics.green-coding.berlin to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
+    - Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.io/ci-index.html 
 - `display-table`: (optional) (default: true)
     - call during the `display-graph` step to either show/hide the energy reading table results in the output
 - `display-graph`: (optional) (default: true)
@@ -102,6 +102,9 @@ jobs:
     - used with display-results
     - if on, will post a comment on the PR issue with the Eco-CI results. only occurs if the triggering event is a pull_request
     - remember to set `pull-requests: write` to true in your workflow file
+- `api-base`: (optional) (default: 'api.github.com')
+    - Eco-CI uses the github api to post/edit PR comments
+    - set to github's default api, but can be changed if you are using github enterprise
 
 
 #### Continuing on Errors
@@ -110,7 +113,7 @@ We recommend running our action with `continue-on-error:true`, as it is not crit
 
 ```yaml
       - name: Eco CI Energy Estimation
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-solutions/eco-ci-energy-estimation@v2
         with:
           task: final-measurement
         continue-on-error: true
@@ -131,7 +134,7 @@ Here is an example demonstrating how this can be achieved:
           submodules: 'true'
 
       - name: Checkout Repo Measurment
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-solutions/eco-ci-energy-estimation@v2
         id: checkout-step
         with:
           task: get-measurement
@@ -142,7 +145,7 @@ Here is an example demonstrating how this can be achieved:
           echo "total json: ${{ steps.checkout-step.outputs.data-lap-json }}"      
       
       - name: Show Energy Results
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-solutions/eco-ci-energy-estimation@v2
         id: total-measurement-step
         with:
           task: display-results
@@ -164,7 +167,7 @@ jobs:
       actions: read
     steps:
       - name: Eco CI - Initialize
-        uses: green-coding-berlin/eco-ci-energy-estimation@v2
+        uses: green-coding-solutions/eco-ci-energy-estimation@v2
         with:
           task: start-measurement
  ```  
@@ -173,7 +176,7 @@ jobs:
 To use Eco-CI in your GitLab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
 ```
 include:
-  remote: 'https://raw.githubusercontent.com/green-coding-berlin/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
+  remote: 'https://raw.githubusercontent.com/green-coding-solutions/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
 ```
 
 and you call the various scripts in your pipeline with call like this:
@@ -186,7 +189,7 @@ where function name is one of the following:
 `get_measurement` - make a spot measurment here. If you wish to label the measurement, you need to set the ECO_CI_LABEL environment variable right before this call.
 `display_results` - will print all the measurement values to the jobs-output and prepare the artifacts, which must be exported in the normal GitLab way.
 
-By default, we send data to our API, which will allow us to present you with a badge, and a front-end display to review your results. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.berlin/ci-index.html 
+By default, we send data to our API, which will allow us to present you with a badge, and a front-end display to review your results. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.io/ci-index.html 
 
 If you do not wish to send us data, you can set this global variable in your pipeline:
 
@@ -211,7 +214,7 @@ Here is a sample .gitlab-ci.yml example file to illustrate:
 ```
 image: ubuntu:22.04
 include:
-  remote: 'https://raw.githubusercontent.com/green-coding-berlin/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
+  remote: 'https://raw.githubusercontent.com/green-coding-solutions/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
 
 stages:
   - test
@@ -241,7 +244,7 @@ test-job:
 
 
 ### How does it work?
-- The Eco-CI at its core makes its energy estimations based on an XGBoost Machine Learning model we have created based on the SpecPower database. The model and further information can be found here: https://github.com/green-coding-berlin/spec-power-model
+- The Eco-CI at its core makes its energy estimations based on an XGBoost Machine Learning model we have created based on the SpecPower database. The model and further information can be found here: https://github.com/green-coding-solutions/spec-power-model
 - When you initialize the Eco-CI, it downloads the XGBoost model onto the machine, as well as a small program to track the cpu utilization over a period of time. This tracking begins when you call the start_measurement function. Then, each time you call get-measurement, it will take the cpu-utilization data collected (either from the start, or since the last get-measurement call) and make an energy estimation based on the detected hardware (mainly cpu data) and utilization.
 
 ### Limitations
@@ -255,10 +258,10 @@ test-job:
 
 ### Note on the integration
 - If you use dependabot and want to get updates, we recommend using the hash notation
-  + `uses: green-coding-berlin/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2`
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2`
   + Note that this hash is just an example. You find the latest current hash under *Tags*
 
 - If you want the extension to automatically update within a version number, use the convenient @v2 form
-  + `uses: green-coding-berlin/eco-ci-energy-estimation@v2 # will pick the latest minor v2. for example v2.2`
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@v2 # will pick the latest minor v2. for example v2.2`
  
 

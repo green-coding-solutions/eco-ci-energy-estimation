@@ -46,6 +46,7 @@ function display_results {
         if [[ $PREVIOUS_VENV != '' ]]; then
           source $PREVIOUS_VENV/bin/activate
         fi
+        max_measurement_number=1
     fi
 
     cpu_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
@@ -120,7 +121,7 @@ function display_results {
 
     if [[ ${send_data} == 'true' && ${display_badge} == 'true' ]]; then
         get_endpoint=$API_BASE"/v1/ci/measurement/get"
-        metrics_url="https://metrics.green-coding.berlin"
+        metrics_url="https://metrics.green-coding.io"
 
         echo "Badge for your README.md:" >> $output
         echo ' ```' >> $output

@@ -28,7 +28,7 @@ jobs:
     - name: Git config
       run: |
         git config user.name eco-ci
-        git config user.email eco-ci@green-coding.berlin
+        git config user.email eco-ci@green-coding.io
 
     - name: Update tag
       run: |

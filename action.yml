@@ -13,7 +13,7 @@ inputs:
     default: null
     required: false
   send-data:
-    description: 'Send metrics data to metrics.green-coding.berlin to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
+    description: 'Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
     default: true
     required: false
   display-table: 
@@ -31,6 +31,10 @@ inputs:
   pr-comment:
     description: 'Add a comment to the PR with the results during display-results step'
     default: false
+  api-base:
+      description: 'Base URL of the Github API to send data to. Default is api.github.com, but can be changed to your hostname if you have Github Enterprise'
+      default: 'api.github.com'
+      required: false
 outputs:
   data-total-json:
     description: "Contains the data of the total measurement which is retrieved by the 'display-results' task."
@@ -152,18 +156,34 @@ runs:
         total_data_file="/tmp/eco-ci/total-data.json"
         echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
 
-    - if: github.event_name == 'pull_request' && inputs.task == 'display-results' && inputs.pr-comment == 'true'
-      name: Comment on Pull Request
+    - if: github.event_name == 'pull_request' && inputs.pr-comment == 'true'
+      name: Minimize Old Comment and Post New Comment
       id: pr-comment
       shell: bash
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
+        COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
 
-        API_URL="${{ github.api_url }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+        echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username and (.body | index("Eco-CI") // false))' | while read -r comment; do
+            COMMENT_ID=$(echo "$comment" | jq -r '.id')
+            COMMENT_BODY=$(echo "$comment" | jq -r '.body')
+            INNER_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')     
+            
+            ## indentation here is important, otherwise newlines are not properly sent/processed
+            PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>
+
+        $INNER_BODY
+
+        </details>" '{"body": $body}')
+            curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
+            echo "Comment $COMMENT_ID collapsed."
+        done
+
+        NEW_COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
+        API_URL="https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
         curl -X POST -H "Authorization: Bearer ${{github.token}}" -d @- $API_URL <<EOF
         {
-          "body": $COMMENT
+          "body": $NEW_COMMENT
         }
         EOF
