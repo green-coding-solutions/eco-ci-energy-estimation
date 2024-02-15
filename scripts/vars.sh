@@ -60,7 +60,7 @@ function cpu_vars_fill {
         add_var "RAM" 182;
         add_var "CPU_FREQ" 2600;
         add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
+        #add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
 
     elif [[ "$model_name" == *"8370C"* ]]; then
         echo "Found 8370C model"
@@ -74,7 +74,7 @@ function cpu_vars_fill {
         add_var "RAM" 224;
         add_var "CPU_FREQ" 2800;
         add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/64" | bc -l);
+        #add_var "VHOST_RATIO" $(echo "2/64" | bc -l);
 
     elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
         echo "Found E5-2673 v4 model"
@@ -88,7 +88,7 @@ function cpu_vars_fill {
         add_var "RAM" 182;
         add_var "CPU_FREQ" 2300;
         add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
+        #add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
 
     elif [[ "$model_name" == *"E5-2673 v3"* ]]; then
         echo "Found E5-2673 v3 model"
@@ -102,7 +102,7 @@ function cpu_vars_fill {
         add_var "RAM" 84;
         add_var "CPU_FREQ" 2400;
         add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/24" | bc -l);
+        #add_var "VHOST_RATIO" $(echo "2/24" | bc -l);
 
     # model is underclocked
     elif [[ "$model_name" == *"8171M"* ]]; then
@@ -117,7 +117,7 @@ function cpu_vars_fill {
         add_var "RAM" 182;
         add_var "CPU_FREQ" 2600;
         add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);    
+        #add_var "VHOST_RATIO" $(echo "2/52" | bc -l);    
 
     elif [[ "$model_name" == *"AMD EPYC 7763"* ]]; then 
         echo "Found EPYC 7763 model";
@@ -131,7 +131,7 @@ function cpu_vars_fill {
         add_var "RAM" 512;
         add_var "CPU_FREQ" 2450;
         add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "4/128" | bc -l);
+        #add_var "VHOST_RATIO" $(echo "4/128" | bc -l);
 
     # gitlab uses this one
     elif [[ "$model_name" == *"AMD EPYC 7B12"* ]]; then
@@ -146,7 +146,7 @@ function cpu_vars_fill {
         add_var "RAM" 512;
         add_var "CPU_FREQ" 2250;
         add_var "CPU_CHIPS" 1; # see if we can find reference for this
-        add_var "VHOST_RATIO" $(echo "1/64" | bc -l);
+        #add_var "VHOST_RATIO" $(echo "1/64" | bc -l);
 
     else
         echo "⚠️ Unknown model $model_name for estimation, running default ..." # >> $GITHUB_STEP_SUMMARY
