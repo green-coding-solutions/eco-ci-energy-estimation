@@ -62,11 +62,14 @@ NEW_STEP=$(cat <<EOM
     "cpu_avg_percent": "$CPU",
     "energy_joules": "$ENERGY",
     "power_avg_watts": "$POWER"
-    "duration: "$TIME"
+    "time: "$TIME"
 }
 EOM
 )
 
+
+echo "TIME"
+echo $TIME
 # Add the data point to the JSON file
 if [ -s "$FILE" ]; then
     jq --argjson newstep "$NEW_STEP" '. + $newstep' "$FILE" > tmp.$$.json && mv tmp.$$.json "$FILE"
