@@ -62,7 +62,7 @@ NEW_STEP=$(cat <<EOM
     "cpu_avg_percent": "$CPU",
     "energy_joules": "$ENERGY",
     "power_avg_watts": "$POWER",
-    "time: "$TIME"
+    "time": "$TIME"
 }
 EOM
 )
