@@ -38,6 +38,11 @@ while [[ $# -gt 0 ]]; do
         shift # past argument
         shift # past value
         ;;
+        -t|--time)
+        TIME="$2"
+        shift # past argument
+        shift # past value
+        ;;
         *)  # unknown option
         echo "Unknown option: $1"
         exit 1
