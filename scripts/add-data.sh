@@ -6,6 +6,7 @@ LABEL=""
 CPU=""
 ENERGY=""
 POWER=""
+TIME=""
 
 # Parse named parameters
 while [[ $# -gt 0 ]]; do
@@ -56,6 +57,7 @@ NEW_STEP=$(cat <<EOM
     "cpu_avg_percent": "$CPU",
     "energy_joules": "$ENERGY",
     "power_avg_watts": "$POWER"
+    "duration: "$TIME"
 }
 EOM
 )

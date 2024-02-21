@@ -146,7 +146,7 @@ function display_results {
     echo "show create-and-add-meta.sh output"
     echo "--file $total_data_file --repository $repo_enc --branch $branch_enc --workflow $WORKFLOW_ID --run_id $run_id_enc"
     source "$(dirname "$0")/create-and-add-meta.sh" --file "${total_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
-    source "$(dirname "$0")/add-data.sh" --file "${total_data_file}" --label "TOTAL" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}"
+    source "$(dirname "$0")/add-data.sh" --file "${total_data_file}" --label "TOTAL" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}" --time "${time}
 
 }
 
