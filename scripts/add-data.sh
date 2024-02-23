@@ -6,6 +6,7 @@ LABEL=""
 CPU=""
 ENERGY=""
 POWER=""
+TIME=""
 
 # Parse named parameters
 while [[ $# -gt 0 ]]; do
@@ -37,6 +38,11 @@ while [[ $# -gt 0 ]]; do
         shift # past argument
         shift # past value
         ;;
+        -t|--time)
+        TIME="$2"
+        shift # past argument
+        shift # past value
+        ;;
         *)  # unknown option
         echo "Unknown option: $1"
         exit 1
@@ -55,7 +61,8 @@ NEW_STEP=$(cat <<EOM
     "label": "$LABEL",
     "cpu_avg_percent": "$CPU",
     "energy_joules": "$ENERGY",
-    "power_avg_watts": "$POWER"
+    "power_avg_watts": "$POWER",
+    "time": "$TIME"
 }
 EOM
 )
