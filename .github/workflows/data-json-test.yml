@@ -39,7 +39,7 @@ jobs:
           # setup
           output='${{ steps.data-node-setup.outputs.data-lap-json }}'
           required_label="node setup"
-          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts")
+          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts" "time")
           required_count=${#required_fields[@]}
           # assertions
           if [ -z "$output" ]; then
@@ -129,7 +129,7 @@ jobs:
           # setup
           output='${{ steps.data-total.outputs.data-total-json }}'
           required_label="TOTAL"
-          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts")
+          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts" "time")
           required_count=${#required_fields[@]}
           # assertions
           if [ -z "$output" ]; then
