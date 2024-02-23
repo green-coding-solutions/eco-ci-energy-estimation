@@ -86,7 +86,7 @@ jobs:
           # setup
           output='${{ steps.data-sleep.outputs.data-lap-json }}'
           required_label="sleep"
-          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts")
+          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts" "time")
           required_count=${#required_fields[@]}
           # assertions
           if [ -z "$output" ]; then
