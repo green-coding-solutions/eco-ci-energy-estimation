@@ -85,6 +85,10 @@ function make_measurement() {
         echo $total_energy >> /tmp/eco-ci/energy-values.txt
         source "$(dirname "$0")/vars.sh" add_var MEASUREMENT_RAN true
 
+        if [ -z "$cb_machine_uuid" ]; then
+            cb_machine_uuid=$(uuidgen)
+        fi
+
         if [[ $send_data == 'true' ]]; then
             add_endpoint=$API_BASE"/v1/ci/measurement/add"
             metrics_url="https://metrics.green-coding.io"
