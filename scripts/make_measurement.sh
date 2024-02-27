@@ -53,7 +53,7 @@ function make_measurement() {
         fi
 
         # now reset to old venv
-        deactivate 
+        deactivate
         # reactivate the old venv, if it was present
         if [[ $PREVIOUS_VENV != '' ]]; then
           source $PREVIOUS_VENV/bin/activate
@@ -82,7 +82,7 @@ function make_measurement() {
         value_to_add="label:\"$label\", cpu_avg:$cpu_avg, total_energy:$total_energy, power_avg:$power_avg, time:$time"
         source "$(dirname "$0")/vars.sh" add_var $key_to_add "$value_to_add"
 
-        echo $total_energy >> /tmp/eco-ci/energy-values.txt 
+        echo $total_energy >> /tmp/eco-ci/energy-values.txt
         source "$(dirname "$0")/vars.sh" add_var MEASUREMENT_RAN true
 
         if [[ $send_data == 'true' ]]; then
@@ -108,7 +108,10 @@ function make_measurement() {
                 \"source\":\"$source\",
                 \"cpu_util_avg\":\"$cpu_avg\",
                 \"duration\":\"$time\",
-                \"workflow_name\":\"$workflow_name\"
+                \"workflow_name\":\"$workflow_name\",
+                \"cb_company_uuid\":\"$cb_company_uuid\",
+                \"cb_project_uuid\":\"$cb_project_uuid\",
+                \"cb_machine_uuid\":\"$cb_machine_uuid\"
             }"
         fi
 
@@ -129,7 +132,7 @@ function make_measurement() {
         date +%s > /tmp/eco-ci/timer.txt
     else
         echo "Skipping measurement as no data was collected since last call"
-    fi  
+    fi
  }
 
 label=""
@@ -139,32 +142,35 @@ repo=""
 commit_hash=""
 send_data=""
 source=""
+cb_company_uuid=""
+cb_project_uuid=""
+cb_machine_uuid=""
 
 while [[ $# -gt 0 ]]; do
     opt="$1"
 
     case $opt in
-        -l|--label) 
+        -l|--label)
         label="$2"
         shift
         ;;
-        -r|--run-id) 
+        -r|--run-id)
         run_id="$2"
         shift
         ;;
-        -b|--branch) 
+        -b|--branch)
         branch="$2"
         shift
         ;;
-        -R|--repo) 
+        -R|--repo)
         repo="$2"
         shift
         ;;
-        -c|--commit) 
+        -c|--commit)
         commit_hash="$2"
         shift
         ;;
-        -sd|--send-data) 
+        -sd|--send-data)
         send_data="$2"
         shift
         ;;
@@ -176,7 +182,20 @@ while [[ $# -gt 0 ]]; do
         workflow_name="$2"
         shift
         ;;
-        \?) 
+        -cbc|--carbondbcompany)
+        cb_company_uuid="$2"
+        shift
+        ;;
+        -cbp|--carbondbproject)
+        cb_project_uuid="$2"
+        shift
+        ;;
+        -cbm|--carbondbmachine)
+        cb_machine_uuid="$2"
+        shift
+        ;;
+
+        \?)
         echo "Invalid option -$OPTARG" >&2
         ;;
     esac
