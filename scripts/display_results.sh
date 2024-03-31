@@ -168,7 +168,7 @@ repo=""
 display_table=""
 display_graph=""
 send_data=""
-show_carbon = ""
+show_carbon=""
 source=""
 
 while [[ $# -gt 0 ]]; do
