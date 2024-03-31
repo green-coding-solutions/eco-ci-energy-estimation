@@ -168,7 +168,7 @@ runs:
       id: run-total-model
       shell: bash
       run: |
-        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -sc ${{{inputs.show-carbon}} -s "github"
+        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -sc ${{inputs.show-carbon}} -s "github"
         cat "/tmp/eco-ci/output.txt" >> $GITHUB_STEP_SUMMARY
         total_data_file="/tmp/eco-ci/total-data.json"
         echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
