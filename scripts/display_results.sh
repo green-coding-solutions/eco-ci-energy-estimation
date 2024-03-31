@@ -127,12 +127,13 @@ function display_results {
     branch_enc=$( echo ${branch} | jq -Rr @uri)
 
     if [[ ${show_carbon} == 'true' ]]; then
-
         source "$(dirname "$0")/vars.sh" get_co2 "$total_energy"
-
-        echo "City: $CITY, Lat: $LAT, Lon: $LON" >> $output
-        echo "Carbon Intensity for this location: $CO2I" >> $output
-        echo "CO2eq emitted for this job: $CO2EQ" >> $output
+        if [ -n "$CO2EQ" ]; then # We only check for co2 as if this is set the others should be set too
+            echo '🌳 CO2 Data:' | tee -a $output $output_pr
+            echo "City: $CITY, Lat: $LAT, Lon: $LON" | tee -a $output $output_pr
+            echo "Carbon Intensity for this location: $CO2I" | tee -a $output $output_pr
+            printf "CO2eq emitted for this job: %.6f\n" $CO2EQ | tee -a $output $output_pr
+        fi
 
     fi
 
