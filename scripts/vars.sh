@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-#model_name=$(cat /proc/cpuinfo  | grep "model name")
+model_name=$(cat /proc/cpuinfo  | grep "model name")
 
 add_var() {
     key=$1
