@@ -86,15 +86,15 @@ function make_measurement() {
         source "$(dirname "$0")/vars.sh" add_var MEASUREMENT_RAN true
 
         if [ -z "$cb_machine_uuid" ]; then
-            cb_machine_uuid=$(uuidgen)
+             cb_machine_uuid=$(uuidgen)
         fi
 
         if [[ $send_data == 'true' ]]; then
-            add_endpoint=$API_BASE"/v1/ci/measurement/add"
-            metrics_url="https://metrics.green-coding.io"
 
-            value=$total_energy
-            value_mJ=$(echo "$value*1000" | bc -l | cut -d '.' -f 1)
+            source "$(dirname "$0")/vars.sh" get_co2 "$total_energy"
+
+            add_endpoint=$API_BASE"/v1/ci/measurement/add"
+            value_mJ=$(echo "$total_energy*1000" | bc -l | cut -d '.' -f 1)
             unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
 
@@ -116,8 +116,15 @@ function make_measurement() {
                 \"cb_company_uuid\":\"$cb_company_uuid\",
                 \"cb_project_uuid\":\"$cb_project_uuid\",
                 \"cb_machine_uuid\":\"$cb_machine_uuid\"
+#                \"lat\":\"$LAT\"
+#                \"lon\":\"$LON\"
+#                \"city\":\"$CITY\"
+#                \"co2i\":\"$CO2I\"
+#                \"co2eq\":\"$CO2EQ\"
             }"
         fi
+
+
 
         # write data to output
         lap_data_file="/tmp/eco-ci/lap-data.json"

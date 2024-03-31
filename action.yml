@@ -16,6 +16,10 @@ inputs:
     description: 'Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
     default: true
     required: false
+  show-carbon:
+    description: 'Uses the grid carbon intensity of the run location to estimate the emitted carbon for the measurements.'
+    default: true
+    required: false
   display-table:
     description: 'Show the energy reading results in a table during display-results step'
     default: true
@@ -164,7 +168,7 @@ runs:
       id: run-total-model
       shell: bash
       run: |
-        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -s "github"
+        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -sc ${{{inputs.show-carbon}} -s "github"
         cat "/tmp/eco-ci/output.txt" >> $GITHUB_STEP_SUMMARY
         total_data_file="/tmp/eco-ci/total-data.json"
         echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
