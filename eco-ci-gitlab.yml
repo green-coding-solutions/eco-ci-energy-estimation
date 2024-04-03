@@ -19,14 +19,14 @@ variables:
             git clone --depth 1 --single-branch --branch main https://github.com/green-coding-solutions/eco-ci-energy-estimation /tmp/eco-ci/main
             /tmp/eco-ci/main/scripts/setup.sh initialize -r false -g false
             /tmp/eco-ci/main/scripts/setup.sh setup_python
-      
+
 .start_measurement:
     script:
         - |
             echo 'running eco-ci start script'
             /tmp/eco-ci/main/scripts/vars.sh add_var "WORKFLOW_ID" $CI_PROJECT_ID
             /tmp/eco-ci/main/scripts/setup.sh start_measurement
-    
+
 .get_measurement:
     script:
         - echo 'running eco-ci measure script'
@@ -34,11 +34,11 @@ variables:
             repo=$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
             /tmp/eco-ci/main/scripts/make_measurement.sh \
             -l "$ECO_CI_LABEL" \
-            -r $CI_PIPELINE_ID \
-            -b $CI_COMMIT_REF_NAME \
-            -R $repo \
-            -c $CI_COMMIT_SHA \
-            -sd $ECO_CI_SEND_DATA \
+            -r "$CI_PIPELINE_ID" \
+            -b "$CI_COMMIT_REF_NAME" \
+            -R "$repo" \
+            -c "$CI_COMMIT_SHA" \
+            -sd "$ECO_CI_SEND_DATA" \
             -s "gitlab" \
             -n "gitlab-ci.yml" \
 
