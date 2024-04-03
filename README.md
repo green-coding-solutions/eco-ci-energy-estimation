@@ -118,6 +118,12 @@ jobs:
 - `machine-uuid`: (optional)
   - If you want to make the runs look like they all ran on the same machine. This is not recommended as it will not be accurate but can be helpful for debugging.
 
+#### Electricity Maps Token
+
+We use https://app.electricitymaps.com/ to get the grid intensity for a given location. This service currently works without specifying a token but we recommend to still get one under https://api-portal.electricitymaps.com/
+
+You will need to set this token with the env var `ELECTRICITY_MAPS_TOKEN`. See the documentation how to do this https://docs.github.com/en/actions/learn-github-actions/variables#about-variables
+
 #### Continuing on Errors
 
 We recommend running our action with `continue-on-error:true`, as it is not critical to the success of your workflow, but rather a nice feature to have.

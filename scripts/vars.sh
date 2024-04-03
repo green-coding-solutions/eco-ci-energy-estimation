@@ -183,14 +183,12 @@ get_geo_ipapi_co() {
 get_carbon_intensity() {
     latitude=$1
     longitude=$2
-    token="your_electricity_maps_token_here"
 
-    if [ "$token" == "testing" ]; then
-        echo 1000
-        return
+    if [ -z "${ELECTRICITY_MAPS_TOKEN+x}" ]; then
+        export ELECTRICITY_MAPS_TOKEN='no_token'
     fi
 
-    response=$(curl -s -H "auth-token: $token" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=$latitude&lon=$longitude")
+    response=$(curl -s -H "auth-token: $ELECTRICITY_MAPS_TOKEN" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=$latitude&lon=$longitude")
 
     if echo "$response" | jq '.carbonIntensity' | grep -q null; then
         echo "Required carbonIntensity is missing. Exiting" >&2
@@ -214,7 +212,7 @@ get_co2_val (){
 
         carbon_intensity=$(get_carbon_intensity $latitude $longitude)
 
-        if [[ "$carbon_intensity" != "" ]]; then
+        if [[ $? -eq 0 ]]; then
             export CO2I="$carbon_intensity"
 
             value_mJ=$(echo "$total_energy*1000" | bc -l | cut -d '.' -f 1)
