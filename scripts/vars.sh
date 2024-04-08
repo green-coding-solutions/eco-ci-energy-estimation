@@ -184,6 +184,8 @@ get_carbon_intensity() {
     latitude=$1
     longitude=$2
 
+    echo "TOKEN IS $electricity_maps_token"
+
     if [ -z "${ELECTRICITY_MAPS_TOKEN+x}" ]; then
         export ELECTRICITY_MAPS_TOKEN='no_token'
     fi
@@ -235,6 +237,7 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
+electricity_maps_token = ""
 option="$1"
 case $option in
   cpu_vars)
@@ -248,6 +251,7 @@ case $option in
     ;;
   get_co2)
     get_co2_val $2
+    electricity_maps_token="$3"
     ;;
   *)
     echo "Invalid option ($option). Please specify an option: cpu_vars, or add_var [key] [value]."
