@@ -127,12 +127,12 @@ function display_results {
     branch_enc=$( echo ${branch} | jq -Rr @uri)
 
     if [[ ${show_carbon} == 'true' ]]; then
-        source "$(dirname "$0")/vars.sh" get_co2 "$total_energy" "$electricity_maps_token"
+        source "$(dirname "$0")/vars.sh" get_co2 "$total_energy"
         if [ -n "$CO2EQ" ]; then # We only check for co2 as if this is set the others should be set too
             echo '🌳 CO2 Data:' | tee -a $output $output_pr
             echo "City: $CITY, Lat: $LAT, Lon: $LON" | tee -a $output $output_pr
-            echo "Carbon Intensity for this location: $CO2I" | tee -a $output $output_pr
-            printf "CO2eq emitted for this job: %.6f\n" $CO2EQ | tee -a $output $output_pr
+            echo "Carbon Intensity for this location: $CO2I gCO₂eq/kWh" | tee -a $output $output_pr
+            printf "CO2eq emitted for this job: %.6f\n gCO₂eq" $CO2EQ | tee -a $output $output_pr
         fi
 
     fi
@@ -171,7 +171,6 @@ display_graph=""
 send_data=""
 show_carbon=""
 source=""
-electricity_maps_token = ""
 
 while [[ $# -gt 0 ]]; do
     opt="$1"
@@ -211,10 +210,6 @@ while [[ $# -gt 0 ]]; do
         ;;
         -s|--source)
         source="$2"
-        shift
-        ;;
-        -emt|--electricity_maps_token)
-        electricity_maps_token="$2"
         shift
         ;;
         *) echo "Invalid option -$1" >&2
