@@ -132,7 +132,7 @@ function display_results {
             echo '🌳 CO2 Data:' | tee -a $output $output_pr
             echo "City: $CITY, Lat: $LAT, Lon: $LON" | tee -a $output $output_pr
             echo "Carbon Intensity for this location: $CO2I gCO₂eq/kWh" | tee -a $output $output_pr
-            printf "CO2eq emitted for this job: %.6f\n gCO₂eq" $CO2EQ | tee -a $output $output_pr
+            printf "CO2eq emitted for this job: %.6f gCO₂eq\n" $CO2EQ | tee -a $output $output_pr
         fi
 
     fi
