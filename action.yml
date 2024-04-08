@@ -167,8 +167,10 @@ runs:
       name: get estimation for total energy
       id: run-total-model
       shell: bash
+      env:
+        ELECTRICITY_MAPS_TOKEN: ${{secrets.electricity_maps_token}}
       run: |
-        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -sc ${{inputs.show-carbon}} -s "github" -emt "${{secrets.electricity_maps_token}}"
+        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -sc ${{inputs.show-carbon}} -s "github" -emt "$ELECTRICITY_MAPS_TOKEN"
         cat "/tmp/eco-ci/output.txt" >> $GITHUB_STEP_SUMMARY
         total_data_file="/tmp/eco-ci/total-data.json"
         echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
