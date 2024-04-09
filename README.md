@@ -122,7 +122,19 @@ jobs:
 
 We use https://app.electricitymaps.com/ to get the grid intensity for a given location. This service currently works without specifying a token but we recommend to still get one under https://api-portal.electricitymaps.com/
 
-You will need to set this token with the env var `ELECTRICITY_MAPS_TOKEN`. See the documentation how to do this https://docs.github.com/en/actions/learn-github-actions/variables#about-variables
+You will need to set this token as a secret `ELECTRICITY_MAPS_TOKEN`. See the documentation how to do this https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
+
+You will also need to set it in your workflow files where you call `display-results` and `get-measurement`:
+```
+  - name: Eco CI Energy Estimation
+    uses: ./
+    env:
+      ELECTRICITY_MAPS_TOKEN: ${{ secrets.ELECTRICITY_MAPS_TOKEN }}
+    with:
+      task: display-results
+      pr-comment: true
+
+```
 
 #### Continuing on Errors
 
