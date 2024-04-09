@@ -174,12 +174,12 @@ get_geo_ipapi_co() {
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
         echo "Failed to retrieve data or received invalid JSON. Exiting" >&2
-        return 1
+        return
     fi
 
     if echo "$response" | jq '.lat, .lon, .city' | grep -q null; then
         echo "Required data is missing. Exiting" >&2
-        return 1
+        return
     fi
 
     echo "$response"
@@ -197,12 +197,12 @@ get_carbon_intensity() {
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
         echo "Failed to retrieve data or received invalid JSON. Exiting" >&2
-        return 1
+        return
     fi
 
     if echo "$response" | jq '.carbonIntensity' | grep -q null; then
         echo "Required carbonIntensity is missing. Exiting" >&2
-        return 1
+        return
     fi
 
     echo "$response" | jq '.carbonIntensity'
@@ -210,8 +210,8 @@ get_carbon_intensity() {
 
 get_co2_val (){
     total_energy=$1
-    geo_data=$(get_geo_ipapi_co)
-    if [ $? -eq 0 ]; then
+    geo_data=$(get_geo_ipapi_co) || true
+    if [ -n "$geo_data"  ]; then
         latitude=$(echo "$geo_data" | jq '.lat')
         longitude=$(echo "$geo_data" | jq '.lon')
         city=$(echo "$geo_data" | jq -r '.city')
@@ -220,9 +220,9 @@ get_co2_val (){
         export LAT="$latitude"
         export LON="$longitude"
 
-        carbon_intensity=$(get_carbon_intensity $latitude $longitude)
+        carbon_intensity=$(get_carbon_intensity $latitude $longitude) || true
 
-        if [[ $? -eq 0 ]]; then
+        if [[ -n "$carbon_intensity" ]]; then
             export CO2I="$carbon_intensity"
 
             value_mJ=$(echo "$total_energy*1000" | bc -l | cut -d '.' -f 1)
