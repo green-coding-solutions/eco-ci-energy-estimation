@@ -170,7 +170,7 @@ function cpu_vars_fill {
 
 
 get_geo_ipapi_co() {
-    response=$(curl -s http://ip-api.com/json/)
+    response=$(curl -s httpppp://ip-api.com/json/ || true)
 
     if echo "$response" | jq '.lat, .lon, .city' | grep -q null; then
         echo "Required data is missing. Exiting" >&2
@@ -188,7 +188,7 @@ get_carbon_intensity() {
         export ELECTRICITY_MAPS_TOKEN='no_token'
     fi
 
-    response=$(curl -s -H "auth-token: $ELECTRICITY_MAPS_TOKEN" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=$latitude&lon=$longitude")
+    response=$(curl -s -H "auth-token: $ELECTRICITY_MAPS_TOKEN" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=$latitude&lon=$longitude" || true)
 
     if echo "$response" | jq '.carbonIntensity' | grep -q null; then
         echo "Required carbonIntensity is missing. Exiting" >&2
