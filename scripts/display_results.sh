@@ -128,7 +128,7 @@ function display_results {
 
     if [[ ${show_carbon} == 'true' ]]; then
         source "$(dirname "$0")/vars.sh" get_co2 "$total_energy"
-        if [ -n "$CO2EQ" ]; then # We only check for co2 as if this is set the others should be set too
+        if [ -n "${CO2EQ-}" ]; then # We only check for co2 as if this is set the others should be set too
             echo '🌳 CO2 Data:' | tee -a $output $output_pr
             echo "City: $CITY, Lat: $LAT, Lon: $LON" | tee -a $output $output_pr
             echo "Carbon Intensity for this location: $CO2I gCO₂eq/kWh" | tee -a $output $output_pr
