@@ -135,7 +135,7 @@ function display_results {
             printf "CO2eq emitted for this job: %.6f gCO₂eq\n" $CO2EQ | tee -a $output $output_pr
         else
             echo '❌ CO2 Data:' | tee -a $output $output_pr
-            echo "Error in getting value. Please see the detail logs for the error messages!" | tee -a $output $output_pr
+            echo "Error in retrieving values. Please see the detailed logs for the exact error messages!" | tee -a $output $output_pr
         fi
 
     fi

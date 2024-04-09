@@ -170,7 +170,7 @@ function cpu_vars_fill {
 
 
 get_geo_ipapi_co() {
-    response=$(curl -s httpppp://ip-api.com/json/ || true)
+    response=$(curl -s http://ip-api.com/json/ || true)
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
         echo "Failed to retrieve data or received invalid JSON. Exiting" >&2
