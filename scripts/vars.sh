@@ -193,7 +193,7 @@ get_carbon_intensity() {
         export ELECTRICITY_MAPS_TOKEN='no_token'
     fi
 
-    response=$(curl -s -H "auth-token: $ELECTRICITY_MAPS_TOKEN" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=$latitude&lon=$longitude" || true)
+    response=$(curl -s -H "auth-token: $ELECTRICITY_MAPS_TOKEN" "xxxhttps://api.electricitymap.org/v3/carbon-intensity/latest?lat=$latitude&lon=$longitude" || true)
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
         echo "Failed to retrieve data or received invalid JSON. Exiting" >&2
