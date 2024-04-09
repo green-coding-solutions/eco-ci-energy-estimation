@@ -116,11 +116,11 @@ function make_measurement() {
                 \"cb_company_uuid\":\"$cb_company_uuid\",
                 \"cb_project_uuid\":\"$cb_project_uuid\",
                 \"cb_machine_uuid\":\"$cb_machine_uuid\",
-                \"lat\":\"$LAT\",
-                \"lon\":\"$LON\",
-                \"city\":\"$CITY\",
-                \"co2i\":\"$CO2I\",
-                \"co2eq\":\"$CO2EQ\"
+                \"lat\":\"${LAT:-""}\",
+                \"lon\":\"${LON:-""}\",
+                \"city\":\"${CITY:-""}\",
+                \"co2i\":\"${CO2I:-""}\",
+                \"co2eq\":\"${CO2EQ:-""}\"
             }"
         fi
 
