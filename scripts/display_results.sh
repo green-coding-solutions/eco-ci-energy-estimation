@@ -94,7 +94,7 @@ function display_results {
             echo "----------------" >> $output
         done
     fi
-    
+
     if [[ ${display_table} == 'true' ]]; then
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
         if [[ $source == 'github' ]]; then
@@ -125,6 +125,21 @@ function display_results {
     fi
     repo_enc=$( echo ${repo} | jq -Rr @uri)
     branch_enc=$( echo ${branch} | jq -Rr @uri)
+
+    if [[ ${show_carbon} == 'true' ]]; then
+        source "$(dirname "$0")/vars.sh" get_co2 "$total_energy"
+        if [ -n "${CO2EQ-}" ]; then # We only check for co2 as if this is set the others should be set too
+            echo '🌳 CO2 Data:' | tee -a $output $output_pr
+            echo "City: $CITY, Lat: $LAT, Lon: $LON" | tee -a $output $output_pr
+            echo "Carbon Intensity for this location: $CO2I gCO₂eq/kWh" | tee -a $output $output_pr
+            printf "CO2eq emitted for this job: %.6f gCO₂eq\n" $CO2EQ | tee -a $output $output_pr
+        else
+            echo '❌ CO2 Data:' | tee -a $output $output_pr
+            echo "Error in retrieving values. Please see the detailed logs for the exact error messages!" | tee -a $output $output_pr
+        fi
+
+    fi
+
 
     if [[ ${send_data} == 'true' && ${display_badge} == 'true' ]]; then
         get_endpoint=$API_BASE"/v1/ci/measurement/get"
@@ -157,45 +172,51 @@ repo=""
 display_table=""
 display_graph=""
 send_data=""
+show_carbon=""
 source=""
 
 while [[ $# -gt 0 ]]; do
     opt="$1"
 
     case $opt in
-        -b|--branch) 
+        -b|--branch)
         branch="$2"
         shift
         ;;
-        -db|--display-badge) 
+        -db|--display-badge)
         display_badge="$2"
         shift
         ;;
-        -r|--run-id) 
+        -r|--run-id)
         run_id="$2"
         shift
         ;;
-        -R|--repo) 
+        -R|--repo)
         repo="$2"
         shift
         ;;
-        -dt|--display-table) 
+        -dt|--display-table)
         display_table="$2"
         shift
         ;;
-        -dg|--display-graph) 
+        -dg|--display-graph)
         display_graph="$2"
         shift
         ;;
-        -sd|--send-data) 
+        -sd|--send-data)
         send_data="$2"
+        shift
+        ;;
+        -sc|--show-carbon)
+        show_carbon="$2"
         shift
         ;;
         -s|--source)
         source="$2"
         shift
         ;;
-        \?) echo "Invalid option -$1" >&2
+        *) echo "Invalid option -$1" >&2
+        exit 1
         ;;
     esac
     shift

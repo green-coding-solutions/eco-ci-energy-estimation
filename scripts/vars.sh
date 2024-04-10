@@ -37,7 +37,7 @@ read_vars() {
         while IFS="=" read -r key value; do
             # Trim leading/trailing whitespace and quotes from the key
             key=$(echo "$key" | sed -e 's/^"//' -e 's/"$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-            
+
             # Trim leading/trailing whitespace and quotes from the value
             value=$(echo "$value" | sed -e 's/^"//' -e 's/"$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
@@ -130,9 +130,9 @@ function cpu_vars_fill {
         add_var "RAM" 182;
         add_var "CPU_FREQ" 2600;
         add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);    
+        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
 
-    elif [[ "$model_name" == *"AMD EPYC 7763"* ]]; then 
+    elif [[ "$model_name" == *"AMD EPYC 7763"* ]]; then
         echo "Found EPYC 7763 model";
         add_var "MODEL_NAME" "EPYC_7763";
 
@@ -168,6 +168,77 @@ function cpu_vars_fill {
     fi
 }
 
+
+get_geo_ipapi_co() {
+    response=$(curl -s http://ip-api.com/json/ || true)
+
+    if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
+        echo "Failed to retrieve data or received invalid JSON. Exiting" >&2
+        return
+    fi
+
+    if echo "$response" | jq '.lat, .lon, .city' | grep -q null; then
+        echo "Required data is missing. Exiting" >&2
+        return
+    fi
+
+    echo "$response"
+}
+
+get_carbon_intensity() {
+    latitude=$1
+    longitude=$2
+
+    if [ -z "${ELECTRICITY_MAPS_TOKEN+x}" ]; then
+        export ELECTRICITY_MAPS_TOKEN='no_token'
+    fi
+
+    response=$(curl -s -H "auth-token: $ELECTRICITY_MAPS_TOKEN" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=$latitude&lon=$longitude" || true)
+
+    if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
+        echo "Failed to retrieve data or received invalid JSON. Exiting" >&2
+        return
+    fi
+
+    if echo "$response" | jq '.carbonIntensity' | grep -q null; then
+        echo "Required carbonIntensity is missing. Exiting" >&2
+        return
+    fi
+
+    echo "$response" | jq '.carbonIntensity'
+}
+
+get_co2_val (){
+    total_energy=$1
+    geo_data=$(get_geo_ipapi_co) || true
+    if [ -n "$geo_data"  ]; then
+        latitude=$(echo "$geo_data" | jq '.lat')
+        longitude=$(echo "$geo_data" | jq '.lon')
+        city=$(echo "$geo_data" | jq -r '.city')
+
+        export CITY="$city"
+        export LAT="$latitude"
+        export LON="$longitude"
+
+        carbon_intensity=$(get_carbon_intensity $latitude $longitude) || true
+
+        if [[ -n "$carbon_intensity" ]]; then
+            export CO2I="$carbon_intensity"
+
+            value_mJ=$(echo "$total_energy*1000" | bc -l | cut -d '.' -f 1)
+            value_kWh=$(echo "$value_mJ * 10^-9" | bc -l)
+            co2_value=$(echo "$value_kWh * $carbon_intensity" | bc -l)
+
+            export CO2EQ="$co2_value"
+
+        else
+            echo "Failed to get carbon intensity data." >&2
+        fi
+    else
+        echo "Failed to get geolocation data." >&2
+    fi
+}
+
 # Main script logic
 if [ $# -eq 0 ]; then
   echo "No option provided. Please specify an option: cpu_vars, read_vars, or add_var [key] [value]."
@@ -184,6 +255,9 @@ case $option in
     ;;
   read_vars)
     read_vars
+    ;;
+  get_co2)
+    get_co2_val $2
     ;;
   *)
     echo "Invalid option ($option). Please specify an option: cpu_vars, or add_var [key] [value]."

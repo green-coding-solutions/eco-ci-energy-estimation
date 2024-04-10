@@ -16,15 +16,19 @@ inputs:
     description: 'Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
     default: true
     required: false
-  display-table: 
+  show-carbon:
+    description: 'Uses the grid carbon intensity of the run location to estimate the emitted carbon for the measurements.'
+    default: true
+    required: false
+  display-table:
     description: 'Show the energy reading results in a table during display-results step'
     default: true
     required: false
-  display-graph: 
+  display-graph:
     description: 'Show the graph of the energy use over time during display-results step'
     default: true
     required: false
-  display-badge: 
+  display-badge:
     description: 'Shows the badge for the ci run during display-results step'
     default: true
     required: false
@@ -35,6 +39,19 @@ inputs:
       description: 'Base URL of the Github API to send data to. Default is api.github.com, but can be changed to your hostname if you have Github Enterprise'
       default: 'api.github.com'
       required: false
+  company-uuid:
+      description: 'If you want to add data to the CarbonDB you can set this to your company UUID'
+      default: ''
+      required: false
+  project-uuid:
+      description: 'If you want to add data to the CarbonDB you can set this to your project UUID'
+      default: ''
+      required: false
+  machine-uuid:
+      description: 'If you want to add data to the CarbonDB you can set this to your machine UUID.'
+      default: ''
+      required: false
+
 outputs:
   data-total-json:
     description: "Contains the data of the total measurement which is retrieved by the 'display-results' task."
@@ -130,7 +147,7 @@ runs:
         else
           ${{github.action_path}}/scripts/vars.sh add_var "WORKFLOW_ID" ${{github.workflow}}
         fi
-        
+
         ${{github.action_path}}/scripts/setup.sh start_measurement
         echo "ECO_CI_INIT=DONE" >> $GITHUB_ENV;
 
@@ -142,7 +159,7 @@ runs:
         NAME: ${{ github.workflow }}
       shell: bash
       run: |
-        ${{github.action_path}}/scripts/make_measurement.sh -l "${{inputs.label}}" -r "${{ github.run_id }}" -b "${{inputs.branch}}" -R "${{ github.repository }}" -c ${{ github.sha }} -sd ${{inputs.send-data}} -s "github" -n $NAME
+        ${{github.action_path}}/scripts/make_measurement.sh -l "${{inputs.label}}" -r "${{ github.run_id }}" -b "${{inputs.branch}}" -R "${{ github.repository }}" -c ${{ github.sha }} -sd ${{inputs.send-data}} -s "github" -n "$NAME" -cbc "${{inputs.company-uuid}}" -cbp "${{inputs.project-uuid}}" -cbm "${{inputs.machine-uuid}}"
         lap_data_file="/tmp/eco-ci/lap-data.json"
         echo "data-lap-json=$(cat $lap_data_file)" >> $GITHUB_OUTPUT
 
@@ -151,7 +168,7 @@ runs:
       id: run-total-model
       shell: bash
       run: |
-        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -s "github"
+        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -sc ${{inputs.show-carbon}} -s "github"
         cat "/tmp/eco-ci/output.txt" >> $GITHUB_STEP_SUMMARY
         total_data_file="/tmp/eco-ci/total-data.json"
         echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
@@ -168,8 +185,8 @@ runs:
         echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username and (.body | index("Eco-CI") // false))' | while read -r comment; do
             COMMENT_ID=$(echo "$comment" | jq -r '.id')
             COMMENT_BODY=$(echo "$comment" | jq -r '.body')
-            INNER_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')     
-            
+            INNER_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')
+
             ## indentation here is important, otherwise newlines are not properly sent/processed
             PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>
 
