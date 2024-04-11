@@ -24,6 +24,12 @@ function make_measurement() {
 
     # check wc -l of cpu-util is greater than 0
     if [[ $(wc -l < /tmp/eco-ci/cpu-util.txt) -gt 0 ]]; then
+        # capture time
+        time=$(($(date +%s) - $(cat /tmp/eco-ci/timer.txt)))
+
+        # capture cpu util
+        cat /tmp/eco-ci/cpu-util.txt > cat /tmp/eco-ci/cpu-util-temp.txt
+
         # if a previous venv is already active,
         if type deactivate &>/dev/null
         then
@@ -35,16 +41,16 @@ function make_measurement() {
         ## make a note that we cannot use --energy, skew the result as we do not have an input delay.
         # this works because demo-reporter is 1/second
         if [[ "$MODEL_NAME" == "unknown" ]]; then
-            cat /tmp/eco-ci/cpu-util.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            cat /tmp/eco-ci/cpu-util-temp.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         elif [[ -n "$VHOST_RATIO" ]]; then
-            cat /tmp/eco-ci/cpu-util.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
+            cat /tmp/eco-ci/cpu-util-temp.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
             --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
             --vhost-ratio $VHOST_RATIO --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         else
-            cat /tmp/eco-ci/cpu-util.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
+            cat /tmp/eco-ci/cpu-util-temp.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
@@ -71,10 +77,7 @@ function make_measurement() {
             label="Measurement #$MEASUREMENT_COUNT"
         fi
 
-        # this is the time in seconds that the measurement took
-        time=$(($(date +%s) - $(cat /tmp/eco-ci/timer.txt)))
-
-        cpu_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util.txt)
+        cpu_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
         total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt)
         power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt)
 
@@ -138,9 +141,11 @@ function make_measurement() {
         source "$(dirname "$0")/create-and-add-meta.sh" --file "${lap_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
         source "$(dirname "$0")/add-data.sh" --file "${lap_data_file}" --label "$label" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}" --time "${time}"
 
+        # reset timer and cpu capturing
         killall -9 -q /tmp/eco-ci/demo-reporter || true
         /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util.txt &
         date +%s > /tmp/eco-ci/timer.txt
+
     else
         echo "Skipping measurement as no data was collected since last call"
     fi
