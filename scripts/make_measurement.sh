@@ -28,7 +28,7 @@ function make_measurement() {
         time=$(($(date +%s) - $(cat /tmp/eco-ci/timer.txt)))
 
         # capture cpu util
-        cat /tmp/eco-ci/cpu-util.txt > cat /tmp/eco-ci/cpu-util-temp.txt
+        cat /tmp/eco-ci/cpu-util.txt > /tmp/eco-ci/cpu-util-temp.txt
 
         # if a previous venv is already active,
         if type deactivate &>/dev/null
