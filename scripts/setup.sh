@@ -49,6 +49,7 @@ function setup_python {
     #  Installing requirements
     # first activate our venv
     source /tmp/eco-ci/venv/bin/activate
+    python3 -m pip install --upgrade pip
     python3 -m pip install -r /tmp/eco-ci/spec-power-model/requirements.txt
     # now reset to old venv
     deactivate our venv
