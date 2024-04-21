@@ -132,7 +132,7 @@ function display_results {
             echo '🌳 CO2 Data:' | tee -a $output $output_pr
             echo "City: $CITY, Lat: $LAT, Lon: $LON" | tee -a $output $output_pr
             echo "Carbon Intensity for this location: $CO2I gCO₂eq/kWh <a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' style='text-decoration: none;' target=_blank>*</a>" | tee -a $output $output_pr
-            printf "CO2eq emitted for this job: %.6f gCO₂eq\n" $CO2EQ | tee -a $output $output_pr
+            printf "SCI <a href='https://sci-guide.greensoftware.foundation/'>*</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" $CO2EQ | tee -a $output $output_pr
         else
             echo '❌ CO2 Data:' | tee -a $output $output_pr
             echo "Error in retrieving values. Please see the detailed logs for the exact error messages!" | tee -a $output $output_pr
