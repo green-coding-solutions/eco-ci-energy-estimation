@@ -131,7 +131,7 @@ function display_results {
         if [ -n "${CO2EQ-}" ]; then # We only check for co2 as if this is set the others should be set too
             echo '🌳 CO2 Data:' | tee -a $output $output_pr
             echo "City: $CITY, Lat: $LAT, Lon: $LON" | tee -a $output $output_pr
-            echo "Carbon Intensity for this location: $CO2I gCO₂eq/kWh" | tee -a $output $output_pr
+            echo "Carbon Intensity for this location: $CO2I gCO₂eq/kWh <a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank>*</a>" | tee -a $output $output_pr
             printf "CO2eq emitted for this job: %.6f gCO₂eq\n" $CO2EQ | tee -a $output $output_pr
         else
             echo '❌ CO2 Data:' | tee -a $output $output_pr
