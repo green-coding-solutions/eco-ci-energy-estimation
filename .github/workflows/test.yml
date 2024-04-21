@@ -1,13 +1,12 @@
 name: test-action
 
 on:
-  push:
+  pull_request:
     paths-ignore:
      - 'README.md'
      - 'LICENSE'
-  pull_request:
-    branches:
-     - main
+     - '.gitlab-ci.yml.example'
+     - '.gitignore'
   schedule:
     # only run once a week to show the action is working and preserve as much energy as possible
     # Reason being that we pull our ML model and this could have changed in the meantime
