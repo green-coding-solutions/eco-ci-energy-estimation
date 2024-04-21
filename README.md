@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Initialize Energy Estimation
-        uses: green-coding-solutions/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
         with:
           task: start-measurement
 
@@ -37,7 +37,7 @@ jobs:
           submodules: 'true'
 
       - name: Checkout Repo Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'repo checkout'
@@ -54,7 +54,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup Python Measurment
-        uses: green-coding-solutions/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'python setup'
@@ -65,13 +65,13 @@ jobs:
           pytest
 
       - name: Tests measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'pytest'
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v2 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
         with:
           task: display-results
 ```
@@ -142,7 +142,7 @@ We recommend running our action with `continue-on-error:true`, as it is not crit
 
 ```yaml
       - name: Eco CI Energy Estimation
-        uses: green-coding-solutions/eco-ci-energy-estimation@v2
+        uses: green-coding-solutions/eco-ci-energy-estimation@v3
         with:
           task: final-measurement
         continue-on-error: true
@@ -163,7 +163,7 @@ Here is an example demonstrating how this can be achieved:
           submodules: 'true'
 
       - name: Checkout Repo Measurment
-        uses: green-coding-solutions/eco-ci-energy-estimation@v2
+        uses: green-coding-solutions/eco-ci-energy-estimation@v3
         id: checkout-step
         with:
           task: get-measurement
@@ -174,7 +174,7 @@ Here is an example demonstrating how this can be achieved:
           echo "total json: ${{ steps.checkout-step.outputs.data-lap-json }}"
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v2
+        uses: green-coding-solutions/eco-ci-energy-estimation@v3
         id: total-measurement-step
         with:
           task: display-results
@@ -196,7 +196,7 @@ jobs:
       actions: read
     steps:
       - name: Eco CI - Initialize
-        uses: green-coding-solutions/eco-ci-energy-estimation@v2
+        uses: green-coding-solutions/eco-ci-energy-estimation@v3
         with:
           task: start-measurement
  ```
@@ -291,6 +291,6 @@ test-job:
   + Note that this hash is just an example. You find the latest current hash under *Tags*
 
 - If you want the extension to automatically update within a version number, use the convenient @v2 form
-  + `uses: green-coding-solutions/eco-ci-energy-estimation@v2 # will pick the latest minor v2. for example v2.2`
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@v3 # will pick the latest minor v2. for example v2.2`
 
 
