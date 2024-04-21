@@ -130,9 +130,9 @@ function display_results {
         source "$(dirname "$0")/vars.sh" get_co2 "$total_energy"
         if [ -n "${CO2EQ-}" ]; then # We only check for co2 as if this is set the others should be set too
             echo '🌳 CO2 Data:' | tee -a $output $output_pr
-            echo "City: $CITY, Lat: $LAT, Lon: $LON" | tee -a $output $output_pr
-            echo "Carbon Intensity for this location: $CO2I gCO₂eq/kWh <a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' style='text-decoration: none;' target=_blank>*</a>" | tee -a $output $output_pr
-            printf "SCI <a href='https://sci-guide.greensoftware.foundation/'>\*</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" $CO2EQ | tee -a $output $output_pr
+            echo "City: <b>$CITY</b>, Lat: <b>$LAT</b>, Lon: <b>$LON</b>" | tee -a $output $output_pr
+            echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>$CO2I gCO₂eq/kWh</b>" | tee -a $output $output_pr
+            printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" $CO2EQ | tee -a $output $output_pr
         else
             echo '❌ CO2 Data:' | tee -a $output $output_pr
             echo "Error in retrieving values. Please see the detailed logs for the exact error messages!" | tee -a $output $output_pr
