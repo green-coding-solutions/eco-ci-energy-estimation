@@ -45,9 +45,9 @@ variables:
             -sd "$ECO_CI_SEND_DATA" \
             -s "gitlab" \
             -n "gitlab-ci.yml" \
-            -cbc "$ECO_CI_COMPANY_UUID" \n
-            -cbp "$ECO_CI_PROJECT_UUID" \n
-            -cbm "$ECO_CI_MACHINE_UUID" \n
+            -cbc "$ECO_CI_COMPANY_UUID" \
+            -cbp "$ECO_CI_PROJECT_UUID" \
+            -cbm "$ECO_CI_MACHINE_UUID"
 
 .display_results:
     script:
@@ -65,6 +65,6 @@ variables:
             -dg "$ECO_CI_DISPLAY_GRAPH" \
             -sd "$ECO_CI_SEND_DATA" \
             -s "gitlab" \
-            -sc "$ECO_CI_SHOW_CARBON" \
+            -sc "$ECO_CI_SHOW_CARBON"
         - echo -e "$FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$TXT_CLEAR"
         - cp /tmp/eco-ci/output.txt ./eco-ci-output.txt
