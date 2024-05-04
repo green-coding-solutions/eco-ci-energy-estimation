@@ -7,6 +7,10 @@ variables:
   ECO_CI_DISPLAY_BADGE: "true" # true
   ECO_CI_DISPLAY_TABLE: "true" # true
   ECO_CI_DISPLAY_GRAPH: "false" # false
+  ECO_CI_SHOW_CARBON: "true"
+  ECO_CI_COMPANY_UUID: ""
+  ECO_CI_PROJECT_UUID: ""
+  ECO_CI_MACHINE_UUID: ""
 
 .initialize_energy_estimator:
     script:
@@ -41,6 +45,9 @@ variables:
             -sd "$ECO_CI_SEND_DATA" \
             -s "gitlab" \
             -n "gitlab-ci.yml" \
+            -cbc "$ECO_CI_COMPANY_UUID" \n
+            -cbp "$ECO_CI_PROJECT_UUID" \n
+            -cbm "$ECO_CI_MACHINE_UUID" \n
 
 .display_results:
     script:
@@ -50,13 +57,14 @@ variables:
             FORMAT_CLR="\e[44m" && TXT_CLEAR="\e[0m"
             repo=$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
             /tmp/eco-ci/main/scripts/display_results.sh \
-            -b $CI_COMMIT_REF_NAME \
-            -db $ECO_CI_DISPLAY_BADGE \
-            -r $CI_PIPELINE_ID \
-            -R $repo \
-            -dt $ECO_CI_DISPLAY_TABLE \
-            -dg $ECO_CI_DISPLAY_GRAPH \
-            -sd $ECO_CI_SEND_DATA \
+            -b "$CI_COMMIT_REF_NAME" \
+            -db "$ECO_CI_DISPLAY_BADGE" \
+            -r "$CI_PIPELINE_ID" \
+            -R "$repo" \
+            -dt "$ECO_CI_DISPLAY_TABLE" \
+            -dg "$ECO_CI_DISPLAY_GRAPH" \
+            -sd "$ECO_CI_SEND_DATA" \
             -s "gitlab" \
+            -sc "$ECO_CI_SHOW_CARBON" \
         - echo -e "$FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$TXT_CLEAR"
         - cp /tmp/eco-ci/output.txt ./eco-ci-output.txt
