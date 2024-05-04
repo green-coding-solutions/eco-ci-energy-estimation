@@ -8,6 +8,11 @@ stages:
 test-job:
   stage: test 
   script:
+    # Please input valid UUIDs here if you want to use CarbonDB (https://www.green-coding.io/projects/carbondb/)
+    # Generate one here for example: https://www.freecodeformat.com/validate-uuid-guid.php
+    #- export ECO_CI_COMPANY_UUID="YOUR COMPANY UUID"
+    #- export ECO_CI_PROJECT_UUID="YOUR PROJECT UUID"
+
     - !reference [.initialize_energy_estimator, script]
     - !reference [.start_measurement, script]
     - sleep 10s
@@ -16,6 +21,7 @@ test-job:
     - sleep 3s
     - export ECO_CI_LABEL="measurement 2 (script)"
     - !reference [.get_measurement, script]
+    - export ECO_CI_SHOW_CARBON="true"
     - !reference [.display_results, script]
 
   artifacts:
