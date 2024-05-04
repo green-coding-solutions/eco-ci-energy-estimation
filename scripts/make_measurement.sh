@@ -1,5 +1,3 @@
-set -euo pipefail
-
 # Call the function to read and set the variables
 source "$(dirname "$0")/vars.sh" read_vars
 

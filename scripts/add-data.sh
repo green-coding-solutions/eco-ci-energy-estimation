@@ -1,5 +1,3 @@
-#!/bin/bash
-set -euo pipefail
 
 FILE=""
 LABEL=""
