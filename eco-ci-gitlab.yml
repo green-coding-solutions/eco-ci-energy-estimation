@@ -16,7 +16,7 @@ variables:
     script:
         - |
             apt-get update
-            apt-get install git python3.10 python3.10-venv gcc bc jq curl golang-go psmisc -y
+            apt-get install git uuid-runtime python3.10 python3.10-venv gcc bc jq curl golang-go psmisc -y
             if [[ -d /tmp/eco-ci ]]; then
                 rm -rf /tmp/eco-ci
             fi
