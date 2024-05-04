@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 model_name=$(cat /proc/cpuinfo  | grep "model name")
 
 add_var() {
