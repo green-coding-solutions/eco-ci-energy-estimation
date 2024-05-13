@@ -87,7 +87,7 @@ runs:
         python_version=$(python3 --version 2>&1)
         python_major_version=$(python3 -c 'import sys; print(sys.version_info[0])')
         python_minor_version=$(python3 -c 'import sys; print(sys.version_info[1])')
-        python_cache_path="${base_root}venv/lib/python${python_major_version}.${python_minor_version}/site-packages"
+        python_cache_path="/tmp/eco-ci/venv/lib/python${python_major_version}.${python_minor_version}/site-packages"
         echo "python_cache_path=$python_cache_path" >> $GITHUB_OUTPUT
 
 
