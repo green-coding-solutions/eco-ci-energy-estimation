@@ -29,6 +29,8 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
         with:
           task: start-measurement
+        # continue-on-error: true # recommended setting for production. See notes below.
+
 
       - name: 'Checkout repository'
         uses: actions/checkout@v3
@@ -41,6 +43,7 @@ jobs:
         with:
           task: get-measurement
           label: 'repo checkout'
+        # continue-on-error: true # recommended setting for production. See notes below.
 
       - name: setup python
         uses: actions/setup-python@v4
@@ -58,6 +61,7 @@ jobs:
         with:
           task: get-measurement
           label: 'python setup'
+        # continue-on-error: true # recommended setting for production. See notes below.
 
       - name: Run Tests
         shell: bash
@@ -69,11 +73,14 @@ jobs:
         with:
           task: get-measurement
           label: 'pytest'
+        # continue-on-error: true # recommended setting for production. See notes below.
 
       - name: Show Energy Results
         uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
         with:
           task: display-results
+        # continue-on-error: true # recommended setting for production. See notes below.
+
 ```
 
 #### Github Action Mandatory and Optional Variables:
@@ -138,7 +145,8 @@ You will also need to set it in your workflow files where you call `display-resu
 
 #### Continuing on Errors
 
-We recommend running our action with `continue-on-error:true`, as it is not critical to the success of your workflow, but rather a nice feature to have.
+Once you have initially set up Eco-CI and have given it a test spin we recommend running our action 
+with `continue-on-error:true`, as energy and CO2 metrics is not critical to the success of your workflow, but rather a nice feature to have.
 
 ```yaml
       - name: Eco CI Energy Estimation
