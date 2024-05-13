@@ -80,7 +80,7 @@ runs:
         else
             echo "Python is not installed. Installing..."
             apt-get update
-            apt-get install -y python3.10 python3.10-venv
+            apt-get install -y python3.12 python3.12-venv || apt-get install -y python3.10 python3.10-venv
             echo "Python has been installed."
         fi
 
