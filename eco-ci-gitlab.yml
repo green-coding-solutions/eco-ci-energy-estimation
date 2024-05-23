@@ -15,8 +15,12 @@ variables:
 .initialize_energy_estimator:
     script:
         - |
-            apt-get update
-            apt-get install git uuid-runtime python3.10 python3.10-venv gcc bc jq curl golang-go psmisc -y
+            if grep -q "Ubuntu" /etc/os-release; then
+              apt-get update
+              apt-get install git uuid-runtime python3.10 python3.10-venv gcc bc jq curl psmisc -y
+            elif grep -q "openSUSE" /etc/os-release; then
+              zypper install git uuid python310 python3-pip gcc bc jq curl
+            fi
             if [[ -d /tmp/eco-ci ]]; then
                 rm -rf /tmp/eco-ci
             fi
