@@ -34,7 +34,7 @@ function lap_measurement {
         docker logs cloud-energy-cpu-utilization | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util.txt
         docker rm -f cloud-energy-cpu-utilization
     fi
-    docker run --rm -d --name cloud-energy-cpu-utilization cloud-energy /home/worker/cpu-utilization
+    docker run --rm -d --name cloud-energy-cpu-utilization greencoding/cloud-energy:asciicharts /home/worker/cpu-utilization
 }
 
 # Main script logic
