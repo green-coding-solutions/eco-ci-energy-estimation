@@ -30,16 +30,16 @@ function display_results {
         echo "Running a measurement to have at least one result to display."
 
         if [[ "$MODEL_NAME" == "unknown" ]]; then
-            $(docker run --rm greencoding/cloud-energy:asciicharts python3 xgb.py --auto --silent) < /tmp/eco-ci/cpu-util.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            $(docker run --rm greencoding/cloud-energy:latest-asciicharts python3 xgb.py --auto --silent) < /tmp/eco-ci/cpu-util.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         elif [[ -n "$VHOST_RATIO" ]]; then
-            $(docker run --rm greencoding/cloud-energy:asciicharts python3 xgb.py \
+            $(docker run --rm greencoding/cloud-energy:latest-asciicharts python3 xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
             --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
             --vhost-ratio $VHOST_RATIO --silent ) < /tmp/eco-ci/cpu-util.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         else
-            $(docker run --rm greencoding/cloud-energy:asciicharts python3 xgb.py \
+            $(docker run --rm greencoding/cloud-energy:latest-asciicharts python3 xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
@@ -110,11 +110,11 @@ function display_results {
             echo '📈 Energy graph:' | tee -a $output $output_pr
             echo '```bash' | tee -a $output $output_pr
             echo ' ' | tee -a $output $output_pr
-            $(docker run --rm greencoding/cloud-energy:asciicharts /home/worker/go/bin/asciigraph -h 10 -c "Watts over time") < /tmp/eco-ci/energy-total.txt | tee -a $output $output_pr
+            $(docker run --rm greencoding/cloud-energy:latest-asciicharts /home/worker/go/bin/asciigraph -h 10 -c "Watts over time") < /tmp/eco-ci/energy-total.txt | tee -a $output $output_pr
             echo ' ```' | tee -a $output $output_pr
         elif [[ $source == 'gitlab' ]]; then
             echo '📈 Energy graph:' >> $output
-            $(docker run --rm greencoding/cloud-energy:asciicharts /home/worker/go/bin/asciigraph -h 10 -c "Watts over time") < /tmp/eco-ci/energy-total.txt >> $output
+            $(docker run --rm greencoding/cloud-energy:latest-asciicharts /home/worker/go/bin/asciigraph -h 10 -c "Watts over time") < /tmp/eco-ci/energy-total.txt >> $output
         fi
     fi
     repo_enc=$( echo ${repo} | jq -Rr @uri)
