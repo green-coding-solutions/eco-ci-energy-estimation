@@ -20,6 +20,7 @@ function initialize {
 
 function start_measurement {
     # start global timer
+    touch /tmp/eco-ci/cpu-util.txt
     date +%s > /tmp/eco-ci/timer-total.txt
     lap_measurement
 }

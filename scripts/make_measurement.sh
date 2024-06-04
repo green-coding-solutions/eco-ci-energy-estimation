@@ -22,13 +22,18 @@ function make_measurement() {
     WORKFLOW_ID=${WORKFLOW_ID:-}
     API_BASE=${API_BASE:-}
 
+
+    # reset timer and cpu capturing (lap)
+    source "$(dirname "$0")/setup.sh" lap_measurement
+
+    # capture cpu util
+    cat /tmp/eco-ci/cpu-util.txt > /tmp/eco-ci/cpu-util-temp.txt
+
+    # capture time
+    time=$(($(date +%s) - $(cat /tmp/eco-ci/timer.txt)))
+
     # check wc -l of cpu-util is greater than 0
     if [[ $(wc -l < /tmp/eco-ci/cpu-util.txt) -gt 0 ]]; then
-        # capture time
-        time=$(($(date +%s) - $(cat /tmp/eco-ci/timer.txt)))
-
-        # capture cpu util
-        cat /tmp/eco-ci/cpu-util.txt > /tmp/eco-ci/cpu-util-temp.txt
 
         ## make a note that we cannot use --energy, skew the result as we do not have an input delay.
         # this works because demo-reporter is 1/second
@@ -123,7 +128,8 @@ function make_measurement() {
         source "$(dirname "$0")/create-and-add-meta.sh" --file "${lap_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
         source "$(dirname "$0")/add-data.sh" --file "${lap_data_file}" --label "$label" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}" --time "${time}"
 
-        # reset timer and cpu capturing (lap)
+        # Reset the timers again, so we do not capture the overhead per step
+        # we want to only caputure the overhead in the totals
         source "$(dirname "$0")/setup.sh" lap_measurement
 
     else
