@@ -38,21 +38,21 @@ function make_measurement() {
         ## make a note that we cannot use --energy, skew the result as we do not have an input delay.
         # this works because demo-reporter is 1/second
         if [[ "$MODEL_NAME" == "unknown" ]]; then
-            $(docker run --rm greencoding/cloud-energy:latest-asciicharts python3 xgb.py --auto --silent) < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            docker run --rm -i greencoding/cloud-energy:latest-asciicharts python3 xgb.py --auto --silent < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         elif [[ -n "$VHOST_RATIO" ]]; then
-            $(docker run --rm greencoding/cloud-energy:latest-asciicharts python3 xgb.py \
+            docker run --rm -i greencoding/cloud-energy:latest-asciicharts python3 xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
             --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
-            --vhost-ratio $VHOST_RATIO --silent) < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            --vhost-ratio $VHOST_RATIO --silent < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         else
-            $(docker run --rm greencoding/cloud-energy:latest-asciicharts python3 xgb.py \
+            docker run --rm -i greencoding/cloud-energy:latest-asciicharts python3 xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
             --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
-            --silent) < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            --silent < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         fi
 
         if [[ $MEASUREMENT_COUNT == '' ]]; then
