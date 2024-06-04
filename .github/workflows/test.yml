@@ -31,22 +31,34 @@ jobs:
         with:
           task: start-measurement
 
-      - name: Wait before the next step
+      - name: Sleep step
         run: sleep 2
 
       - name: Test measurement 1
         uses: ./
         with:
           task: get-measurement
+          label: "Sleep 3s"
 
-      - name: Wait before the next step
-        run: sleep 2
+      - name: Filesystem
+        run: ls -alhR /
 
       - name: Test measurement 2
         uses: ./
         with:
           task: get-measurement
-          label: "Sleep #2"
+          label: "ls -alhR /"
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Test measurement 2
+        uses: ./
+        with:
+          task: get-measurement
+          label: "Sleep 3s"
+
+
 
       - name: Eco CI Energy Estimation
         uses: ./
