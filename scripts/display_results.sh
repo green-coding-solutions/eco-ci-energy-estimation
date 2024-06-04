@@ -18,7 +18,6 @@ function display_results {
     CPU_FREQ=${CPU_FREQ:-}
     CPU_CHIPS=${CPU_CHIPS:-}
     VHOST_RATIO=${VHOST_RATIO:-}
-    PREVIOUS_VENV=${PREVIOUS_VENV:-}
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
     API_BASE=${API_BASE:-}
@@ -29,30 +28,25 @@ function display_results {
 
     if [[ $MEASUREMENT_RAN != true ]]; then
         echo "Running a measurement to have at least one result to display."
-        source /tmp/eco-ci/venv/bin/activate
 
         if [[ "$MODEL_NAME" == "unknown" ]]; then
-            cat /tmp/eco-ci/cpu-util.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            $(docker run --rm cloud-energy python3 xgb.py --auto --silent) < /tmp/eco-ci/cpu-util.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         elif [[ -n "$VHOST_RATIO" ]]; then
-            cat /tmp/eco-ci/cpu-util.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
+            $(docker run --rm cloud-energy python3 xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
             --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
-            --vhost-ratio $VHOST_RATIO --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            --vhost-ratio $VHOST_RATIO --silent ) < /tmp/eco-ci/cpu-util.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         else
-            cat /tmp/eco-ci/cpu-util.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
+            $(docker run --rm cloud-energy python3 xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
             --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
-            --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            --silent ) < /tmp/eco-ci/cpu-util.txt  | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         fi
 
-        # reactivate the old venv, if it was present
-        if [[ $PREVIOUS_VENV != '' ]]; then
-          source $PREVIOUS_VENV/bin/activate
-        fi
         max_measurement_number=1
     fi
 
@@ -116,21 +110,28 @@ function display_results {
             echo '📈 Energy graph:' | tee -a $output $output_pr
             echo '```bash' | tee -a $output $output_pr
             echo ' ' | tee -a $output $output_pr
-            cat /tmp/eco-ci/energy-total.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" | tee -a $output $output_pr
+            $(docker run --rm cloud-energy /home/woker/go/bin/asciigraph -h 10 -c "Watts over time") < /tmp/eco-ci/energy-total.txt | tee -a $output $output_pr
             echo ' ```' | tee -a $output $output_pr
         elif [[ $source == 'gitlab' ]]; then
             echo '📈 Energy graph:' >> $output
-            cat /tmp/eco-ci/energy-total.txt | /home/runner/go/bin/asciigraph -h 10 -c "Watts over time" >> $output
+            $(docker run --rm cloud-energy /home/woker/go/bin/asciigraph -h 10 -c "Watts over time") < /tmp/eco-ci/energy-total.txt >> $output
         fi
     fi
     repo_enc=$( echo ${repo} | jq -Rr @uri)
     branch_enc=$( echo ${branch} | jq -Rr @uri)
 
     if [[ ${show_carbon} == 'true' ]]; then
-        source "$(dirname "$0")/vars.sh" get_co2 "$total_energy"
-        if [ -n "${CO2EQ-}" ]; then # We only check for co2 as if this is set the others should be set too
+        source "$(dirname "$0")/vars.sh" get_energy_co2 "$total_energy"
+        source "$(dirname "$0")/vars.sh" get_embodied_co2 "$time"
+
+
+        if [ -n "$CO2EQ_EMBODIED" ] && [ -n "$CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
+            CO2EQ=$(echo "$CO2EQ_EMBODIED + $CO2EQ_ENERGY" | bc -l)
+
             echo '🌳 CO2 Data:' | tee -a $output $output_pr
             echo "City: <b>$CITY</b>, Lat: <b>$LAT</b>, Lon: <b>$LON</b>" | tee -a $output $output_pr
+            echo "CO₂ from energy is: $CO2EQ_ENERGY" | tee -a $output $output_pr
+            echo "CO₂ from manufacturing (embodied carbon) is: $CO2EQ_ENERGY" | tee -a $output $output_pr
             echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>$CO2I gCO₂eq/kWh</b>" | tee -a $output $output_pr
             printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" $CO2EQ | tee -a $output $output_pr
         else

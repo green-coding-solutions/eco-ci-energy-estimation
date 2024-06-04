@@ -30,39 +30,24 @@ function make_measurement() {
         # capture cpu util
         cat /tmp/eco-ci/cpu-util.txt > /tmp/eco-ci/cpu-util-temp.txt
 
-        # if a previous venv is already active,
-        if type deactivate &>/dev/null
-        then
-           deactivate
-        fi
-        # then activate our venv
-        source /tmp/eco-ci/venv/bin/activate
-
         ## make a note that we cannot use --energy, skew the result as we do not have an input delay.
         # this works because demo-reporter is 1/second
         if [[ "$MODEL_NAME" == "unknown" ]]; then
-            cat /tmp/eco-ci/cpu-util-temp.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            $(docker run --rm cloud-energy python3 xgb.py --auto --silent) < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         elif [[ -n "$VHOST_RATIO" ]]; then
-            cat /tmp/eco-ci/cpu-util-temp.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
+            $(docker run --rm cloud-energy python3 xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
             --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
-            --vhost-ratio $VHOST_RATIO --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
+            --vhost-ratio $VHOST_RATIO --silent) < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         else
-            cat /tmp/eco-ci/cpu-util-temp.txt | python3 /tmp/eco-ci/spec-power-model/xgb.py \
+            $(docker run --rm cloud-energy python3 xgb.py \
             --tdp $TDP --cpu-threads $CPU_THREADS \
             --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
             --release-year $RELEASE_YEAR --ram $RAM \
             --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
-            --silent | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
-        fi
-
-        # now reset to old venv
-        deactivate
-        # reactivate the old venv, if it was present
-        if [[ $PREVIOUS_VENV != '' ]]; then
-          source $PREVIOUS_VENV/bin/activate
+            --silent) < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
         fi
 
         if [[ $MEASUREMENT_COUNT == '' ]]; then
@@ -88,13 +73,12 @@ function make_measurement() {
         echo $total_energy >> /tmp/eco-ci/energy-values.txt
         source "$(dirname "$0")/vars.sh" add_var MEASUREMENT_RAN true
 
-        if [ -z "$cb_machine_uuid" ]; then
-             cb_machine_uuid=$(uuidgen)
-        fi
-
         if [[ $send_data == 'true' ]]; then
 
-            source "$(dirname "$0")/vars.sh" get_co2 "$total_energy"
+            source "$(dirname "$0")/vars.sh" get_energy_co2 "$total_energy"
+            source "$(dirname "$0")/vars.sh" get_embodied_co2 "$time"
+
+            CO2EQ=$(echo "$CO2EQ_EMBODIED +  $CO2EQ_ENERGY" | bc -l)
 
             add_endpoint=$API_BASE"/v1/ci/measurement/add"
             value_mJ=$(echo "$total_energy*1000" | bc -l | cut -d '.' -f 1)
@@ -127,8 +111,6 @@ function make_measurement() {
             }"
         fi
 
-
-
         # write data to output
         lap_data_file="/tmp/eco-ci/lap-data.json"
         repo_enc=$( echo ${repo} | jq -Rr @uri)
@@ -141,10 +123,8 @@ function make_measurement() {
         source "$(dirname "$0")/create-and-add-meta.sh" --file "${lap_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
         source "$(dirname "$0")/add-data.sh" --file "${lap_data_file}" --label "$label" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}" --time "${time}"
 
-        # reset timer and cpu capturing
-        killall -9 -q /tmp/eco-ci/demo-reporter || true
-        /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util.txt &
-        date +%s > /tmp/eco-ci/timer.txt
+        # reset timer and cpu capturing (lap)
+        source "$(dirname "$0")/setup.sh" lap_measurement
 
     else
         echo "Skipping measurement as no data was collected since last call"
