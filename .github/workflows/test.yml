@@ -65,7 +65,7 @@ jobs:
 
       - name: Dump ECO-CI Energy
         run: |
-          cat /tmp/eco-ci//tmp/eco-ci/energy.txt
+          cat /tmp/eco-ci/energy-total.txt
 
 
       - name: Eco CI Energy Estimation
