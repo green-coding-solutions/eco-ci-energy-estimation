@@ -12,6 +12,7 @@ test-job:
     # Generate one here for example: https://www.freecodeformat.com/validate-uuid-guid.php
     #- export ECO_CI_COMPANY_UUID="YOUR COMPANY UUID"
     #- export ECO_CI_PROJECT_UUID="YOUR PROJECT UUID"
+    #- export ECO_CI_MACHINE_UUID="YOUR MACHINE UUID"
 
     - !reference [.initialize_energy_estimator, script]
     - !reference [.start_measurement, script]

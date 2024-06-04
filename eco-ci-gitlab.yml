@@ -15,15 +15,9 @@ variables:
 .initialize_energy_estimator:
     script:
         - |
-            apt-get update
-            apt-get install git uuid-runtime python3.10 python3.10-venv gcc bc jq curl golang-go psmisc -y
             if [[ -d /tmp/eco-ci ]]; then
                 rm -rf /tmp/eco-ci
             fi
-            git clone --depth 1 --single-branch --branch main https://github.com/green-coding-solutions/eco-ci-energy-estimation /tmp/eco-ci/main
-            /tmp/eco-ci/main/scripts/setup.sh initialize -r false -g false
-            /tmp/eco-ci/main/scripts/setup.sh setup_python
-
 .start_measurement:
     script:
         - |
