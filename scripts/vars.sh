@@ -48,91 +48,9 @@ read_vars() {
 }
 
 function cpu_vars_fill {
-    if [[ "$model_name" == *"8272CL"* ]]; then
-        echo "Found 8272CL model"
-        add_var "MODEL_NAME" "8272CL";
 
-        add_var "TDP" 195;
-        add_var "CPU_THREADS" 52;
-        add_var "CPU_CORES" 26;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2019;
-        add_var "RAM" 182;
-        add_var "CPU_FREQ" 2600;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
-
-    elif [[ "$model_name" == *"8370C"* ]]; then
-        echo "Found 8370C model"
-        add_var "MODEL_NAME" "8370C";
-
-        add_var "TDP" 270;
-        add_var "CPU_THREADS" 64;
-        add_var "CPU_CORES" 32;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2021;
-        add_var "RAM" 224;
-        add_var "CPU_FREQ" 2800;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/64" | bc -l);
-
-    elif [[ "$model_name" == *"9880H"* ]]; then
-        echo "Found 9880H model"
-        add_var "MODEL_NAME" "9880H"
-
-        add_var "TDP" 45;
-        add_var "CPU_THREADS" 16;
-        add_var "CPU_CORES" 8;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2019;
-        add_var "RAM" 128;
-        add_var "CPU_FREQ" 2300;
-        add_var "CPU_CHIPS" 1;
-
-    elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
-        echo "Found E5-2673 v4 model"
-        add_var "MODEL_NAME" "E5-2673v4";
-
-        add_var "TDP" 165;
-        add_var "CPU_THREADS" 52;
-        add_var "CPU_CORES" 26;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2018;
-        add_var "RAM" 182;
-        add_var "CPU_FREQ" 2300;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
-
-    elif [[ "$model_name" == *"E5-2673 v3"* ]]; then
-        echo "Found E5-2673 v3 model"
-        add_var "MODEL_NAME" "E5-2673v3";
-
-        add_var "TDP" 110;
-        add_var "CPU_THREADS" 24;
-        add_var "CPU_CORES" 12;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2015;
-        add_var "RAM" 84;
-        add_var "CPU_FREQ" 2400;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/24" | bc -l);
-
-    # model is underclocked
-    elif [[ "$model_name" == *"8171M"* ]]; then
-        echo "Found 8171M model"
-        add_var "MODEL_NAME" "8171M";
-
-        add_var "TDP" 165;
-        add_var "CPU_THREADS" 52;
-        add_var "CPU_CORES" 26;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2018;
-        add_var "RAM" 182;
-        add_var "CPU_FREQ" 2600;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
-
-    elif [[ "$model_name" == *"AMD EPYC 7763"* ]]; then
+    # Current GitHub default (Q1/2024)
+    if [[ "$model_name" == *"AMD EPYC 7763"* ]]; then
         echo "Found EPYC 7763 model";
         add_var "MODEL_NAME" "EPYC_7763";
 
@@ -146,7 +64,7 @@ function cpu_vars_fill {
         add_var "CPU_CHIPS" 1;
         add_var "VHOST_RATIO" $(echo "4/128" | bc -l);
 
-    # gitlab uses this one
+    # gitlab uses this one (Q1/2024)
     elif [[ "$model_name" == *"AMD EPYC 7B12"* ]]; then
         echo "Found EPYC 7B12 model"
         add_var "MODEL_NAME" "EPYC_7B12";
