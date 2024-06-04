@@ -41,13 +41,13 @@ jobs:
           label: "Sleep 3s"
 
       - name: Filesystem
-        run: ls -alhR /
+        run: ls -alhR /usr
 
       - name: Test measurement 2
         uses: ./
         with:
           task: get-measurement
-          label: "ls -alhR /"
+          label: "ls -alhR /usr"
 
       - name: Sleep 3
         run: sleep 3
