@@ -23,14 +23,16 @@ function make_measurement() {
     API_BASE=${API_BASE:-}
 
 
-    # reset timer and cpu capturing (lap)
-    source "$(dirname "$0")/setup.sh" lap_measurement
-
-    # capture cpu util
-    cat /tmp/eco-ci/cpu-util.txt > /tmp/eco-ci/cpu-util-temp.txt
 
     # capture time
     time=$(($(date +%s) - $(cat /tmp/eco-ci/timer.txt)))
+
+    # reset timer and cpu capturing (lap)
+    source "$(dirname "$0")/setup.sh" lap_measurement
+
+    # capture cpu util - can only be done after docker container has written
+    cat /tmp/eco-ci/cpu-util.txt > /tmp/eco-ci/cpu-util-temp.txt
+
 
     # check wc -l of cpu-util is greater than 0
     if [[ $(wc -l < /tmp/eco-ci/cpu-util.txt) -gt 0 ]]; then
