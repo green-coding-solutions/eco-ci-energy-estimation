@@ -59,6 +59,14 @@ jobs:
           label: "Sleep 3s"
 
 
+      - name: Dump ECO-CI CPU
+        run: |
+          cat /tmp/eco-ci/cpu-util-total.txt
+
+      - name: Dump ECO-CI Energy
+        run: |
+          cat /tmp/eco-ci//tmp/eco-ci/energy.txt
+
 
       - name: Eco CI Energy Estimation
         uses: ./
