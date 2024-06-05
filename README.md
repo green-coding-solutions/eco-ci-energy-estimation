@@ -109,7 +109,7 @@ jobs:
 - `send-data`: (optional) (default: true)
   - Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.io/ci-index.html
 - `show-carbon`: (optional) (default: true)
-  - Gets the location using http://ip-api.com
+  - Gets the location using https://ipapi.co/
   - Get the CO2 grid intensity for the location from https://www.electricitymaps.com/
   - Estimates the amount of carbon the measurement has produced
 - `display-table`: (optional) (default: true)
