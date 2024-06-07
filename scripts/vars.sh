@@ -48,91 +48,10 @@ read_vars() {
 }
 
 function cpu_vars_fill {
-    if [[ "$model_name" == *"8272CL"* ]]; then
-        echo "Found 8272CL model"
-        add_var "MODEL_NAME" "8272CL";
 
-        add_var "TDP" 195;
-        add_var "CPU_THREADS" 52;
-        add_var "CPU_CORES" 26;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2019;
-        add_var "RAM" 182;
-        add_var "CPU_FREQ" 2600;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
-
-    elif [[ "$model_name" == *"8370C"* ]]; then
-        echo "Found 8370C model"
-        add_var "MODEL_NAME" "8370C";
-
-        add_var "TDP" 270;
-        add_var "CPU_THREADS" 64;
-        add_var "CPU_CORES" 32;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2021;
-        add_var "RAM" 224;
-        add_var "CPU_FREQ" 2800;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/64" | bc -l);
-
-    elif [[ "$model_name" == *"9880H"* ]]; then
-        echo "Found 9880H model"
-        add_var "MODEL_NAME" "9880H"
-
-        add_var "TDP" 45;
-        add_var "CPU_THREADS" 16;
-        add_var "CPU_CORES" 8;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2019;
-        add_var "RAM" 128;
-        add_var "CPU_FREQ" 2300;
-        add_var "CPU_CHIPS" 1;
-
-    elif [[ "$model_name" == *"E5-2673 v4"* ]]; then
-        echo "Found E5-2673 v4 model"
-        add_var "MODEL_NAME" "E5-2673v4";
-
-        add_var "TDP" 165;
-        add_var "CPU_THREADS" 52;
-        add_var "CPU_CORES" 26;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2018;
-        add_var "RAM" 182;
-        add_var "CPU_FREQ" 2300;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
-
-    elif [[ "$model_name" == *"E5-2673 v3"* ]]; then
-        echo "Found E5-2673 v3 model"
-        add_var "MODEL_NAME" "E5-2673v3";
-
-        add_var "TDP" 110;
-        add_var "CPU_THREADS" 24;
-        add_var "CPU_CORES" 12;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2015;
-        add_var "RAM" 84;
-        add_var "CPU_FREQ" 2400;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/24" | bc -l);
-
-    # model is underclocked
-    elif [[ "$model_name" == *"8171M"* ]]; then
-        echo "Found 8171M model"
-        add_var "MODEL_NAME" "8171M";
-
-        add_var "TDP" 165;
-        add_var "CPU_THREADS" 52;
-        add_var "CPU_CORES" 26;
-        add_var "CPU_MAKE" "intel";
-        add_var "RELEASE_YEAR" 2018;
-        add_var "RAM" 182;
-        add_var "CPU_FREQ" 2600;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "2/52" | bc -l);
-
-    elif [[ "$model_name" == *"AMD EPYC 7763"* ]]; then
+    # Current GitHub default (Q1/2024)
+    # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
+    if [[ "$model_name" == *"AMD EPYC 7763"* ]]; then
         echo "Found EPYC 7763 model";
         add_var "MODEL_NAME" "EPYC_7763";
 
@@ -145,8 +64,14 @@ function cpu_vars_fill {
         add_var "CPU_FREQ" 2450;
         add_var "CPU_CHIPS" 1;
         add_var "VHOST_RATIO" $(echo "4/128" | bc -l);
+        # FROM https://datavizta.boavizta.org/serversimpact
+        # we assume a disk size of 448 GB total.
+        # This totals to 1151.7 kg. With a 4/128 splitting this is 35,990.625 gCO2e
+        add_var "SCI_M" 35990.625;
+        # we use 4 years - 1*60*60*24*365*4 =
+        add_var "SCI_USAGE_DURATION" 126144000
 
-    # gitlab uses this one
+    # gitlab uses this one (Q1/2024)
     elif [[ "$model_name" == *"AMD EPYC 7B12"* ]]; then
         echo "Found EPYC 7B12 model"
         add_var "MODEL_NAME" "EPYC_7B12";
@@ -160,11 +85,22 @@ function cpu_vars_fill {
         add_var "CPU_FREQ" 2250;
         add_var "CPU_CHIPS" 1; # see if we can find reference for this
         add_var "VHOST_RATIO" $(echo "1/64" | bc -l);
+        # we assume a disk size of 1344 GB total according to https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29107
+        # which claims runners have 21 GB of disk space with a splitting facttor of 1/64
+        # FROM https://datavizta.boavizta.org/serversimpact
+        # This totals to 1173.7 kg. With a 1/64 splitting this is 18339,0625 gCO2e
+        add_var "SCI_M" 18339.0625;
+        # we use 4 years - 1*60*60*24*365*4 =
+        add_var "SCI_USAGE_DURATION" 126144000
+
 
     else
-        echo "⚠️ Unknown model $model_name for estimation, running default ..." # >> $GITHUB_STEP_SUMMARY
+        echo "⚠️ Unknown model $model_name for estimation, will use auto detect ..." # >> $GITHUB_STEP_SUMMARY
+        # we use a default configuration here from https://datavizta.boavizta.org/serversimpact
+        add_var "SCI_M" 800.3;
+        # we use 4 years - 1*60*60*24*365*4 =
+        add_var "SCI_USAGE_DURATION" 126144000
         add_var "MODEL_NAME" "unknown";
-
     fi
 }
 
@@ -208,8 +144,21 @@ get_carbon_intensity() {
     echo "$response" | jq '.carbonIntensity'
 }
 
-get_co2_val (){
+get_embodied_co2_val (){
+    time=$1
+
+    if [ -n "$SCI_M" ]; then
+        co2_value=$(echo "$SCI_M * ($time/$SCI_USAGE_DURATION)" | bc -l)
+        export CO2EQ_EMBODIED="$co2_value"
+    else
+        echo "SCI_M was not set" >&2
+    fi
+
+}
+
+get_energy_co2_val (){
     total_energy=$1
+
     geo_data=$(get_geo_ipapi_co) || true
     if [ -n "$geo_data"  ]; then
         latitude=$(echo "$geo_data" | jq '.latitude')
@@ -229,7 +178,7 @@ get_co2_val (){
             value_kWh=$(echo "$value_mJ * 10^-9" | bc -l)
             co2_value=$(echo "$value_kWh * $carbon_intensity" | bc -l)
 
-            export CO2EQ="$co2_value"
+            export CO2EQ_ENERGY="$co2_value"
 
         else
             echo "Failed to get carbon intensity data." >&2
@@ -256,8 +205,11 @@ case $option in
   read_vars)
     read_vars
     ;;
-  get_co2)
-    get_co2_val $2
+  get_energy_co2)
+    get_energy_co2_val $2
+    ;;
+  get_embodied_co2)
+    get_embodied_co2_val $2
     ;;
   *)
     echo "Invalid option ($option). Please specify an option: cpu_vars, or add_var [key] [value]."
