@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -euo pipefail
 
 # Call the function to read and set the variables
@@ -8,16 +8,6 @@ function make_measurement() {
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
     MODEL_NAME=${MODEL_NAME:-}
-    TDP=${TDP:-}
-    CPU_THREADS=${CPU_THREADS:-}
-    CPU_CORES=${CPU_CORES:-}
-    CPU_MAKE=${CPU_MAKE:-}
-    RELEASE_YEAR=${RELEASE_YEAR:-}
-    RAM=${RAM:-}
-    CPU_FREQ=${CPU_FREQ:-}
-    CPU_CHIPS=${CPU_CHIPS:-}
-    VHOST_RATIO=${VHOST_RATIO:-}
-    PREVIOUS_VENV=${PREVIOUS_VENV:-}
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
     API_BASE=${API_BASE:-}
@@ -25,37 +15,25 @@ function make_measurement() {
 
 
     # capture time
-    time=$(($(date +%s) - $(cat /tmp/eco-ci/timer.txt)))
+    time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-step.txt)))
 
     # reset timer and cpu capturing (lap)
     source "$(dirname "$0")/setup.sh" lap_measurement
 
-    # capture cpu util - can only be done after docker container has written
-    cat /tmp/eco-ci/cpu-util.txt > /tmp/eco-ci/cpu-util-temp.txt
+    # capture cpu util so we have a file that is currently not written to
+    cat /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
+
+    # clear energy file for step
+    echo > /tmp/eco-ci/energy-step.txt
 
 
     # check wc -l of cpu-util is greater than 0
-    if [[ $(wc -l < /tmp/eco-ci/cpu-util.txt) -gt 0 ]]; then
+    if [[ $(wc -l < /tmp/eco-ci/cpu-util-temp.txt) -gt 0 ]]; then
 
-        ## make a note that we cannot use --energy, skew the result as we do not have an input delay.
-        # this works because demo-reporter is 1/second
-        if [[ "$MODEL_NAME" == "unknown" ]]; then
-            docker run --rm -i greencoding/cloud-energy:latest-asciicharts python3 xgb.py --auto --silent < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
-        elif [[ -n "$VHOST_RATIO" ]]; then
-            docker run --rm -i greencoding/cloud-energy:latest-asciicharts python3 xgb.py \
-            --tdp $TDP --cpu-threads $CPU_THREADS \
-            --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
-            --release-year $RELEASE_YEAR --ram $RAM \
-            --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
-            --vhost-ratio $VHOST_RATIO --silent < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
-        else
-            docker run --rm -i greencoding/cloud-energy:latest-asciicharts python3 xgb.py \
-            --tdp $TDP --cpu-threads $CPU_THREADS \
-            --cpu-cores $CPU_CORES --cpu-make $CPU_MAKE \
-            --release-year $RELEASE_YEAR --ram $RAM \
-            --cpu-freq $CPU_FREQ --cpu-chips $CPU_CHIPS \
-            --silent < /tmp/eco-ci/cpu-util-temp.txt | tee -a /tmp/eco-ci/energy-total.txt > /tmp/eco-ci/energy.txt
-        fi
+        while read -r time util; do
+            echo "$time * $util" | bc -l >> /tmp/eco-ci/energy-step.txt
+        done < /tmp/eco-ci/cpu-util-temp.txt
+
 
         if [[ $MEASUREMENT_COUNT == '' ]]; then
             MEASUREMENT_COUNT=1
@@ -69,9 +47,9 @@ function make_measurement() {
             label="Measurement #$MEASUREMENT_COUNT"
         fi
 
-        cpu_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
-        total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy.txt)
-        power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy.txt)
+        cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
+        total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
+        power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy-step.txt)
 
         key_to_add="measurement_"$MEASUREMENT_COUNT
         value_to_add="label:\"$label\", cpu_avg:$cpu_avg, total_energy:$total_energy, power_avg:$power_avg, time:$time"

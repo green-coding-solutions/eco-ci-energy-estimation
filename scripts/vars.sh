@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -euo pipefail
 
 model_name=$(cat /proc/cpuinfo  | grep "model name")

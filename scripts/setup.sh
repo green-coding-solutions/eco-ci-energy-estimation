@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -euo pipefail
 
 # Call the function to read and set the variables
@@ -19,23 +19,24 @@ function initialize {
 
 
 function start_measurement {
+    touch /tmp/eco-ci/cpu-util-step.txt
+    touch /tmp/eco-ci/cpu-util-total.txt
+    touch /tmp/eco-ci/cpu-energy-step.txt
+    touch /tmp/eco-ci/cpu-energy-total.txt
+    touch /tmp/eco-ci/timer-step.txt
+
     # start global timer
-    touch /tmp/eco-ci/cpu-util.txt
     date +%s > /tmp/eco-ci/timer-total.txt
     lap_measurement
 }
 
 function lap_measurement {
     # start step timer
-    date +%s > /tmp/eco-ci/timer.txt
+    date +%s > /tmp/eco-ci/timer-step.txt
 
-    container_exists=$(docker ps -a -q -f name=^/cloud-energy-cpu-utilization$)
+    # start writing cpu utilization with actual sleep durations
+    sh "$(dirname "$0")/cpu-utilization.sh" > /tmp/eco-ci/cpu-util-step.txt &
 
-    if [ -n "$container_exists" ]; then
-        docker logs cloud-energy-cpu-utilization | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util.txt
-        docker rm -f cloud-energy-cpu-utilization
-    fi
-    docker run --rm -d --name cloud-energy-cpu-utilization greencoding/cloud-energy:latest-asciicharts /home/worker/cpu-utilization
 }
 
 # Main script logic
