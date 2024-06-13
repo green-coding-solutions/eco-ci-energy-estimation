@@ -222,11 +222,11 @@ If you want to support a custom machine you need to create one of these files an
 
 Here is an exemplary command to create the power data for the basic **4 CPU** GitHub Shared Runner (at the time of writing 13. June 2024).
 
-`python3 xgb.py --tdp 280 --cpu-threads 128 --cpu-cores=64 --cpu-make "amd" --release-year=2021 --ram 512 --cpu-freq=2450 --cpu-chips=1 --vhost-ratio=0.03125 --dump > github.txt`
+`python3 xgb.py --tdp 280 --cpu-threads 128 --cpu-cores=64 --cpu-make "amd" --release-year=2021 --ram 512 --cpu-freq=2450 --cpu-chips=1 --vhost-ratio=0.03125 --dump-hashmap > github_EPYC_7763_4_CPU_shared.sh`
 
 The following would be the command for [Gitlab Shared Runners](https://docs.gitlab.com/ee/ci/runners/hosted_runners/linux.html) (at the time of writing 13. June 2024)
 
-`python3 xgb.py --tdp 240 --cpu-threads 128 --cpu-cores=64 --cpu-make "amd" --release-year=2021 --ram 512 --cpu-freq=2250 --cpu-chips=1 --vhost-ratio=0.015625 --dump > gitlab.txt`
+`python3 xgb.py --tdp 240 --cpu-threads 128 --cpu-cores=64 --cpu-make "amd" --release-year=2021 --ram 512 --cpu-freq=2250 --cpu-chips=1 --vhost-ratio=0.015625 --dump-hashmap > gitlab_EPYC_7B12_saas-linux-small-amd64.txt`
 
 Gitlab uses an AMD EPYC 7B12 according to [our findings](https://www.green-coding.io/case-studies/cpu-utilization-usefulness/)
 
