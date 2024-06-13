@@ -47,13 +47,18 @@ read_vars() {
 
 function cpu_vars_fill {
 
+    machine_power_data=$1
+
     model_name=$(cat /proc/cpuinfo  | grep "model name")
     echo "Currently running on follow CPU Model ${model_name}"
 
-    # TODO: Provide more debug info here about machine
+    echo "Full CPU Info"
+    cat /proc/cpuinfo
 
+    echo "Full memory info"
+    cat /proc/meminfo
 
-    if [[ -n $MACHINE_POWER_DATA ]]; then
+    if [[ $machine_power_data == '' ]]; then
         echo "⚠️ Unknown model $model_name for estimation, will use default model ... This will likely produce very unaccurate results!"
         [ -n "$GITHUB_STEP_SUMMARY" ] && echo "⚠️ Unknown model $model_name for estimation, will use default model ... This will likely produce very unaccurate results!" >> $GITHUB_STEP_SUMMARY
         # we use a default configuration here from https://datavizta.boavizta.org/serversimpact
@@ -64,7 +69,7 @@ function cpu_vars_fill {
         # we use 4 years - 1*60*60*24*365*4 =
         add_var "SCI_USAGE_DURATION" 126144000
         add_var "MODEL_NAME" "unknown";
-    elif [[ "$MACHINE_POWER_DATA" == "github_EPYC_7763_4_CPU_shared.sh" ]]; then
+    elif [[ "$machine_power_data" == "github_EPYC_7763_4_CPU_shared.sh" ]]; then
         echo "Using github_EPYC_7763_4_CPU_shared.sh";
 
         add_var "MODEL_NAME" "EPYC_7763";
@@ -77,7 +82,7 @@ function cpu_vars_fill {
 
     # gitlab uses this one https://docs.gitlab.com/ee/ci/runners/hosted_runners/linux.html (Q1/2024)
     # https://www.green-coding.io/case-studies/cpu-utilization-usefulness/
-    elif [[ "$MACHINE_POWER_DATA" == "github_EPYC_7763_4_CPU_shared.sh" ]]; then
+    elif [[ "$machine_power_data" == "github_EPYC_7763_4_CPU_shared.sh" ]]; then
         echo "Using github_EPYC_7763_4_CPU_shared.sh"
         add_var "MODEL_NAME" "EPYC_7B12";
         # we assume a disk size of 1344 GB total according to https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29107
@@ -101,7 +106,7 @@ fi
 option="$1"
 case $option in
   cpu_vars)
-    cpu_vars_fill
+    cpu_vars_fill $2
     ;;
   add_var)
     add_var $2 "$3"

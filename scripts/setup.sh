@@ -5,6 +5,7 @@ set -euo pipefail
 source "$(dirname "$0")/vars.sh" read_vars
 
 function initialize {
+    MACHINE_POWER_DATA=${MACHINE_POWER_DATA:-}
 
     if [[ $reset == true ]]; then
         if [[ -d /tmp/eco-ci ]]; then
@@ -13,7 +14,7 @@ function initialize {
         mkdir /tmp/eco-ci
     fi
     # call init_variables
-    source "$(dirname "$0")/vars.sh" cpu_vars
+    source "$(dirname "$0")/vars.sh" cpu_vars "$MACHINE_POWER_DATA"
     source "$(dirname "$0")/vars.sh" add_var DASHBOARD_API_BASE "https://api.green-coding.io"
 }
 
