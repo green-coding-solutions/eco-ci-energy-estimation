@@ -48,24 +48,26 @@ read_vars() {
 function cpu_vars_fill {
 
     model_name=$(cat /proc/cpuinfo  | grep "model name")
+    echo "Currently running on follow CPU Model ${model_name}"
 
-    # Current GitHub default (Q1/2024)
-    # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
-    if [[ "$model_name" == *"AMD EPYC 7763"* ]]; then
-        echo "Found EPYC 7763 model" >> $GITHUB_STEP_SUMMARY
-        echo "Found EPYC 7763 model";
+    # TODO: Provide more debug info here about machine
+
+
+    if [[ -n $MACHINE_POWER_DATA ]]; then
+        echo "⚠️ Unknown model $model_name for estimation, will use default model ... This will likely produce very unaccurate results!"
+        [ -n "$GITHUB_STEP_SUMMARY" ] && echo "⚠️ Unknown model $model_name for estimation, will use default model ... This will likely produce very unaccurate results!" >> $GITHUB_STEP_SUMMARY
+        # we use a default configuration here from https://datavizta.boavizta.org/serversimpact
+
+        add_var "MACHINE_POWER_DATA" "default.sh";
+
+        add_var "SCI_M" 800.3;
+        # we use 4 years - 1*60*60*24*365*4 =
+        add_var "SCI_USAGE_DURATION" 126144000
+        add_var "MODEL_NAME" "unknown";
+    elif [[ "$MACHINE_POWER_DATA" == "github_EPYC_7763_4_CPU_shared.sh" ]]; then
+        echo "Using github_EPYC_7763_4_CPU_shared.sh";
 
         add_var "MODEL_NAME" "EPYC_7763";
-
-        add_var "TDP" 280;
-        add_var "CPU_THREADS" 128;
-        add_var "CPU_CORES" 64;
-        add_var "CPU_MAKE" "amd";
-        add_var "RELEASE_YEAR" 2021;
-        add_var "RAM" 512;
-        add_var "CPU_FREQ" 2450;
-        add_var "CPU_CHIPS" 1;
-        add_var "VHOST_RATIO" $(echo "4/128" | bc -l);
         # FROM https://datavizta.boavizta.org/serversimpact
         # we assume a disk size of 448 GB total.
         # This totals to 1151.7 kg. With a 4/128 splitting this is 35,990.625 gCO2e
@@ -75,19 +77,9 @@ function cpu_vars_fill {
 
     # gitlab uses this one https://docs.gitlab.com/ee/ci/runners/hosted_runners/linux.html (Q1/2024)
     # https://www.green-coding.io/case-studies/cpu-utilization-usefulness/
-    elif [[ "$model_name" == *"AMD EPYC 7B12"* ]]; then
-        echo "Found EPYC 7B12 model"
+    elif [[ "$MACHINE_POWER_DATA" == "github_EPYC_7763_4_CPU_shared.sh" ]]; then
+        echo "Using github_EPYC_7763_4_CPU_shared.sh"
         add_var "MODEL_NAME" "EPYC_7B12";
-
-        add_var "TDP" 240;
-        add_var "CPU_THREADS" 128;
-        add_var "CPU_CORES" 64;
-        add_var "CPU_MAKE" "amd";
-        add_var "RELEASE_YEAR" 2021;
-        add_var "RAM" 512;
-        add_var "CPU_FREQ" 2250;
-        add_var "CPU_CHIPS" 1; # see if we can find reference for this
-        add_var "VHOST_RATIO" $(echo "1/64" | bc -l);
         # we assume a disk size of 1344 GB total according to https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29107
         # which claims runners have 21 GB of disk space with a splitting facttor of 1/64
         # FROM https://datavizta.boavizta.org/serversimpact
@@ -95,15 +87,6 @@ function cpu_vars_fill {
         add_var "SCI_M" 18339.0625;
         # we use 4 years - 1*60*60*24*365*4 =
         add_var "SCI_USAGE_DURATION" 126144000
-
-
-    else
-        echo "⚠️ Unknown model $model_name for estimation, will use auto detect ..."  >> $GITHUB_STEP_SUMMARY
-        # we use a default configuration here from https://datavizta.boavizta.org/serversimpact
-        add_var "SCI_M" 800.3;
-        # we use 4 years - 1*60*60*24*365*4 =
-        add_var "SCI_USAGE_DURATION" 126144000
-        add_var "MODEL_NAME" "unknown";
     fi
 }
 

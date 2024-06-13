@@ -17,7 +17,7 @@ function display_results {
 
     if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -gt 0 ]]; then
         echo "Could not display table as no measurement data was present!"
-        echo "Could not display table as no measurement data was present!" >> $GITHUB_STEP_SUMMARY
+        [ -n "$GITHUB_STEP_SUMMARY" ] && echo "❌ Could not display table as no measurement data was present!" >> $GITHUB_STEP_SUMMARY
         return 1
     fi
 
