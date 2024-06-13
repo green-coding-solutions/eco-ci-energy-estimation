@@ -106,14 +106,14 @@ function cpu_vars_fill {
 
 
 get_geo_ipapi_co() {
-    response=$(curl -s http://ip-api.com/json/ || true)
+    response=$(curl -s https://ipapi.co/json || true)
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
         echo "Failed to retrieve data or received invalid JSON. Exiting" >&2
         return
     fi
 
-    if echo "$response" | jq '.lat, .lon, .city' | grep -q null; then
+    if echo "$response" | jq '.latitude, .longitude, .city' | grep -q null; then
         echo "Required data is missing. Exiting" >&2
         return
     fi
@@ -161,8 +161,8 @@ get_energy_co2_val (){
 
     geo_data=$(get_geo_ipapi_co) || true
     if [ -n "$geo_data"  ]; then
-        latitude=$(echo "$geo_data" | jq '.lat')
-        longitude=$(echo "$geo_data" | jq '.lon')
+        latitude=$(echo "$geo_data" | jq '.latitude')
+        longitude=$(echo "$geo_data" | jq '.longitude')
         city=$(echo "$geo_data" | jq -r '.city')
 
         export CITY="$city"

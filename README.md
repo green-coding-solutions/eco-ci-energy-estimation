@@ -2,15 +2,6 @@
 
 Eco-CI is a project aimed at estimating energy consumption in continuous integration (CI) environments. It provides functionality to calculate the energy consumption of CI jobs based on the power consumption characteristics of the underlying hardware.
 
-## Compatibility
-
-The plugin is tested on:
-- `ubuntu-latest` (22.04 at the time of writing)
-- `ubuntu-24.04`
-
-It is known to not work on `ubuntu-20.04` ([See here](https://github.com/green-coding-solutions/eco-ci-energy-estimation/issues/72))
-
-Also Windows and macOS are currently not supported.
 
 ## Usage
 
@@ -109,7 +100,7 @@ jobs:
 - `send-data`: (optional) (default: true)
   - Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.io/ci-index.html
 - `show-carbon`: (optional) (default: true)
-  - Gets the location using http://ip-api.com
+  - Gets the location using https://ipapi.co/
   - Get the CO2 grid intensity for the location from https://www.electricitymaps.com/
   - Estimates the amount of carbon the measurement has produced
 - `display-table`: (optional) (default: true)
@@ -294,21 +285,31 @@ test-job:
 - The Eco-CI at its core makes its energy estimations based on an XGBoost Machine Learning model we have created based on the SpecPower database. The model and further information can be found here: https://github.com/green-coding-solutions/spec-power-model
 - When you initialize the Eco-CI, it downloads the XGBoost model onto the machine, as well as a small program to track the cpu utilization over a period of time. This tracking begins when you call the start_measurement function. Then, each time you call get-measurement, it will take the cpu-utilization data collected (either from the start, or since the last get-measurement call) and make an energy estimation based on the detected hardware (mainly cpu data) and utilization.
 
-### Limitations
+### Limitations / Compatibility
 - At the moment this will only work with linux based pipelines, mainly tested on ubuntu images.
+  + The plugin is tested on:
+  + `ubuntu-latest` (22.04 at the time of writing)
+  + `ubuntu-24.04`
+  + It is known to not work on `ubuntu-20.04` ([See here](https://github.com/green-coding-solutions/eco-ci-energy-estimation/issues/72))
+  + Also Windows and macOS are currently not supported.
 
 - If you have your pipelines split over multiple VM's (often the case with many jobs) ,you have to treat each VM as a seperate machine for the purposes of measuring and setting up Eco-CI.
 
-- The XGBoost model requires the CPU to have a fixed frequency setting. This is typical for cloud testing, but not always the case.
+- The underlying [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy) model requires the CPU to have a fixed frequency setting. This is typical for cloud testing and is the case for instance on GitHub, but not always the case in different CIs.
 
-- The XGBoost model data is trained via the SpecPower database, which was mostly collected on compute machines. Results will be off for non big cloud servers and also for machines that are memory heavy or machines which rely more heavily on their GPU's for computations.
+- The XGBoost model data is trained via the [SPECpower](https://www.spec.org/power_ssj2008/results/) database, which was mostly collected on compute machines. Results will be off for non big cloud servers and also for machines that are memory heavy or machines which rely more heavily on their GPU's for computations.
 
 ### Note on the integration
-- If you use dependabot and want to get updates, we recommend using the hash notation
-  + `uses: green-coding-solutions/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #v2.2`
-  + Note that this hash is just an example. You find the latest current hash under *Tags*
-
-- If you want the extension to automatically update within a version number, use the convenient @v2 form
-  + `uses: green-coding-solutions/eco-ci-energy-estimation@v3 # will pick the latest minor v2. for example v2.2`
+- If you want the extension to automatically update within a version number, use the convenient @vX form. 
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@v3 # will pick the latest minor v3.x`
+  + In case of a major change from @v3 to @v4 you need to upgrade manually. The upside is: If you use dependabot it will create a PR for you as it understands the notation
+    
+- If you want to pin the dependency and want to audit every release we recommend using the hash notation
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #resolves to v2.2`
+  + Note that this hash is just an example. You find the latest current hash under [Tags](https://github.com/green-coding-solutions/eco-ci-energy-estimation/tags)
+  + Dependabot also understands this notation so it will create an update with the changelog for you
+- If you want the bleeding edge features use the @main notation.
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@main`
+  + We do **not** recommend this as it might contain beta features. We recommend using the releases and tagged versions only
 
 
