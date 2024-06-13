@@ -5,19 +5,15 @@ set -euo pipefail
 source "$(dirname "$0")/vars.sh" read_vars
 
 function initialize {
-    MACHINE_POWER_DATA=${MACHINE_POWER_DATA:-}
 
-    if [[ $reset == true ]]; then
-        if [[ -d /tmp/eco-ci ]]; then
-          rm -rf /tmp/eco-ci
-        fi
-        mkdir /tmp/eco-ci
-    elif [ ! -d "/tmp/eco-ci" ]; then
-        mkdir -p "/tmp/eco-ci"
-        fi
+    if [[ -d /tmp/eco-ci ]]; then
+      rm -rf /tmp/eco-ci
     fi
+    mkdir -p "/tmp/eco-ci"
+
     # call init_variables
-    source "$(dirname "$0")/vars.sh" cpu_vars "$MACHINE_POWER_DATA"
+    source "$(dirname "$0")/vars.sh" add_var "MACHINE_POWER_DATA" "$1"
+    source "$(dirname "$0")/vars.sh" cpu_vars "$1"
     source "$(dirname "$0")/vars.sh" add_var DASHBOARD_API_BASE "https://api.green-coding.io"
 }
 
@@ -51,43 +47,18 @@ fi
 
 
 option="$1"
-
 case $option in
   initialize)
-    func=initialize
+    initialize $2
     ;;
   start_measurement)
-    func=start_measurement
+    start_measurement
     ;;
   lap_measurement)
-    func=lap_measurement
+    lap_measurement
     ;;
   *)
-    echo "Invalid option. Please specify an option: initialize, lap_measurement or start_measurement."
+    echo "Invalid option ${option}. Please specify an option: initialize, lap_measurement or start_measurement."
     exit 1
     ;;
 esac
-
-reset=true
-
-while [[ $# -gt 1 ]]; do
-    opt="$2"
-
-    case $opt in
-        -r|--reset) 
-        reset=$3
-        shift
-        ;;
-        \?) echo "Invalid option -$2" >&2
-        ;;
-    esac
-    shift
-done
-
-if [[ $func == initialize ]]; then
-    initialize
-elif [[ $func == start_measurement ]]; then
-    start_measurement
-elif [[ $func == lap_measurement ]]; then
-    lap_measurement
-fi

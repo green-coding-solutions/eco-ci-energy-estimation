@@ -79,9 +79,7 @@ runs:
       name: Setup
       shell: bash
       run: |
-        ${{github.action_path}}/scripts/vars.sh add_var "MACHINE_POWER_DATA" "${{inputs.machine-power-data}}"
-        echo "Machine power data is now ${{inputs.machine-power-data}}"
-        ${{github.action_path}}/scripts/setup.sh initialize
+        ${{github.action_path}}/scripts/setup.sh initialize "${{inputs.machine-power-data}}"
 
     - if:  inputs.task == 'start-measurement'
       name: Starting measurement

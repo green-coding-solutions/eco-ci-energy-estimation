@@ -6,20 +6,13 @@ var_file="/tmp/eco-ci/vars.sh"
 add_var() {
     key=$1
     value=$2
-
-    echo "Adding $1 with value $2 to file"
     if [ ! -f $var_file ]; then
         touch $var_file
     fi
     echo "${1}=\"${2}\"" >> /tmp/eco-ci/vars.sh
-
-    cat /tmp/eco-ci/vars.sh
 }
 
 read_vars() {
-    echo "Catting var file"
-    cat $var_file
-
     if [ -f $var_file ]; then
         source $var_file
     fi
