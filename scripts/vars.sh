@@ -32,6 +32,9 @@ add_var() {
 read_vars() {
     dict_file="/tmp/eco-ci/vars.json"
 
+    echo "Catting var file"
+    cat /tmp/eco-ci/vars.json
+
     if [[ -f "$dict_file" ]]; then
         # Read the JSON file and extract key-value pairs
         while IFS="=" read -r key value; do
