@@ -7,9 +7,9 @@ Eco-CI is a project aimed at estimating energy consumption in continuous integra
 
 Eco-CI supports both GitHub and GitLab as CI platforms. When you integrate it into your pipeline, you must call the start-measurement script to begin collecting power consumption data, then call the get-measurement script each time you wish to make a spot measurement. When you call get-measurment, you can also assign a label to it to more easily identify the measurement. At the end, call the display-results to see all the measurement results, overall total usage, and export the data.
 
-Follow the instructions below to integrate Eco-CI into your CI pipeline:
+Follow the instructions below to integrate Eco-CI into your CI pipeline.
 
-### Github:
+### GitHub:
 To use Eco-CI in your GitHub workflow, call it with the relevant task name (start-measurement, get-measurement, or display-results). Here is a sample workflow that runs some python tests with eco-ci integrated.
 
 ```yaml
@@ -84,7 +84,7 @@ jobs:
 
 ```
 
-#### Github Action Mandatory and Optional Variables:
+#### GitHub Action Mandatory and Optional Variables:
 
 - `task`: (required) (options are `start-measurement`, `get-measurement`, `display-results`)
   - `start-measurement` - Initialize the action starts the measurement. This must be called, and only once per job.
@@ -210,6 +210,40 @@ jobs:
           task: start-measurement
  ```
 
+### Support for dedicated runners / non-standard machines
+
+This plugin is primarily designed for the [GitHub Shared Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources) and comes with their energy values already pre-calculated.
+
+All the values for supported machines are found in the [power-data](https://github.com/green-coding-solutions/eco-ci-energy-estimation/tree/main/power-data) folder.
+
+The heavy work to get this values is done by [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy) (See below for details).
+
+If you want to support a custom machine you need to create one of these files and load it into Eco-CI.
+
+Here is an exemplary command to create the power data for the basic **4 CPU** GitHub Shared Runner (at the time of writing 13. June 2024).
+
+`python3 xgb.py --tdp 280 --cpu-threads 128 --cpu-cores=64 --cpu-make "amd" --release-year=2021 --ram 512 --cpu-freq=2450 --cpu-chips=1 --vhost-ratio=0.03125 --dump > github.txt`
+
+The following would be the command for [Gitlab Shared Runners](https://docs.gitlab.com/ee/ci/runners/hosted_runners/linux.html) (at the time of writing 13. June 2024)
+
+`python3 xgb.py --tdp 240 --cpu-threads 128 --cpu-cores=64 --cpu-make "amd" --release-year=2021 --ram 512 --cpu-freq=2250 --cpu-chips=1 --vhost-ratio=0.015625 --dump > gitlab.txt`
+
+Gitlab uses an AMD EPYC 7B12 according to [our findings](https://www.green-coding.io/case-studies/cpu-utilization-usefulness/)
+
+
+You can see how the machine specs must be supplied to [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy) and also, since the runners are shared, you need to supply the splitting ratio that is used.
+
+Since GitHub for instance uses an `AMD EPYC 7763`, which only comes with 64 cores and 128 threads, and gives you **4 CPUs** the assumption is 
+that the splitting factor is `4/128 = 0.03125`. 
+
+An uncertainty is if Hyper-Threading / SMT is turned on or off, but we believe it is reasonable to assume that for Shared runners they will turn it on as it generally increases
+throughput and performance in shared environments.
+
+If you have trouble finding out the splitting factor for your system: Open an issue! We are happy to help!!
+
+Once you have the file ready we are happy to merge it in through a PR! In future versions we also plan to include a loading mechanism, where you can just
+ingest a file from your repository without having to upstream it with us. But since this is a community open source plugin upstream is preferred, right :)
+
 ### GitLab:
 To use Eco-CI in your GitLab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
 ```
@@ -297,9 +331,11 @@ test-job:
 
 - The underlying [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy) model requires the CPU to have a fixed frequency setting. This is typical for cloud testing and is the case for instance on GitHub, but not always the case in different CIs.
 
+See also our [work on analysing fixed frequency in Cloud Providers and CI/CD](https://www.green-coding.io/case-studies/cpu-utilization-usefulness/)
+
 - The XGBoost model data is trained via the [SPECpower](https://www.spec.org/power_ssj2008/results/) database, which was mostly collected on compute machines. Results will be off for non big cloud servers and also for machines that are memory heavy or machines which rely more heavily on their GPU's for computations.
 
-### Note on the integration
+### Note on the integration / Auto-Updates
 - If you want the extension to automatically update within a version number, use the convenient @vX form. 
   + `uses: green-coding-solutions/eco-ci-energy-estimation@v3 # will pick the latest minor v3.x`
   + In case of a major change from @v3 to @v4 you need to upgrade manually. The upside is: If you use dependabot it will create a PR for you as it understands the notation
