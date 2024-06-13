@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # by Paul Colby (http://colby.id.au), no rights reserved ;)
 # Modified to have no integer rounding by Green Coding Solutions, no rights reserved :)
 
