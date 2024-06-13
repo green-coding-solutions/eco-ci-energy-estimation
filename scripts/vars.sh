@@ -10,6 +10,8 @@ add_var() {
         mkdir -p "/tmp/eco-ci"
     fi
 
+    echo "vars.sh having $1 and $2"
+
     # Check if the JSON file exists
     if [ ! -f $file ]; then
         # Create a new JSON file with the key-value pair
