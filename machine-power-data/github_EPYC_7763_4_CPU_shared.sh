@@ -1,5 +1,5 @@
-#!/usr/bin/env sh
-set -euo pipefail
+#!/usr/bin/env bash
+set -eu
 declare -A cloud_energy_hashmap
 cloud_energy_hashmap[0.0]=1.7586170434951782
 cloud_energy_hashmap[5.0]=3.442734718322754
