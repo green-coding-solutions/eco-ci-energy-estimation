@@ -31,6 +31,8 @@ function make_measurement() {
     # check wc -l of cpu-util is greater than 0
     if [[ $(wc -l < /tmp/eco-ci/cpu-util-temp.txt) -gt 0 ]]; then
 
+        # bash mode inference is slower in initial reading
+        # but 100x faster in reading. The net gain is after ~ 5 measurements
         if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} >= 4 )); then
             echo "Using bash mode inference"
             source "$(dirname "$0")/../machine-power-data/${MACHINE_POWER_DATA}" # will set cloud_energy_hashmap
@@ -41,7 +43,8 @@ function make_measurement() {
         else
             echo "Using legacy mode inference"
             while read -r time util; do
-                power_value=$(awk -F "=" -v pattern="[$util]" '{ if ($1 == pattern) print $2 }' $MACHINE_POWER_DATA)
+                # The pattern contains a . and [ ] but this no problem as no other dot appears anywhere
+                power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap[$util]" ' 0 ~ pattern { print $2 }' $MACHINE_POWER_DATA)
                 echo "$time * ${power_value}" | bc -l >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
         fi
