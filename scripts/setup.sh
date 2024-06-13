@@ -12,6 +12,9 @@ function initialize {
           rm -rf /tmp/eco-ci
         fi
         mkdir /tmp/eco-ci
+    elif [ ! -d "/tmp/eco-ci" ]; then
+        mkdir -p "/tmp/eco-ci"
+        fi
     fi
     # call init_variables
     source "$(dirname "$0")/vars.sh" cpu_vars "$MACHINE_POWER_DATA"

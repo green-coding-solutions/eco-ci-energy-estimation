@@ -8,9 +8,6 @@ add_var() {
     value=$2
 
     echo "Adding $1 with value $2 to file"
-    if [ ! -d "/tmp/eco-ci" ]; then
-        mkdir -p "/tmp/eco-ci"
-    fi
     if [ ! -f $var_file ]; then
         touch $var_file
     fi
