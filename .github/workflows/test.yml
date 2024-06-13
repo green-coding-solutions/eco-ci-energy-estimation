@@ -26,10 +26,17 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
+      - name: actions/checkout@v3
+        run: |
+          echo "Current API Base is" ${{ github.api_url }}
+
+
       - name: Initialize Energy Estimation
         uses: ./
         with:
           task: start-measurement
+
+
 
       - name: Sleep step
         run: sleep 2
