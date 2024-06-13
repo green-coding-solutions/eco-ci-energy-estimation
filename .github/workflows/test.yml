@@ -45,6 +45,15 @@ jobs:
       - name: Sleep step
         run: sleep 2
 
+      - name: Dump ECO-CI CPU
+        run: |
+          cat /tmp/eco-ci/cpu-util-total.txt
+
+      - name: Dump ECO-CI Energy
+        run: |
+          cat /tmp/eco-ci/energy-total.txt
+
+
       - name: Test measurement 1
         uses: ./
         with:
