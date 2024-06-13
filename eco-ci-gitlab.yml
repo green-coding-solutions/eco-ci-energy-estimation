@@ -18,6 +18,10 @@ variables:
             if [[ -d /tmp/eco-ci ]]; then
                 rm -rf /tmp/eco-ci
             fi
+            if [[ -n $MACHINE_POWER_DATA ]]; then
+              /tmp/eco-ci/main/scripts/vars.sh add_var "MACHINE_POWER_DATA" "gitlab_EPYC_7B12_saas-linux-small-amd64.txt"
+            fi
+
 .start_measurement:
     script:
         - |

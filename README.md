@@ -324,6 +324,7 @@ test-job:
   + The plugin is tested on:
   + `ubuntu-latest` (22.04 at the time of writing)
   + `ubuntu-24.04`
+  + [Autoscaling Github Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners/managing-larger-runners#configuring-autoscaling-for-larger-runners) are not supported 
   + It is known to not work on `ubuntu-20.04` ([See here](https://github.com/green-coding-solutions/eco-ci-energy-estimation/issues/72))
   + Also Windows and macOS are currently not supported.
 

@@ -10,7 +10,9 @@ function make_measurement() {
     MODEL_NAME=${MODEL_NAME:-}
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
-    API_BASE=${API_BASE:-}
+    DASHBOARD_API_BASE=${DASHBOARD_API_BASE:-}
+    MACHINE_POWER_HASHMAP=${MACHINE_POWER_HASHMAP:-}
+    MACHINE_POWER_DATA=${MACHINE_POWER_DATA:-}
 
 
 
@@ -30,10 +32,18 @@ function make_measurement() {
     # check wc -l of cpu-util is greater than 0
     if [[ $(wc -l < /tmp/eco-ci/cpu-util-temp.txt) -gt 0 ]]; then
 
-        while read -r time util; do
-            echo "$time * $util" | bc -l >> /tmp/eco-ci/energy-step.txt
-        done < /tmp/eco-ci/cpu-util-temp.txt
-
+        if [[ $MACHINE_POWER_HASHMAP == "" ]]; then
+            echo "Using bash mode inference"
+            while read -r time util; do
+                echo "$time * ${MACHINE_POWER_HASHMAP[$util]}" | bc -l >> /tmp/eco-ci/energy-step.txt
+            done < /tmp/eco-ci/cpu-util-temp.txt
+        else
+            echo "Using legacy mode inference"
+            while read -r time util; do
+                power_value=$(awk -F "=" -v pattern="[$util]" '{ if ($1 == pattern) print $2 }' $MACHINE_POWER_DATA)
+                echo "$time * ${power_value}" | bc -l >> /tmp/eco-ci/energy-step.txt
+            done < /tmp/eco-ci/cpu-util-temp.txt
+        fi
 
         if [[ $MEASUREMENT_COUNT == '' ]]; then
             MEASUREMENT_COUNT=1
@@ -56,7 +66,6 @@ function make_measurement() {
         source "$(dirname "$0")/vars.sh" add_var $key_to_add "$value_to_add"
 
         echo $total_energy >> /tmp/eco-ci/energy-values.txt
-        source "$(dirname "$0")/vars.sh" add_var MEASUREMENT_RAN true
 
         if [[ $send_data == 'true' ]]; then
 
@@ -65,7 +74,7 @@ function make_measurement() {
 
             CO2EQ=$(echo "$CO2EQ_EMBODIED +  $CO2EQ_ENERGY" | bc -l)
 
-            add_endpoint=$API_BASE"/v1/ci/measurement/add"
+            add_endpoint=$DASHBOARD_API_BASE"/v1/ci/measurement/add"
             value_mJ=$(echo "$total_energy*1000" | bc -l | cut -d '.' -f 1)
             unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)

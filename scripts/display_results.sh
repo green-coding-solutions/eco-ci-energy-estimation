@@ -10,18 +10,18 @@ function display_results {
     MEASUREMENT_RAN=${MEASUREMENT_RAN:-}
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
-    API_BASE=${API_BASE:-}
+    DASHBOARD_API_BASE=${DASHBOARD_API_BASE:-}
+    MACHINE_POWER_HASHMAP=${MACHINE_POWER_HASHMAP:-}
+    MACHINE_POWER_DATA=${MACHINE_POWER_DATA:-}
 
 
     output="/tmp/eco-ci/output.txt"
     output_pr="/tmp/eco-ci/output-pr.txt"
 
-    if [[ $MEASUREMENT_RAN != true ]]; then
-        echo "Running a measurement to have at least one result to display."
-        while read -r time util; do
-            echo "$time * $util" | bc -l >> /tmp/eco-ci/energy-total.txt
-        done < /tmp/eco-ci/cpu-util-total.txt
-        max_measurement_number=1
+    if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -gt 0 ]]; then
+        echo "Could not display table as no measurement data was present!"
+        echo "Could not display table as no measurement data was present!" >> $GITHUB_STEP_SUMMARY
+        return 1
     fi
 
     cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
@@ -95,8 +95,8 @@ function display_results {
     branch_enc=$( echo ${branch} | jq -Rr @uri)
 
     if [[ ${show_carbon} == 'true' ]]; then
-        source "$(dirname "$0")/vars.sh" get_energy_co2 "$total_energy"
-        source "$(dirname "$0")/vars.sh" get_embodied_co2 "$total_time"
+        source "$(dirname "$0")/misc.sh" get_energy_co2 "$total_energy"
+        source "$(dirname "$0")/misc.sh" get_embodied_co2 "$total_time"
 
 
         if [ -n "$CO2EQ_EMBODIED" ] && [ -n "$CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
@@ -117,7 +117,7 @@ function display_results {
 
 
     if [[ ${send_data} == 'true' && ${display_badge} == 'true' ]]; then
-        get_endpoint=$API_BASE"/v1/ci/measurement/get"
+        get_endpoint=$DASHBOARD_API_BASE"/v1/ci/measurement/get"
         metrics_url="https://metrics.green-coding.io"
 
         echo "Badge for your README.md:" >> $output

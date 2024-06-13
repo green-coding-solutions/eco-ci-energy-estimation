@@ -14,6 +14,10 @@ test-job:
     #- export ECO_CI_PROJECT_UUID="YOUR PROJECT UUID"
     #- export ECO_CI_MACHINE_UUID="YOUR MACHINE UUID"
 
+    # Change this to you machine, if you are not using the default.
+    # https://docs.gitlab.com/ee/ci/runners/hosted_runners/linux.html
+    #- export MACHINE_POWER_DATA="gitlab_EPYC_7B12_saas-linux-small-amd64.txt"
+
     - !reference [.initialize_energy_estimator, script]
     - !reference [.start_measurement, script]
     - sleep 10s
