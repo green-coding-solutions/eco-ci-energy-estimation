@@ -82,8 +82,8 @@ function cpu_vars_fill {
 
     # gitlab uses this one https://docs.gitlab.com/ee/ci/runners/hosted_runners/linux.html (Q1/2024)
     # https://www.green-coding.io/case-studies/cpu-utilization-usefulness/
-    elif [[ "$machine_power_data" == "github_EPYC_7763_4_CPU_shared.sh" ]]; then
-        echo "Using github_EPYC_7763_4_CPU_shared.sh"
+    elif [[ "$machine_power_data" == "gitlab_EPYC_7B12_saas-linux-small-amd64.sh" ]]; then
+        echo "Using gitlab_EPYC_7B12_saas-linux-small-amd64.sh"
         add_var "MODEL_NAME" "EPYC_7B12";
         # we assume a disk size of 1344 GB total according to https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29107
         # which claims runners have 21 GB of disk space with a splitting facttor of 1/64

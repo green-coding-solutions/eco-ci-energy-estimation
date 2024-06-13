@@ -7,6 +7,8 @@ source "$(dirname "$0")/vars.sh" read_vars
 function make_measurement() {
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
+
+    echo "MACHINE_POWER_DATA = ${MACHINE_POWER_DATA}"
     MODEL_NAME=${MODEL_NAME:-}
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
