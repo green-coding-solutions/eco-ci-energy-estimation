@@ -1,52 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+var_file="/tmp/eco-ci/vars.sh"
+
 add_var() {
     key=$1
     value=$2
-    file="/tmp/eco-ci/vars.json"
-    #check if /tmp/eco-ci directory exists, if not make it
+
+    echo "Adding $1 with value $2 to file"
     if [ ! -d "/tmp/eco-ci" ]; then
         mkdir -p "/tmp/eco-ci"
     fi
-
-    echo "vars.sh having $1 and $2"
-
-    # Check if the JSON file exists
-    if [ ! -f $file ]; then
-        # Create a new JSON file with the key-value pair
-        echo "{\"$key\": \"$value\"}" > $file
-    else
-        # Update or add the key-value pair in the JSON file
-        # check if the key exists in the json file with jq
-        if [[ $(jq ".$key" $file) == "null" ]]; then
-            # add the key-value pair to the json file
-            jq --arg key "$key" --arg value "$value" '. + {($key): $value}' "$file" > "/tmp/eco-ci/vars.json.tmp" && mv "/tmp/eco-ci/vars.json.tmp" "$file"
-        else
-            # update the key-value pair in the json file
-            jq --arg key "$key" --arg value "$value" '.[$key] = $value' "$file" > "/tmp/eco-ci/vars.json.tmp" && mv "/tmp/eco-ci/vars.json.tmp" "$file"
-        fi
+    if [ ! -f $var_file ]; then
+        touch $var_file
     fi
+    echo "${1}=\"${2}\"" >> /tmp/eco-ci/vars.sh
+
+    cat /tmp/eco-ci/vars.sh
 }
 
 read_vars() {
-    dict_file="/tmp/eco-ci/vars.json"
-
     echo "Catting var file"
-    cat /tmp/eco-ci/vars.json
+    cat $var_file
 
-    if [[ -f "$dict_file" ]]; then
-        # Read the JSON file and extract key-value pairs
-        while IFS="=" read -r key value; do
-            # Trim leading/trailing whitespace and quotes from the key
-            key=$(echo "$key" | sed -e 's/^"//' -e 's/"$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-
-            # Trim leading/trailing whitespace and quotes from the value
-            value=$(echo "$value" | sed -e 's/^"//' -e 's/"$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-
-            # Set the key-value pair as an environment variable
-            export "$key"="$value"
-        done < <(jq -r 'to_entries[] | "\(.key)=\(.value)"' "$dict_file")
+    if [ -f $var_file ]; then
+        source $var_file
     fi
 }
 
