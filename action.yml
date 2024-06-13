@@ -36,7 +36,7 @@ inputs:
     description: 'Add a comment to the PR with the results during display-results step'
     default: false
   api-base:
-      description: 'Base URL of the Github API to send data to. Default is api.github.com, but can be changed to your hostname if you have Github Enterprise'
+      description: 'Base URL of the Github API to send data to (including schema). Default is https://api.github.com, but can be changed to your hostname if you have a custom hosted Github Enterprise'
       default: ${{ github.api_url }}
       required: false
   company-uuid:
