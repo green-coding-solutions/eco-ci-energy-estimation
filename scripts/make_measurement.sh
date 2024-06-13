@@ -75,8 +75,8 @@ function make_measurement() {
 
         if [[ $send_data == 'true' ]]; then
 
-            source "$(dirname "$0")/vars.sh" get_energy_co2 "$total_energy"
-            source "$(dirname "$0")/vars.sh" get_embodied_co2 "$time"
+            source "$(dirname "$0")/misc.sh" get_energy_co2 "$total_energy"
+            source "$(dirname "$0")/misc.sh" get_embodied_co2 "$time"
 
             CO2EQ=$(echo "$CO2EQ_EMBODIED +  $CO2EQ_ENERGY" | bc -l)
 
