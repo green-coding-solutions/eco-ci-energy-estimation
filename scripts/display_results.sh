@@ -11,9 +11,6 @@ function display_results {
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
     DASHBOARD_API_BASE=${DASHBOARD_API_BASE:-}
-    MACHINE_POWER_HASHMAP=${MACHINE_POWER_HASHMAP:-}
-    MACHINE_POWER_DATA=${MACHINE_POWER_DATA:-}
-
 
     output="/tmp/eco-ci/output.txt"
     output_pr="/tmp/eco-ci/output-pr.txt"

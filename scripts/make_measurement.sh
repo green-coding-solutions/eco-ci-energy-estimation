@@ -11,7 +11,6 @@ function make_measurement() {
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
     DASHBOARD_API_BASE=${DASHBOARD_API_BASE:-}
-    MACHINE_POWER_HASHMAP=${MACHINE_POWER_HASHMAP:-}
     MACHINE_POWER_DATA=${MACHINE_POWER_DATA:-}
 
 
@@ -32,10 +31,12 @@ function make_measurement() {
     # check wc -l of cpu-util is greater than 0
     if [[ $(wc -l < /tmp/eco-ci/cpu-util-temp.txt) -gt 0 ]]; then
 
-        if [[ $MACHINE_POWER_HASHMAP == "" ]]; then
+        if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} >= 4 )); then
             echo "Using bash mode inference"
+            source "$(dirname "$0")/../machine-power-data/${MACHINE_POWER_DATA}" # will set cloud_energy_hashmap
+
             while read -r time util; do
-                echo "$time * ${MACHINE_POWER_HASHMAP[$util]}" | bc -l >> /tmp/eco-ci/energy-step.txt
+                echo "$time * ${cloud_energy_hashmap[$util]}" | bc -l >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
         else
             echo "Using legacy mode inference"

@@ -15,11 +15,6 @@ function initialize {
     # call init_variables
     source "$(dirname "$0")/vars.sh" cpu_vars
     source "$(dirname "$0")/vars.sh" add_var DASHBOARD_API_BASE "https://api.green-coding.io"
-
-    if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} >= 4 )); then
-        source "$(dirname "$0")/../machine-power-data/${MACHINE_POWER_DATA}"
-        source "$(dirname "$0")/vars.sh" add_var MACHINE_POWER_HASHMAP $cloud_energy_hashmap
-    fi
 }
 
 
