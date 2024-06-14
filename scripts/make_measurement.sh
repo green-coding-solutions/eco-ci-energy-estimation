@@ -19,12 +19,11 @@ function make_measurement() {
     # reset timer and cpu capturing (lap)
     source "$(dirname "$0")/setup.sh" lap_measurement
 
-    # capture cpu util so we have a file that is currently not written to
-    cat /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
+    # Capture current cpu util file and trim trailing empty lines from the file to not run into read/write race condition later
+    sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
 
-    # clear energy file for step
+    # clear energy file for step because we fill it later anew
     echo > /tmp/eco-ci/energy-step.txt
-
 
     # check wc -l of cpu-util is greater than 0
     if [[ $(wc -l < /tmp/eco-ci/cpu-util-temp.txt) -gt 0 ]]; then
