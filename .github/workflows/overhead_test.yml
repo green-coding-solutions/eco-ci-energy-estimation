@@ -1,13 +1,6 @@
 name: test-action
 
 on:
-  pull_request:
-    paths-ignore:
-     - 'README.md'
-     - 'LICENSE'
-     - '.gitlab-ci.yml.example'
-     - '.gitignore'
-
   workflow_dispatch:
 
 permissions:
