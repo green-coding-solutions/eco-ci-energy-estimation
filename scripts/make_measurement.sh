@@ -5,6 +5,8 @@ set -euo pipefail
 source "$(dirname "$0")/vars.sh" read_vars
 
 function make_measurement() {
+
+    echo "Duration 1: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
     MODEL_NAME=${MODEL_NAME:-}
@@ -15,9 +17,12 @@ function make_measurement() {
 
     # capture time
     step_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-step.txt)))
+    echo "Duration 2: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
     # Capture current cpu util file and trim trailing empty lines from the file to not run into read/write race condition later
     sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
+
+    echo "Duration 3: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
     # clear energy file for step because we fill it later anew
     echo > /tmp/eco-ci/energy-step.txt
@@ -28,12 +33,17 @@ function make_measurement() {
         # bash mode inference is slower in initial reading
         # but 100x faster in reading. The net gain is after ~ 5 measurements
         if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} >= 4 )); then
+            echo "Duration 4: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+
             echo "Using bash mode inference"
             source "$(dirname "$0")/../machine-power-data/${MACHINE_POWER_DATA}" # will set cloud_energy_hashmap
+            echo "Duration 5: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
             while read -r read_var_time read_var_util; do
                 echo "$read_var_time ${cloud_energy_hashmap[$read_var_util]}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
+            echo "Duration 6: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+
         else
             echo "Using legacy mode inference"
             while read -r read_var_time read_var_util; do
@@ -42,6 +52,7 @@ function make_measurement() {
                 echo "$read_var_time ${power_value}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
         fi
+        echo "Duration 7: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
         if [[ $MEASUREMENT_COUNT == '' ]]; then
             MEASUREMENT_COUNT=1
@@ -50,6 +61,9 @@ function make_measurement() {
             MEASUREMENT_COUNT=$((MEASUREMENT_COUNT+1))
             source "$(dirname "$0")/vars.sh" add_var MEASUREMENT_COUNT $MEASUREMENT_COUNT
         fi
+
+        echo "Duration 8: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+
 
         if [[ $label == '' ]]; then
             label="Measurement #$MEASUREMENT_COUNT"
@@ -60,18 +74,27 @@ function make_measurement() {
         power_acc=$(awk '{ total += $1; } END { print total }' /tmp/eco-ci/energy-step.txt)
         power_avg=$(echo "$power_acc $step_time" | awk '{printf "%.2f", $1 / $2}')
 
+        echo "Duration 9: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_LABEL" "$label"
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_ENERGY" "$step_energy"
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_POWER_AVG" "$power_avg"
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_TIME" "$step_time"
 
+
+        echo "Duration 10: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+
         echo $step_energy >> /tmp/eco-ci/energy-values.txt
+
+        echo "Duration 11 : "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
         if [[ $send_data == 'true' ]]; then
 
             source "$(dirname "$0")/misc.sh" get_energy_co2 "$step_energy"
             source "$(dirname "$0")/misc.sh" get_embodied_co2 "$step_time"
+
+            echo "Duration 12: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
             # CO2 API might have failed or not set, so we only calculate total if it worked
             CO2EQ_EMBODIED=${CO2EQ_EMBODIED:-}  # Default to an empty string if unset
@@ -85,6 +108,9 @@ function make_measurement() {
             value_mJ=$(echo "$step_energy 1000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
             unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
+
+            echo "Duration 13: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+
 
             curl -X POST "$add_endpoint" -H 'Content-Type: application/json' -d "{
                 \"energy_value\":\"$value_mJ\",
@@ -112,11 +138,16 @@ function make_measurement() {
             }"
         fi
 
+        echo "Duration 14: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+
+
         # write data to output
         lap_data_file="/tmp/eco-ci/lap-data.json"
         repo_enc=$( echo ${repo} | jq -Rr @uri)
         branch_enc=$( echo $branch | jq -Rr @uri)
         run_id_enc=$( echo ${run_id} | jq -Rr @uri)
+
+        echo "Duration 15: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
         echo "show create-and-add-meta.sh output"
         echo "--file $lap_data_file --repository $repo_enc --branch $branch_enc --workflow $WORKFLOW_ID --run_id $run_id_enc"
@@ -124,13 +155,20 @@ function make_measurement() {
         source "$(dirname "$0")/create-and-add-meta.sh" --file "${lap_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
         source "$(dirname "$0")/add-data.sh" --file "${lap_data_file}" --label "$label" --cpu "${cpu_avg}" --energy "${step_energy}" --power "${power_avg}" --time "${step_time}"
 
+
+        echo "Duration 16: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+
         # merge all current data to the totals file. This means we will include the overhead since we do it AFTER this processing block
         sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt >> /tmp/eco-ci/cpu-util-total.txt
         sed '/^[[:space:]]*$/d' /tmp/eco-ci/energy-step.txt >> /tmp/eco-ci/energy-total.txt
 
+        echo "Duration 17: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+
         # Reset the step timers, so we do not capture the overhead per step
         # we want to only caputure the overhead in the totals
         source "$(dirname "$0")/setup.sh" lap_measurement
+
+        echo "Duration 18: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
     else
         echo "Skipping measurement as no data was collected since last call"
