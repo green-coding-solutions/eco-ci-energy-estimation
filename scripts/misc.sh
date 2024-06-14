@@ -10,7 +10,7 @@ get_geo_ipapi_co() {
     fi
 
     if echo "$response" | jq '.latitude, .longitude, .city' | grep -q null; then
-        echo "Required data is missing. Exiting" >&2
+        echo -e "Required data is missing\nResponse is ${response}\nExiting" >&2
         return
     fi
 
@@ -33,7 +33,7 @@ get_carbon_intensity() {
     fi
 
     if echo "$response" | jq '.carbonIntensity' | grep -q null; then
-        echo "Required carbonIntensity is missing. Exiting" >&2
+        echo "Required carbonIntensity is missing.\nResponse is ${response}\nExiting" >&2
         return
     fi
 

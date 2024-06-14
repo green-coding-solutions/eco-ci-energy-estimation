@@ -35,7 +35,7 @@ function display_results {
         echo "----------------" >> $output
 
         for (( i=1; i<=$MEASUREMENT_COUNT; i++ )); do
-            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$MEASUREMENT_${i}_TOTAL_ENERGY)" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$MEASUREMENT_${i}_ENERGY)" | tee -a $output metrics.txt
             echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$MEASUREMENT_${i}_CPU_AVG)" | tee -a $output metrics.txt
             echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$MEASUREMENT_${i}_POWER_AVG)" | tee -a $output metrics.txt
             echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$MEASUREMENT_${i}_TIME)" | tee -a $output metrics.txt

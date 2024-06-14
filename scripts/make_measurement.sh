@@ -61,26 +61,29 @@ function make_measurement() {
         fi
 
         cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
-        total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
+        step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
         power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy-step.txt)
 
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_LABEL" "$label"
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"
-        source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_TOTAL_ENERGY" "$total_energy"
+        source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_ENERGY" "$step_energy"
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_POWER_AVG" "$power_avg"
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_TIME" "$step_time"
 
-        echo $total_energy >> /tmp/eco-ci/energy-values.txt
+        echo $step_energy >> /tmp/eco-ci/energy-values.txt
 
         if [[ $send_data == 'true' ]]; then
 
-            source "$(dirname "$0")/misc.sh" get_energy_co2 "$total_energy"
+            source "$(dirname "$0")/misc.sh" get_energy_co2 "$step_energy"
             source "$(dirname "$0")/misc.sh" get_embodied_co2 "$step_time"
 
-            CO2EQ=$(echo "$CO2EQ_EMBODIED +  $CO2EQ_ENERGY" | bc -l)
+            # CO2 API might have failed, so we only calculate total if it worked
+            if [ -n "$CO2EQ_EMBODIED" ] && [ -n "$CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
+                CO2EQ=$(echo "$CO2EQ_EMBODIED +  $CO2EQ_ENERGY" | bc -l)
+            fi
 
             add_endpoint=$DASHBOARD_API_BASE"/v1/ci/measurement/add"
-            value_mJ=$(echo "$total_energy*1000" | bc -l | cut -d '.' -f 1)
+            value_mJ=$(echo "$step_energy*1000" | bc -l | cut -d '.' -f 1)
             unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
 
@@ -120,7 +123,7 @@ function make_measurement() {
         echo "--file $lap_data_file --repository $repo_enc --branch $branch_enc --workflow $WORKFLOW_ID --run_id $run_id_enc"
 
         source "$(dirname "$0")/create-and-add-meta.sh" --file "${lap_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
-        source "$(dirname "$0")/add-data.sh" --file "${lap_data_file}" --label "$label" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}" --time "${step_time}"
+        source "$(dirname "$0")/add-data.sh" --file "${lap_data_file}" --label "$label" --cpu "${cpu_avg}" --energy "${step_energy}" --power "${power_avg}" --time "${step_time}"
 
         # Reset the timers again, so we do not capture the overhead per step
         # we want to only caputure the overhead in the totals
