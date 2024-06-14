@@ -50,6 +50,7 @@ jobs:
       - name: Dump ECO-CI CPU before
         run: |
           cat /tmp/eco-ci/cpu-util-total.txt
+          echo "Duration BEFORE: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
 
       - name: Test measurement 1
@@ -60,6 +61,7 @@ jobs:
 
       - name: Dump ECO-CI CPU Step actual processed
         run: |
+          echo "Duration DUMP: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
           cat /tmp/eco-ci/cpu-util-temp.txt
 
       - name: Dump ECO-CI Energy Step actual processed

@@ -102,9 +102,13 @@ runs:
         NAME: ${{ github.workflow }}
       shell: bash
       run: |
+        echo "Duration A: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
         ${{github.action_path}}/scripts/make_measurement.sh -l "${{inputs.label}}" -r "${{ github.run_id }}" -b "${{inputs.branch}}" -R "${{ github.repository }}" -c ${{ github.sha }} -sd ${{inputs.send-data}} -s "github" -n "$NAME" -cbc "${{inputs.company-uuid}}" -cbp "${{inputs.project-uuid}}" -cbm "${{inputs.machine-uuid}}"
+        echo "Duration B: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
         lap_data_file="/tmp/eco-ci/lap-data.json"
+        echo "Duration C: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
         echo "data-lap-json=$(cat $lap_data_file)" >> $GITHUB_OUTPUT
+        echo "Duration D: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
     - if: inputs.task == 'display-results'
       name: get estimation for total energy
