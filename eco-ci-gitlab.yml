@@ -6,7 +6,6 @@ variables:
   ECO_CI_SEND_DATA: "true"
   ECO_CI_DISPLAY_BADGE: "true" # true
   ECO_CI_DISPLAY_TABLE: "true" # true
-  ECO_CI_DISPLAY_GRAPH: "false" # false
   ECO_CI_SHOW_CARBON: "true"
   ECO_CI_COMPANY_UUID: ""
   ECO_CI_PROJECT_UUID: ""
@@ -59,7 +58,6 @@ variables:
             -r "$CI_PIPELINE_ID" \
             -R "$repo" \
             -dt "$ECO_CI_DISPLAY_TABLE" \
-            -dg "$ECO_CI_DISPLAY_GRAPH" \
             -sd "$ECO_CI_SEND_DATA" \
             -s "gitlab" \
             -sc "$ECO_CI_SHOW_CARBON"

@@ -104,9 +104,6 @@ jobs:
   - Get the CO2 grid intensity for the location from https://www.electricitymaps.com/
   - Estimates the amount of carbon the measurement has produced
 - `display-table`: (optional) (default: true)
-  - call during the `display-graph` step to either show/hide the energy reading table results in the output
-- `display-graph`: (optional) (default: true)
-  - We use an ascii charting library written in go (https://github.com/guptarohit/asciigraph). For GitHub hosted runners their images come with go so we do not install it. If you are using a private runner instance however, your machine may not have go installed, and this will not work. As we want to minimize what we install on private runner machines to not intefere with your setup, we will not install go. Therefore, you will need to call `start-measurement` with the `display-graph` flag set to false, and that will skip the installation of this go library.
 - `display-badge`: (optional) (default: true)
   - used with display-results
   - Shows the badge for the ci run during display-results step

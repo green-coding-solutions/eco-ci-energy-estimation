@@ -60,18 +60,6 @@ function display_results {
         fi
     fi
 
-    if [[ ${display_graph} == 'true' ]]; then
-        if [[ $source == 'github' ]]; then
-            echo '📈 Energy graph:' | tee -a $output $output_pr
-            echo '```bash' | tee -a $output $output_pr
-            echo ' ' | tee -a $output $output_pr
-            docker run --rm -i greencoding/cloud-energy:latest-asciicharts /home/worker/go/bin/asciigraph -h 10 -c "Watts over time" < /tmp/eco-ci/energy-total.txt | tee -a $output $output_pr
-            echo ' ```' | tee -a $output $output_pr
-        elif [[ $source == 'gitlab' ]]; then
-            echo '📈 Energy graph:' >> $output
-            docker run --rm -i greencoding/cloud-energy:latest-asciicharts /home/worker/go/bin/asciigraph -h 10 -c "Watts over time" < /tmp/eco-ci/energy-total.txt >> $output
-        fi
-    fi
     repo_enc=$( echo ${repo} | jq -Rr @uri)
     branch_enc=$( echo ${branch} | jq -Rr @uri)
 
@@ -126,7 +114,6 @@ display_badge=""
 run_id=""
 repo=""
 display_table=""
-display_graph=""
 send_data=""
 show_carbon=""
 source=""
@@ -153,10 +140,6 @@ while [[ $# -gt 0 ]]; do
         ;;
         -dt|--display-table)
         display_table="$2"
-        shift
-        ;;
-        -dg|--display-graph)
-        display_graph="$2"
         shift
         ;;
         -sd|--send-data)
