@@ -42,7 +42,7 @@ function lap_measurement {
 }
 
 function end_measurement {
-    pkill -f "$(dirname "$0")/cpu-utilization.sh" -SIGTERM || true;
+    pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization.sh"  || true;
 }
 
 # Main script logic

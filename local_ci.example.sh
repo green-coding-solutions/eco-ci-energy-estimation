@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+shell=bash
+
 ECO_CI_SEND_DATA="true"
 ECO_CI_DISPLAY_BADGE="true"
 ECO_CI_DISPLAY_TABLE="true"
@@ -24,9 +26,9 @@ MACHINE_POWER_DATA="default.sh"
 # Initialize
 echo "Initialize"
 
-"$(dirname "$0")/scripts/setup.sh" initialize $MACHINE_POWER_DATA
-"$(dirname "$0")/scripts/vars.sh" add_var "WORKFLOW_ID" $ECO_CI_WORKFLOW_ID
-"$(dirname "$0")/scripts/setup.sh" start_measurement
+$shell "$(dirname "$0")/scripts/setup.sh" initialize $MACHINE_POWER_DATA
+$shell "$(dirname "$0")/scripts/vars.sh" add_var "WORKFLOW_ID" $ECO_CI_WORKFLOW_ID
+$shell "$(dirname "$0")/scripts/setup.sh" start_measurement
 echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
 # Do some work
@@ -35,7 +37,7 @@ sleep 3s
 echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
 
-"$(dirname "$0")/scripts/make_measurement.sh" \
+$shell "$(dirname "$0")/scripts/make_measurement.sh" \
 -l "Step sleep" \
 -r "My Pipeline ID" \
 -b "Branch Name" \
@@ -50,14 +52,14 @@ echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
 # Do some other work
 echo "ls -alhR"
-timeout 3s ls -alhR / > /dev/null || true
+timeout 3s ls -alhR / &> /dev/null || true
 echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
 echo "Sleeping "
 sleep 3
 echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
-"$(dirname "$0")/scripts/make_measurement.sh" \
+$shell "$(dirname "$0")/scripts/make_measurement.sh" \
 -l "Step ls -alh" \
 -r "My Pipeline ID" \
 -b "Branch Name" \
@@ -82,7 +84,7 @@ cat /tmp/eco-ci/energy-total.txt
 cat /tmp/eco-ci/cpu-util-total.txt
 
 
-"$(dirname "$0")/scripts/display_results.sh" \
+$shell "$(dirname "$0")/scripts/display_results.sh" \
     -b "Branch Name" \
     -db "$ECO_CI_DISPLAY_BADGE" \
     -r "My Pipeline ID" \
@@ -95,5 +97,5 @@ cat /tmp/eco-ci/cpu-util-total.txt
 echo -e "$ECO_CI_FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$ECO_CI_TXT_CLEAR"
 echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
-"$(dirname "$0")/scripts/setup.sh" end_measurement
+$shell "$(dirname "$0")/scripts/setup.sh" end_measurement
 
