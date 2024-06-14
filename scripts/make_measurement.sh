@@ -16,9 +16,6 @@ function make_measurement() {
     # capture time
     step_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-step.txt)))
 
-    # reset timer and cpu capturing (lap)
-    source "$(dirname "$0")/setup.sh" lap_measurement
-
     # Capture current cpu util file and trim trailing empty lines from the file to not run into read/write race condition later
     sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
 
@@ -132,7 +129,7 @@ function make_measurement() {
         sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt >> /tmp/eco-ci/cpu-util-total.txt
         sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-energy-step.txt >> /tmp/eco-ci/cpu-energy-total.txt
 
-        # Reset the timers again, so we do not capture the overhead per step
+        # Reset the step timers, so we do not capture the overhead per step
         # we want to only caputure the overhead in the totals
         source "$(dirname "$0")/setup.sh" lap_measurement
 
