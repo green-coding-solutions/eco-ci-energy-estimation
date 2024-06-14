@@ -20,7 +20,6 @@ permissions:
 
 jobs:
   test-action:
-    runs-on: ubuntu-latest
     runs-on: ${matrix.os}
     continue-on-error: false
     strategy:
