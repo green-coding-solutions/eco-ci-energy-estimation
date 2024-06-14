@@ -20,7 +20,7 @@ function make_measurement() {
     sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
 
     # clear energy file for step because we fill it later anew
-    echo > /tmp/eco-ci/cpu-energy-step.txt
+    echo > /tmp/eco-ci/energy-step.txt
 
     # check wc -l of cpu-util is greater than 0
     if [[ $(wc -l < /tmp/eco-ci/cpu-util-temp.txt) -gt 0 ]]; then
@@ -34,14 +34,14 @@ function make_measurement() {
             while read -r read_var_time read_var_util; do
                 echo "$read_var_time * $read_var_util" # TODO Remove
                 echo ${cloud_energy_hashmap[$read_var_util]} # TODO Remove
-                echo "$read_var_time * ${cloud_energy_hashmap[$read_var_util]}" | bc -l >> /tmp/eco-ci/cpu-energy-step.txt
+                echo "$read_var_time * ${cloud_energy_hashmap[$read_var_util]}" | bc -l >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
         else
             echo "Using legacy mode inference"
             while read -r read_var_time read_var_util; do
                 # The pattern contains a . and [ ] but this no problem as no other dot appears anywhere
                 power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap[$read_var_util]" ' 0 ~ pattern { print $2 }' $MACHINE_POWER_DATA)
-                echo "$read_var_time * ${power_value}" | bc -l >> /tmp/eco-ci/cpu-energy-step.txt
+                echo "$read_var_time * ${power_value}" | bc -l >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
         fi
 
@@ -58,8 +58,8 @@ function make_measurement() {
         fi
 
         cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
-        step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/cpu-energy-step.txt)
-        power_acc=$(awk '{ total += $1; } END { print total }' /tmp/eco-ci/cpu-energy-step.txt)
+        step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
+        power_acc=$(awk '{ total += $1; } END { print total }' /tmp/eco-ci/energy-step.txt)
         power_avg=$(echo "scale=2; $power_acc / $step_time"  | bc -l)
 
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_LABEL" "$label"
@@ -128,7 +128,7 @@ function make_measurement() {
 
         # merge all current data to the totals file. This means we will include the overhead since we do it AFTER this processing block
         sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt >> /tmp/eco-ci/cpu-util-total.txt
-        sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-energy-step.txt >> /tmp/eco-ci/cpu-energy-total.txt
+        sed '/^[[:space:]]*$/d' /tmp/eco-ci/energy-step.txt >> /tmp/eco-ci/energy-total.txt
 
         # Reset the step timers, so we do not capture the overhead per step
         # we want to only caputure the overhead in the totals

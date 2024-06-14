@@ -21,8 +21,8 @@ function initialize {
 function start_measurement {
     touch /tmp/eco-ci/cpu-util-step.txt
     touch /tmp/eco-ci/cpu-util-total.txt
-    touch /tmp/eco-ci/cpu-energy-step.txt
-    touch /tmp/eco-ci/cpu-energy-total.txt
+    touch /tmp/eco-ci/energy-step.txt
+    touch /tmp/eco-ci/energy-total.txt
     touch /tmp/eco-ci/timer-step.txt
 
     # start global timer
