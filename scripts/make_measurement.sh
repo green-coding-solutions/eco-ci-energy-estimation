@@ -14,7 +14,7 @@ function make_measurement() {
     MACHINE_POWER_DATA=${MACHINE_POWER_DATA:-}
 
     # capture time
-    time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-step.txt)))
+    step_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-step.txt)))
 
     # reset timer and cpu capturing (lap)
     source "$(dirname "$0")/setup.sh" lap_measurement
@@ -65,16 +65,18 @@ function make_measurement() {
         total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
         power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy-step.txt)
 
-        key_to_add="measurement_"$MEASUREMENT_COUNT
-        value_to_add="label:\"$label\", cpu_avg:$cpu_avg, total_energy:$total_energy, power_avg:$power_avg, time:$time"
-        source "$(dirname "$0")/vars.sh" add_var $key_to_add "$value_to_add"
+        source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_LABEL" "$label"
+        source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"
+        source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_TOTAL_ENERGY" "$total_energy"
+        source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_POWER_AVG" "$power_avg"
+        source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_TIME" "$step_time"
 
         echo $total_energy >> /tmp/eco-ci/energy-values.txt
 
         if [[ $send_data == 'true' ]]; then
 
             source "$(dirname "$0")/misc.sh" get_energy_co2 "$total_energy"
-            source "$(dirname "$0")/misc.sh" get_embodied_co2 "$time"
+            source "$(dirname "$0")/misc.sh" get_embodied_co2 "$step_time"
 
             CO2EQ=$(echo "$CO2EQ_EMBODIED +  $CO2EQ_ENERGY" | bc -l)
 
@@ -96,7 +98,7 @@ function make_measurement() {
                 \"label\":\"$label\",
                 \"source\":\"$source\",
                 \"cpu_util_avg\":\"$cpu_avg\",
-                \"duration\":\"$time\",
+                \"duration\":\"$step_time\",
                 \"workflow_name\":\"$workflow_name\",
                 \"cb_company_uuid\":\"$cb_company_uuid\",
                 \"cb_project_uuid\":\"$cb_project_uuid\",
@@ -119,7 +121,7 @@ function make_measurement() {
         echo "--file $lap_data_file --repository $repo_enc --branch $branch_enc --workflow $WORKFLOW_ID --run_id $run_id_enc"
 
         source "$(dirname "$0")/create-and-add-meta.sh" --file "${lap_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
-        source "$(dirname "$0")/add-data.sh" --file "${lap_data_file}" --label "$label" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}" --time "${time}"
+        source "$(dirname "$0")/add-data.sh" --file "${lap_data_file}" --label "$label" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}" --time "${step_time}"
 
         # Reset the timers again, so we do not capture the overhead per step
         # we want to only caputure the overhead in the totals

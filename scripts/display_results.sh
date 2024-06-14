@@ -26,23 +26,6 @@ function display_results {
     power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy-total.txt)
     total_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
-    # Get series of measurement values
-    for varname in ${!measurement_@}; do
-        # Extract the measurement number from the variable name
-        measurement_number="${varname#*_}"
-        # Extract the value of the current measurement variable
-        measurement_value="${!varname}"
-
-        # Use eval to assign individual variables based on the measurement value
-        eval "label_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $2}')"
-        eval "cpu_avg_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $4}')"
-        eval "total_energy_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $6}')"
-        eval "power_avg_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $8}')"
-        eval "total_time_${measurement_number}=$(echo $measurement_value | awk -F'[,:]' '{print $10}')"
-
-        max_measurement_number=$measurement_number
-    done
-
     ## Gitlab Specific Output
     if [[ $source == 'gitlab' ]]; then
         echo "\"$CI_JOB_NAME: Energy [Joules]:\" $total_energy" | tee -a $output metrics.txt
@@ -51,11 +34,11 @@ function display_results {
         echo "\"$CI_JOB_NAME: Duration [seconds]:\" $total_time" | tee -a $output metrics.txt
         echo "----------------" >> $output
 
-        for (( i=1; i<=$max_measurement_number; i++ )); do
-            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$label_$i): Energy Used [Joules]:\" $(eval echo \$total_energy_$i)" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$label_$i): Avg. CPU Utilization:\" $(eval echo \$cpu_avg_$i)" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$label_$i): Avg. Power [Watts]:\" $(eval echo \$power_avg_$i)" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$label_$i): Duration [seconds]:\" $(eval echo \$total_time_$i)" | tee -a $output metrics.txt
+        for (( i=1; i<=$MEASUREMENT_COUNT; i++ )); do
+            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$MEASUREMENT_${i}_TOTAL_ENERGY)" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$MEASUREMENT_${i}_CPU_AVG)" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$MEASUREMENT_${i}_POWER_AVG)" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$MEASUREMENT_${i}_TIME)" | tee -a $output metrics.txt
             echo "----------------" >> $output
         done
     fi
@@ -70,7 +53,7 @@ function display_results {
             #display measurument lines in table summary
             for (( i=1; i<=$max_measurement_number; i++ ))
             do
-                echo "|$(eval echo \$label_$i)|$(eval echo \$cpu_avg_$i)|$(eval echo \$total_energy_$i)|$(eval echo \$power_avg_$i)|$(eval echo \$total_time_$i)|" | tee -a $output $output_pr
+                echo "|$(eval echo \$MEASUREMENT_${i}_LABEL)|$(eval echo \$MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$MEASUREMENT_${i}_TOTAL_ENERGY)|$(eval echo \$MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
             done
             echo '' | tee -a $output $output_pr
         fi
