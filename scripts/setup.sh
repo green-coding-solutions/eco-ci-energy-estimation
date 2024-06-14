@@ -35,11 +35,7 @@ function lap_measurement {
     date +%s > /tmp/eco-ci/timer-step.txt
 
     # start writing cpu utilization with actual sleep durations
-    pids=$(pgrep -f "$(dirname "$0")/cpu-utilization.sh");
-    echo "Found PIDs $pids"
-    if [[ $pids != '' ]]; then
-        kill -s SIGTERM $pids
-    fi
+    pkill -f "$(dirname "$0")/cpu-utilization.sh" -SIGTERM || true;
     bash "$(dirname "$0")/cpu-utilization.sh" > /tmp/eco-ci/cpu-util-step.txt &
 }
 
