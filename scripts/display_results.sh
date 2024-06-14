@@ -50,7 +50,7 @@ function display_results {
         echo "Eco-CI Output: " >> $output_pr
         echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
         echo "|---|---|---|---|---|" | tee -a $output $output_pr
-        echo "|Total Run|$cpu_avg|$total_energy|$power_avg|$total_time|" | tee -a $output $output_pr
+        echo "|Total Run (incl. overhead)|$cpu_avg|$total_energy|$power_avg|$total_time|" | tee -a $output $output_pr
         #display measurument lines in table summary
         for (( i=1; i<=$MEASUREMENT_COUNT; i++ ))
         do
