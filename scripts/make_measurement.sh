@@ -78,6 +78,9 @@ function make_measurement() {
             source "$(dirname "$0")/misc.sh" get_embodied_co2 "$step_time"
 
             # CO2 API might have failed, so we only calculate total if it worked
+            CO2EQ_EMBODIED=${CO2EQ_EMBODIED:-}  # Default to an empty string if unset
+            CO2EQ_ENERGY=${CO2EQ_ENERGY:-}      # Default to an empty string if unset
+
             if [ -n "$CO2EQ_EMBODIED" ] && [ -n "$CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
                 CO2EQ=$(echo "$CO2EQ_EMBODIED +  $CO2EQ_ENERGY" | bc -l)
             fi
