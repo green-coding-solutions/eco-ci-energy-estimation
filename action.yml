@@ -18,7 +18,7 @@ inputs:
     required: false
   send-data:
     description: 'Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
-    default: true
+    default: false # TODO true
     required: false
   show-carbon:
     description: 'Uses the grid carbon intensity of the run location to estimate the emitted carbon for the measurements.'

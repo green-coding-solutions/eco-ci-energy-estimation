@@ -40,7 +40,6 @@ function lap_measurement {
         kill -s SIGTERM $pids
     fi
     bash "$(dirname "$0")/cpu-utilization.sh" > /tmp/eco-ci/cpu-util-step.txt &
-
 }
 
 # Main script logic
