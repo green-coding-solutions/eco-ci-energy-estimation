@@ -59,7 +59,8 @@ function make_measurement() {
 
         cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
         step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/cpu-energy-step.txt)
-        power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/cpu-energy-step.txt)
+        power_acc=$(awk '{ total += $1; } END { print total }' /tmp/eco-ci/cpu-energy-step.txt)
+        power_avg=$(echo "scale=2; $power_acc / $step_time"  | bc -l)
 
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_LABEL" "$label"
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"

@@ -23,8 +23,9 @@ function display_results {
 
     cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
     total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
-    power_avg=$(awk '{ total += $1; count++ } END { print total/count }' /tmp/eco-ci/energy-total.txt)
     total_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+    power_acc=$(awk '{ total += $1; } END { print total }' /tmp/eco-ci/energy-total.txt)
+    total_power=$(echo "scale=2; $power_acc / $total_time"  | bc -l)
 
     ## Gitlab Specific Output
     if [[ $source == 'gitlab' ]]; then
