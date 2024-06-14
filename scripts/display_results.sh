@@ -26,7 +26,7 @@ function display_results {
     total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
     total_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
     power_acc=$(awk '{ total += $1; } END { print total }' /tmp/eco-ci/energy-total.txt)
-    power_avg=$(echo "$power_acc $total_time" | awk '{printf "%.2f", $1 * $2}')
+    power_avg=$(echo "$power_acc $total_time" | awk '{printf "%.2f", $1 / $2}')
 
     ## Gitlab Specific Output
     if [[ $source == 'gitlab' ]]; then
