@@ -52,7 +52,7 @@ function display_results {
             echo "|---|---|---|---|---|" | tee -a $output $output_pr
             echo "|Total Run|$cpu_avg|$total_energy|$power_avg|$total_time|" | tee -a $output $output_pr
             #display measurument lines in table summary
-            for (( i=1; i<=$max_measurement_number; i++ ))
+            for (( i=1; i<=$MEASUREMENT_COUNT; i++ ))
             do
                 echo "|$(eval echo \$MEASUREMENT_${i}_LABEL)|$(eval echo \$MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$MEASUREMENT_${i}_TOTAL_ENERGY)|$(eval echo \$MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
             done
