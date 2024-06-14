@@ -43,11 +43,11 @@ jobs:
       - name: Sleep step
         run: sleep 2
 
-      - name: Dump ECO-CI CPU Step
+      - name: Dump ECO-CI CPU Step before
         run: |
           cat /tmp/eco-ci/cpu-util-step.txt
 
-      - name: Dump ECO-CI CPU
+      - name: Dump ECO-CI CPU before
         run: |
           cat /tmp/eco-ci/cpu-util-total.txt
 
@@ -57,6 +57,15 @@ jobs:
         with:
           task: get-measurement
           label: "Sleep 3s"
+
+      - name: Dump ECO-CI CPU Step actual processed
+        run: |
+          cat /tmp/eco-ci/cpu-util-temp.txt
+
+      - name: Dump ECO-CI Energy Step actual processed
+        run: |
+          cat /tmp/eco-ci/energy-step.txt
+
 
       - name: Filesystem
         run: timeout 10s ls -alhR /usr/lib
