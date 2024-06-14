@@ -38,7 +38,7 @@ function lap_measurement {
 
     # start writing cpu utilization with actual sleep durations
     end_measurement
-    bash "$(dirname "$0")/cpu-utilization.sh" > /tmp/eco-ci/cpu-util-step.txt &
+    #bash "$(dirname "$0")/cpu-utilization.sh" > /tmp/eco-ci/cpu-util-step.txt &
 }
 
 function end_measurement {
