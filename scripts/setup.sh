@@ -36,6 +36,7 @@ function lap_measurement {
 
     # start writing cpu utilization with actual sleep durations
     pids=$(pgrep -f "$(dirname "$0")/cpu-utilization.sh");
+    echo "Found PIDs $pids"
     if [[ $pids != '' ]]; then
         kill -s SIGTERM $pids
     fi
