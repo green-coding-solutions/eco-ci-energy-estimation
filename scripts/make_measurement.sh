@@ -36,8 +36,8 @@ function make_measurement() {
             source "$(dirname "$0")/../machine-power-data/${MACHINE_POWER_DATA}" # will set cloud_energy_hashmap
 
             while read -r read_var_time read_var_util; do
-                echo "$read_var_time * $read_var_util"
-                echo ${cloud_energy_hashmap[$read_var_util]}
+                echo "$read_var_time * $read_var_util" # TODO Remove
+                echo ${cloud_energy_hashmap[$read_var_util]} # TODO Remove
                 echo "$read_var_time * ${cloud_energy_hashmap[$read_var_util]}" | bc -l >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
         else
