@@ -35,15 +35,15 @@ function make_measurement() {
             echo "Using bash mode inference"
             source "$(dirname "$0")/../machine-power-data/${MACHINE_POWER_DATA}" # will set cloud_energy_hashmap
 
-            while read -r time util; do
-                echo "$time * ${cloud_energy_hashmap[$util]}" | bc -l >> /tmp/eco-ci/energy-step.txt
+            while read -r read_var_time read_var_util; do
+                echo "$read_var_time * ${cloud_energy_hashmap[$read_var_util]}" | bc -l >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
         else
             echo "Using legacy mode inference"
-            while read -r time util; do
+            while read -r read_var_time read_var_util; do
                 # The pattern contains a . and [ ] but this no problem as no other dot appears anywhere
-                power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap[$util]" ' 0 ~ pattern { print $2 }' $MACHINE_POWER_DATA)
-                echo "$time * ${power_value}" | bc -l >> /tmp/eco-ci/energy-step.txt
+                power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap[$read_var_util]" ' 0 ~ pattern { print $2 }' $MACHINE_POWER_DATA)
+                echo "$read_var_time * ${power_value}" | bc -l >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
         fi
 
