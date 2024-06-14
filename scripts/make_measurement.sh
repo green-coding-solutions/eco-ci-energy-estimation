@@ -72,10 +72,12 @@ function make_measurement() {
 
         if [[ $send_data == 'true' ]]; then
 
-            source "$(dirname "$0")/misc.sh" get_energy_co2 "$step_energy"
-            source "$(dirname "$0")/misc.sh" get_embodied_co2 "$step_time"
+            if [[ ${show_carbon} == 'true' ]]; then
+                source "$(dirname "$0")/misc.sh" get_energy_co2 "$step_energy"
+                source "$(dirname "$0")/misc.sh" get_embodied_co2 "$step_time"
+            fi
 
-            # CO2 API might have failed, so we only calculate total if it worked
+            # CO2 API might have failed or not set, so we only calculate total if it worked
             CO2EQ_EMBODIED=${CO2EQ_EMBODIED:-}  # Default to an empty string if unset
             CO2EQ_ENERGY=${CO2EQ_ENERGY:-}      # Default to an empty string if unset
 
