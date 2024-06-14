@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FILE="/tmp/eco-ci/lap-data.json"
+FILE=""
 REPOSITORY=""
 BRANCH=""
 WORKFLOW=""
