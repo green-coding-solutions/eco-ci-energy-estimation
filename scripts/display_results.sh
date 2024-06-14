@@ -54,7 +54,7 @@ function display_results {
             #display measurument lines in table summary
             for (( i=1; i<=$MEASUREMENT_COUNT; i++ ))
             do
-                echo "|$(eval echo \$MEASUREMENT_${i}_LABEL)|$(eval echo \$MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$MEASUREMENT_${i}_TOTAL_ENERGY)|$(eval echo \$MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
+                echo "|$(eval echo \$MEASUREMENT_${i}_LABEL)|$(eval echo \$MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$MEASUREMENT_${i}_ENERGY)|$(eval echo \$MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
             done
             echo '' | tee -a $output $output_pr
         fi
