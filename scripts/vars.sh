@@ -19,10 +19,12 @@ read_vars() {
 }
 
 function cpu_vars_fill {
+    GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
     machine_power_data=$1
 
-    model_name=$(cat /proc/cpuinfo  | grep "model name")
+    model_name=$(cat /proc/cpuinfo  | grep "model name" || true)
+
     echo "Currently running on follow CPU Model ${model_name}"
 
     echo "Full CPU Info"
@@ -31,18 +33,8 @@ function cpu_vars_fill {
     echo "Full memory info"
     cat /proc/meminfo
 
-    if [[ $machine_power_data == '' ]]; then
-        echo "⚠️ Unknown model $model_name for estimation, will use default model ... This will likely produce very unaccurate results!"
-        [ -n "$GITHUB_STEP_SUMMARY" ] && echo "⚠️ Unknown model $model_name for estimation, will use default model ... This will likely produce very unaccurate results!" >> $GITHUB_STEP_SUMMARY
-        # we use a default configuration here from https://datavizta.boavizta.org/serversimpact
 
-        add_var "MACHINE_POWER_DATA" "default.sh";
-
-        add_var "SCI_M" 800.3;
-        # we use 4 years - 1*60*60*24*365*4 =
-        add_var "SCI_USAGE_DURATION" 126144000
-        add_var "MODEL_NAME" "unknown";
-    elif [[ "$machine_power_data" == "github_EPYC_7763_4_CPU_shared.sh" ]]; then
+    if [[ "$machine_power_data" == "github_EPYC_7763_4_CPU_shared.sh" ]]; then
         echo "Using github_EPYC_7763_4_CPU_shared.sh";
 
         add_var "MODEL_NAME" "EPYC_7763";
@@ -65,6 +57,17 @@ function cpu_vars_fill {
         add_var "SCI_M" 18339.0625;
         # we use 4 years - 1*60*60*24*365*4 =
         add_var "SCI_USAGE_DURATION" 126144000
+    else
+        echo "⚠️ Unknown model $model_name for estimation, will use default model ... This will likely produce very unaccurate results!"
+        [ -n "$GITHUB_STEP_SUMMARY" ] && echo "⚠️ Unknown model $model_name for estimation, will use default model ... This will likely produce very unaccurate results!" >> $GITHUB_STEP_SUMMARY
+        # we use a default configuration here from https://datavizta.boavizta.org/serversimpact
+
+        add_var "MACHINE_POWER_DATA" "default.sh";
+
+        add_var "SCI_M" 800.3;
+        # we use 4 years - 1*60*60*24*365*4 =
+        add_var "SCI_USAGE_DURATION" 126144000
+        add_var "MODEL_NAME" "unknown";
     fi
 }
 

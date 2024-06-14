@@ -32,16 +32,14 @@ function make_measurement() {
             source "$(dirname "$0")/../machine-power-data/${MACHINE_POWER_DATA}" # will set cloud_energy_hashmap
 
             while read -r read_var_time read_var_util; do
-                echo "$read_var_time * $read_var_util" # TODO Remove
-                echo ${cloud_energy_hashmap[$read_var_util]} # TODO Remove
-                echo "$read_var_time * ${cloud_energy_hashmap[$read_var_util]}" | bc -l >> /tmp/eco-ci/energy-step.txt
+                echo "$read_var_time ${cloud_energy_hashmap[$read_var_util]}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
         else
             echo "Using legacy mode inference"
             while read -r read_var_time read_var_util; do
                 # The pattern contains a . and [ ] but this no problem as no other dot appears anywhere
                 power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap[$read_var_util]" ' 0 ~ pattern { print $2 }' $MACHINE_POWER_DATA)
-                echo "$read_var_time * ${power_value}" | bc -l >> /tmp/eco-ci/energy-step.txt
+                echo "$read_var_time ${power_value}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-step.txt
             done < /tmp/eco-ci/cpu-util-temp.txt
         fi
 
@@ -60,7 +58,7 @@ function make_measurement() {
         cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
         step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
         power_acc=$(awk '{ total += $1; } END { print total }' /tmp/eco-ci/energy-step.txt)
-        power_avg=$(echo "scale=2; $power_acc / $step_time"  | bc -l)
+        power_avg=$(echo "$power_acc $step_time" | awk '{printf "%.2f", $1 / $2}')
 
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_LABEL" "$label"
         source "$(dirname "$0")/vars.sh" add_var "MEASUREMENT_${MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"
@@ -80,11 +78,11 @@ function make_measurement() {
             CO2EQ_ENERGY=${CO2EQ_ENERGY:-}      # Default to an empty string if unset
 
             if [ -n "$CO2EQ_EMBODIED" ] && [ -n "$CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
-                CO2EQ=$(echo "$CO2EQ_EMBODIED +  $CO2EQ_ENERGY" | bc -l)
+                CO2EQ=$(echo "$CO2EQ_EMBODIED $CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
             fi
 
             add_endpoint=$DASHBOARD_API_BASE"/v1/ci/measurement/add"
-            value_mJ=$(echo "$step_energy*1000" | bc -l | cut -d '.' -f 1)
+            value_mJ=$(echo "$step_energy 1000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
             unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
 

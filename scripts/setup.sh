@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+
 # Call the function to read and set the variables
 source "$(dirname "$0")/vars.sh" read_vars
 
@@ -15,6 +16,7 @@ function initialize {
     source "$(dirname "$0")/vars.sh" add_var "MACHINE_POWER_DATA" "$1"
     source "$(dirname "$0")/vars.sh" cpu_vars "$1"
     source "$(dirname "$0")/vars.sh" add_var DASHBOARD_API_BASE "https://api.green-coding.io"
+
 }
 
 
@@ -35,8 +37,12 @@ function lap_measurement {
     date +%s > /tmp/eco-ci/timer-step.txt
 
     # start writing cpu utilization with actual sleep durations
-    pkill -f "$(dirname "$0")/cpu-utilization.sh" -SIGTERM || true;
+    end_measurement
     bash "$(dirname "$0")/cpu-utilization.sh" > /tmp/eco-ci/cpu-util-step.txt &
+}
+
+function end_measurement {
+    pkill -f "$(dirname "$0")/cpu-utilization.sh" -SIGTERM || true;
 }
 
 # Main script logic
@@ -54,11 +60,14 @@ case $option in
   start_measurement)
     start_measurement
     ;;
+  end_measurement)
+    end_measurement
+    ;;
   lap_measurement)
     lap_measurement
     ;;
   *)
-    echo "Invalid option ${option}. Please specify an option: initialize, lap_measurement or start_measurement."
+    echo "Invalid option ${option}. Please specify an option: initialize, lap_measurement, end_measurement or start_measurement."
     exit 1
     ;;
 esac

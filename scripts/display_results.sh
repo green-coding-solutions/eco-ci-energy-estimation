@@ -11,6 +11,7 @@ function display_results {
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
     DASHBOARD_API_BASE=${DASHBOARD_API_BASE:-}
+    GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
     output="/tmp/eco-ci/output.txt"
     output_pr="/tmp/eco-ci/output-pr.txt"
@@ -25,7 +26,7 @@ function display_results {
     total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
     total_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
     power_acc=$(awk '{ total += $1; } END { print total }' /tmp/eco-ci/energy-total.txt)
-    power_avg=$(echo "scale=2; $power_acc / $total_time"  | bc -l)
+    power_avg=$(echo "$power_acc $total_time" | awk '{printf "%.2f", $1 * $2}')
 
     ## Gitlab Specific Output
     if [[ $source == 'gitlab' ]]; then
@@ -46,18 +47,16 @@ function display_results {
 
     if [[ ${display_table} == 'true' ]]; then
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
-        if [[ $source == 'github' ]]; then
-            echo "Eco-CI Output: " >> $output_pr
-            echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
-            echo "|---|---|---|---|---|" | tee -a $output $output_pr
-            echo "|Total Run|$cpu_avg|$total_energy|$power_avg|$total_time|" | tee -a $output $output_pr
-            #display measurument lines in table summary
-            for (( i=1; i<=$MEASUREMENT_COUNT; i++ ))
-            do
-                echo "|$(eval echo \$MEASUREMENT_${i}_LABEL)|$(eval echo \$MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$MEASUREMENT_${i}_ENERGY)|$(eval echo \$MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
-            done
-            echo '' | tee -a $output $output_pr
-        fi
+        echo "Eco-CI Output: " >> $output_pr
+        echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
+        echo "|---|---|---|---|---|" | tee -a $output $output_pr
+        echo "|Total Run|$cpu_avg|$total_energy|$power_avg|$total_time|" | tee -a $output $output_pr
+        #display measurument lines in table summary
+        for (( i=1; i<=$MEASUREMENT_COUNT; i++ ))
+        do
+            echo "|$(eval echo \$MEASUREMENT_${i}_LABEL)|$(eval echo \$MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$MEASUREMENT_${i}_ENERGY)|$(eval echo \$MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
+        done
+        echo '' | tee -a $output $output_pr
     fi
 
     repo_enc=$( echo ${repo} | jq -Rr @uri)
@@ -69,7 +68,7 @@ function display_results {
 
 
         if [ -n "$CO2EQ_EMBODIED" ] && [ -n "$CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
-            CO2EQ=$(echo "$CO2EQ_EMBODIED + $CO2EQ_ENERGY" | bc -l)
+            CO2EQ=$(echo "$CO2EQ_EMBODIED $CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
 
             echo '🌳 CO2 Data:' | tee -a $output $output_pr
             echo "City: <b>$CITY</b>, Lat: <b>$LAT</b>, Lon: <b>$LON</b>" | tee -a $output $output_pr

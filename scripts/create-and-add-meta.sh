@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FILE=""
+FILE="/tmp/eco-ci/lap-data.json"
 REPOSITORY=""
 BRANCH=""
 WORKFLOW=""
@@ -55,4 +55,4 @@ cat > "$FILE" << EOF
 EOF
 
 # Remove all line breaks
-tr -d '\n' < "$FILE" > temp && mv temp "$FILE"
+tr -d '\n' < "$FILE" > /tmp/eco-ci/temp-lap-data.json && mv /tmp/eco-ci/temp-lap-data.json "$FILE"

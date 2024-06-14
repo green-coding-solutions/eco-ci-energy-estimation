@@ -44,7 +44,7 @@ get_embodied_co2_val (){
     time=$1
 
     if [ -n "$SCI_M" ]; then
-        co2_value=$(echo "$SCI_M * ($time/$SCI_USAGE_DURATION)" | bc -l)
+        co2_value=$(echo "$SCI_M $time $SCI_USAGE_DURATION" | awk '{ printf "%.9f", $1 * ( $2 / $3 ) }')
         export CO2EQ_EMBODIED="$co2_value"
     else
         echo "SCI_M was not set" >&2
@@ -70,9 +70,9 @@ get_energy_co2_val (){
         if [[ -n "$carbon_intensity" ]]; then
             export CO2I="$carbon_intensity"
 
-            value_mJ=$(echo "$total_energy*1000" | bc -l | cut -d '.' -f 1)
-            value_kWh=$(echo "$value_mJ * 10^-9" | bc -l)
-            co2_value=$(echo "$value_kWh * $carbon_intensity" | bc -l)
+            value_mJ=$(echo "$total_energy 1000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
+            value_kWh=$(echo "$value_mJ 1e-9" | awk '{printf "%.9f", $1 * $2}')
+            co2_value=$(echo "$value_kWh $carbon_intensity" | awk '{printf "%.9f", $1 * $2}')
 
             export CO2EQ_ENERGY="$co2_value"
 
