@@ -15,7 +15,7 @@ function display_results {
     output="/tmp/eco-ci/output.txt"
     output_pr="/tmp/eco-ci/output-pr.txt"
 
-    if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -gt 0 ]]; then
+    if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -eq 0 ]]; then
         echo "Could not display table as no measurement data was present!"
         [ -n "$GITHUB_STEP_SUMMARY" ] && echo "❌ Could not display table as no measurement data was present!" >> $GITHUB_STEP_SUMMARY
         return 1
