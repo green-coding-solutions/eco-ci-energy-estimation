@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   test-action:
-    runs-on: ${matrix.os}
+    runs-on: ${{ matrix.os }}
     continue-on-error: false
     strategy:
       fail-fast: true
