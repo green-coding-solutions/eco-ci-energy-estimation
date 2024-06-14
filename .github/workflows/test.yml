@@ -21,32 +21,69 @@ permissions:
 jobs:
   test-action:
     runs-on: ubuntu-latest
+#    runs-on: ${matrix.os}
+#    continue-on-error: false
+#    strategy:
+#      fail-fast: true
+#      matrix:
+#        os: [ubuntu-latest, ubuntu-24.04, ubuntu-20.04, ubuntu-18.04, ubuntu-20.04-16core]
+#        # It might be the case
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+
+      - name: API Base Debug
+        run: |
+          echo "Current API Base is" ${{ github.api_url }}
 
       - name: Initialize Energy Estimation
         uses: ./
         with:
           task: start-measurement
 
-      - name: Wait before the next step
+      - name: Sleep step
         run: sleep 2
+
+      - name: Dump ECO-CI CPU
+        run: |
+          cat /tmp/eco-ci/cpu-util-total.txt
+
 
       - name: Test measurement 1
         uses: ./
         with:
           task: get-measurement
+          label: "Sleep 3s"
 
-      - name: Wait before the next step
-        run: sleep 2
+      - name: Filesystem
+        run: timeout 10s ls -alhR /usr/lib
+        continue-on-error: true
 
       - name: Test measurement 2
         uses: ./
         with:
           task: get-measurement
-          label: "Sleep #2"
+          label: "ls -alhR /usr/lib"
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Test measurement 2
+        uses: ./
+        with:
+          task: get-measurement
+          label: "Sleep 3s"
+
+
+      - name: Dump ECO-CI CPU
+        run: |
+          cat /tmp/eco-ci/cpu-util-total.txt
+
+      - name: Dump ECO-CI Energy
+        run: |
+          cat /tmp/eco-ci/energy-total.txt
+
 
       - name: Eco CI Energy Estimation
         uses: ./
