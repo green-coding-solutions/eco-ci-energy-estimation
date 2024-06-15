@@ -2,15 +2,20 @@
 set -euo pipefail
 
 # Call the function to read and set the variables
-source "$(dirname "$0")/vars.sh" read_vars
+source "$(dirname "$0")/vars.sh"
+read_vars
 
 function display_results {
+    display_table="$1"
+    display_badge="$2"
+
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
     MEASUREMENT_RAN=${MEASUREMENT_RAN:-}
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
     DASHBOARD_API_BASE=${DASHBOARD_API_BASE:-}
+    JSON_OUTPUT=${JSON_OUTPUT:-}
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
     output="/tmp/eco-ci/output.txt"
@@ -22,14 +27,17 @@ function display_results {
         return 1
     fi
 
+    # TODO: Hier müsste ich eigentlich mal stop measurement machen!!!!
+    # Und die Overheads von Energy auch richtig kalkulieren!
+    # und power_acc ist doppelt! hier kann ich auch total_energy nehmen
+
     cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
     total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
     total_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
-    power_acc=$(awk '{ total += $1; } END { print total }' /tmp/eco-ci/energy-total.txt)
-    power_avg=$(echo "$power_acc $total_time" | awk '{printf "%.2f", $1 / $2}')
+    power_avg=$(echo "$total_energy $total_time" | awk '{printf "%.2f", $1 / $2}')
 
     ## Gitlab Specific Output
-    if [[ $source == 'gitlab' ]]; then
+    if [[ $SOURCE == 'gitlab' ]]; then
         echo "\"$CI_JOB_NAME: Energy [Joules]:\" $total_energy" | tee -a $output metrics.txt
         echo "\"$CI_JOB_NAME: Avg. CPU Utilization:\" $cpu_avg" | tee -a $output metrics.txt
         echo "\"$CI_JOB_NAME: Avg. Power [Watts]:\" $power_avg" | tee -a $output metrics.txt
@@ -59,22 +67,27 @@ function display_results {
         echo '' | tee -a $output $output_pr
     fi
 
-    repo_enc=$( echo ${repo} | jq -Rr @uri)
-    branch_enc=$( echo ${branch} | jq -Rr @uri)
 
-    if [[ ${show_carbon} == 'true' ]]; then
-        source "$(dirname "$0")/misc.sh" get_energy_co2 "$total_energy"
-        source "$(dirname "$0")/misc.sh" get_embodied_co2 "$total_time"
+    if [[ ${CALCULATE_CO2} == 'true' ]]; then
+        source "$(dirname "$0")/misc.sh"
+        get_energy_co2 "$total_energy"
+        get_embodied_co2 "$total_time"
+        read_vars # reload set vars
 
         # CO2 API might have failed or not set, so we only calculate total if it worked
         CO2EQ_EMBODIED=${CO2EQ_EMBODIED:-}  # Default to an empty string if unset
         CO2EQ_ENERGY=${CO2EQ_ENERGY:-}      # Default to an empty string if unset
+        GEO_IP=${GEO_IP:-}      # Default to an empty string if unset
+        GEO_CITY=${GEO_CITY:-}      # Default to an empty string if unset
+        GEO_LAT=${GEO_LAT:-}      # Default to an empty string if unset
+        GEO_LON=${GEO_LON:-}      # Default to an empty string if unset
 
         if [ -n "$CO2EQ_EMBODIED" ] && [ -n "$CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
             CO2EQ=$(echo "$CO2EQ_EMBODIED $CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
 
             echo '🌳 CO2 Data:' | tee -a $output $output_pr
-            echo "City: <b>$CITY</b>, Lat: <b>$LAT</b>, Lon: <b>$LON</b>" | tee -a $output $output_pr
+            echo "City: <b>$GEO_CITY</b>, Lat: <b>$GEO_LAT</b>, Lon: <b>$GEO_LON</b>" | tee -a $output $output_pr
+            echo "IP: <b>$GEO_IP</b>" | tee -a $output $output_pr
             echo "CO₂ from energy is: $CO2EQ_ENERGY" | tee -a $output $output_pr
             echo "CO₂ from manufacturing (embodied carbon) is: $CO2EQ_EMBODIED" | tee -a $output $output_pr
             echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>$CO2I gCO₂eq/kWh</b>" | tee -a $output $output_pr
@@ -86,8 +99,9 @@ function display_results {
 
     fi
 
-
-    if [[ ${send_data} == 'true' && ${display_badge} == 'true' ]]; then
+    if [[ ${SEND_DATA} == 'true' && ${display_badge} == 'true' ]]; then
+        repo_enc=$( echo ${REPO} | jq -Rr @uri)
+        branch_enc=$( echo ${BRANCH} | jq -Rr @uri)
         get_endpoint=$DASHBOARD_API_BASE"/v1/ci/measurement/get"
         metrics_url="https://metrics.green-coding.io"
 
@@ -100,67 +114,20 @@ function display_results {
         echo "${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$WORKFLOW_ID" >> $output
     fi
 
-    # write data to output
-    total_data_file="/tmp/eco-ci/total-data.json"
-    run_id_enc=$( echo ${run_id} | jq -Rr @uri)
+    if [[ ${JSON_OUTPUT} == 'true' ]]; then
+        # write data to output
+        total_data_file="/tmp/eco-ci/total-data.json"
 
-    echo "show create-and-add-meta.sh output"
-    echo "--file $total_data_file --repository $repo_enc --branch $branch_enc --workflow $WORKFLOW_ID --run_id $run_id_enc"
-    source "$(dirname "$0")/create-and-add-meta.sh" --file "${total_data_file}" --repository "${repo_enc}" --branch "${branch_enc}" --workflow "$WORKFLOW_ID" --run_id "${run_id_enc}"
-    source "$(dirname "$0")/add-data.sh" --file "${total_data_file}" --label "TOTAL" --cpu "${cpu_avg}" --energy "${total_energy}" --power "${power_avg}" --time "${total_time}"
-
+        echo "show create-and-add-meta.sh output"
+        source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${total_data_file}"
+        source "$(dirname "$0")/add-data.sh" "${total_data_file}" "TOTAL" "${cpu_avg}" "${total_energy}" "${power_avg}" "${total_time}"
+    fi
 }
 
-branch=""
-display_badge=""
-run_id=""
-repo=""
-display_table=""
-send_data=""
-show_carbon=""
-source=""
+option="$1"
+case $option in
+  display_results)
+    display_results $2 $3
+    ;;
+esac
 
-while [[ $# -gt 0 ]]; do
-    opt="$1"
-
-    case $opt in
-        -b|--branch)
-        branch="$2"
-        shift
-        ;;
-        -db|--display-badge)
-        display_badge="$2"
-        shift
-        ;;
-        -r|--run-id)
-        run_id="$2"
-        shift
-        ;;
-        -R|--repo)
-        repo="$2"
-        shift
-        ;;
-        -dt|--display-table)
-        display_table="$2"
-        shift
-        ;;
-        -sd|--send-data)
-        send_data="$2"
-        shift
-        ;;
-        -sc|--show-carbon)
-        show_carbon="$2"
-        shift
-        ;;
-        -s|--source)
-        source="$2"
-        shift
-        ;;
-        *) echo "Invalid option -$1" >&2
-        exit 1
-        ;;
-    esac
-    shift
-done
-
-display_results

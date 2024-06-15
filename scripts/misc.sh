@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-get_geo_ipapi_co() {
+source "$(dirname "$0")/vars.sh"
+
+get_geoip() {
     response=$(curl -s https://ipapi.co/json || true)
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
@@ -9,23 +11,31 @@ get_geo_ipapi_co() {
         return
     fi
 
-    if echo "$response" | jq '.latitude, .longitude, .city' | grep -q null; then
+    if echo "$response" | jq '.latitude, .longitude, .city, .ip' | grep -q null; then
         echo -e "Required data is missing\nResponse is ${response}\nExiting" >&2
         return
     fi
 
-    echo "$response"
+    latitude=$(echo "$response" | jq '.latitude')
+    longitude=$(echo "$response" | jq '.longitude')
+    city=$(echo "$response" | jq -r '.city')
+    ip=$(echo "$response" | jq -r '.ip')
+
+    add_var GEO_CITY "$city"
+    add_var GEO_LAT "$latitude"
+    add_var GEO_LON "$longitude"
+    add_var GEO_IP "$ip"
 }
 
 get_carbon_intensity() {
-    latitude=$1
-    longitude=$2
-
     if [ -z "${ELECTRICITY_MAPS_TOKEN+x}" ]; then
         export ELECTRICITY_MAPS_TOKEN='no_token'
     fi
 
-    response=$(curl -s -H "auth-token: $ELECTRICITY_MAPS_TOKEN" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=$latitude&lon=$longitude" || true)
+    GEO_LAT=${GEO_LAT:-}
+    GEO_LON=${GEO_LON:-}
+
+    response=$(curl -s -H "auth-token: $ELECTRICITY_MAPS_TOKEN" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=$GEO_LAT&lon=$GEO_LON" || true)
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
         echo "Failed to retrieve data or received invalid JSON. Exiting" >&2
@@ -37,12 +47,15 @@ get_carbon_intensity() {
         return
     fi
 
-    echo "$response" | jq '.carbonIntensity'
+    co2_intensity=$(echo "$response" | jq '.carbonIntensity')
+
+    add_var CO2I "$co2_intensity"
 }
 
-get_embodied_co2_val (){
+get_embodied_co2 (){
     time=$1
 
+    SCI_M=${SCI_M:-}
     if [ -n "$SCI_M" ]; then
         co2_value=$(echo "$SCI_M $time $SCI_USAGE_DURATION" | awk '{ printf "%.9f", $1 * ( $2 / $3 ) }')
         export CO2EQ_EMBODIED="$co2_value"
@@ -52,54 +65,21 @@ get_embodied_co2_val (){
 
 }
 
-get_energy_co2_val (){
+get_energy_co2 (){
     total_energy=$1
 
-    geo_data=$(get_geo_ipapi_co) || true
-    if [ -n "$geo_data"  ]; then
-        latitude=$(echo "$geo_data" | jq '.latitude')
-        longitude=$(echo "$geo_data" | jq '.longitude')
-        city=$(echo "$geo_data" | jq -r '.city')
+    CO2I=${CO2I:-}
 
-        export CITY="$city"
-        export LAT="$latitude"
-        export LON="$longitude"
+    if [[ -n "$CO2I" ]]; then
 
-        carbon_intensity=$(get_carbon_intensity $latitude $longitude) || true
+        value_mJ=$(echo "$total_energy 1000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
+        value_kWh=$(echo "$value_mJ 1e-9" | awk '{printf "%.9f", $1 * $2}')
+        co2_value=$(echo "$value_kWh $CO2I" | awk '{printf "%.9f", $1 * $2}')
 
-        if [[ -n "$carbon_intensity" ]]; then
-            export CO2I="$carbon_intensity"
+        add_var CO2EQ_ENERGY "$co2_value"
 
-            value_mJ=$(echo "$total_energy 1000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
-            value_kWh=$(echo "$value_mJ 1e-9" | awk '{printf "%.9f", $1 * $2}')
-            co2_value=$(echo "$value_kWh $carbon_intensity" | awk '{printf "%.9f", $1 * $2}')
-
-            export CO2EQ_ENERGY="$co2_value"
-
-        else
-            echo "Failed to get carbon intensity data." >&2
-        fi
     else
-        echo "Failed to get geolocation data." >&2
+        echo "Failed to get carbon intensity data." >&2
     fi
+
 }
-
-# Main script logic
-if [ $# -eq 0 ]; then
-  echo "No option provided. Please specify an option to misc.sh"
-  exit 1
-fi
-
-option="$1"
-case $option in
-  get_energy_co2)
-    get_energy_co2_val $2
-    ;;
-  get_embodied_co2)
-    get_embodied_co2_val $2
-    ;;
-  *)
-    echo "Invalid option ($option). Please specify a valid option to misc.sh"
-    exit 1
-    ;;
-esac

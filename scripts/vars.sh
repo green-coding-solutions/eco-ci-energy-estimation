@@ -18,7 +18,7 @@ read_vars() {
     fi
 }
 
-function cpu_vars_fill {
+function cpu_vars {
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
     machine_power_data=$1
@@ -70,28 +70,3 @@ function cpu_vars_fill {
         add_var "MODEL_NAME" "unknown";
     fi
 }
-
-
-
-# Main script logic
-if [ $# -eq 0 ]; then
-  echo "No option provided. Please specify an option: cpu_vars, read_vars, or add_var [key] [value]."
-  exit 1
-fi
-
-option="$1"
-case $option in
-  cpu_vars)
-    cpu_vars_fill $2
-    ;;
-  add_var)
-    add_var $2 "$3"
-    ;;
-  read_vars)
-    read_vars
-    ;;
-  *)
-    echo "Invalid option ($option). Please specify an option: cpu_vars, read_vars or add_var [key] [value]."
-    exit 1
-    ;;
-esac
