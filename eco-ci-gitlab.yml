@@ -4,62 +4,35 @@ cache:
 
 variables:
   ECO_CI_SEND_DATA: "true"
-  ECO_CI_DISPLAY_BADGE: "true" # true
-  ECO_CI_DISPLAY_TABLE: "true" # true
+  ECO_CI_DISPLAY_BADGE: "true"
+  ECO_CI_DISPLAY_TABLE: "true"
   ECO_CI_SHOW_CARBON: "true"
   ECO_CI_COMPANY_UUID: ""
   ECO_CI_PROJECT_UUID: ""
   ECO_CI_MACHINE_UUID: ""
-
-.initialize_energy_estimator:
-    script:
-        - |
-
-            if [[ -n $MACHINE_POWER_DATA ]]; then
-              MACHINE_POWER_DATA="gitlab_EPYC_7B12_saas-linux-small-amd64.txt"
-            fi
-            /tmp/eco-ci/main/scripts/setup.sh initialize $MACHINE_POWER_DATA
+  ECO_CI_JSON_OUTPUT: "false"
+  ECO_CI_CALCULATE_CO2: "true"
 
 .start_measurement:
     script:
         - |
             echo 'running eco-ci start script'
-            /tmp/eco-ci/main/scripts/vars.sh add_var "WORKFLOW_ID" $CI_PROJECT_ID
-            /tmp/eco-ci/main/scripts/setup.sh start_measurement
+            if [[ -n $MACHINE_POWER_DATA ]]; then
+              MACHINE_POWER_DATA="gitlab_EPYC_7B12_saas-linux-small-amd64.txt"
+            fi
+            /tmp/eco-ci/main/scripts/setup.sh start_measurement "${MACHINE_POWER_DATA}" "${CI_PIPELINE_ID}" "${CI_COMMIT_REF_NAME}" "${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}" "${CI_PROJECT_ID}" "${gitlab-ci.yml}" "${CI_COMMIT_SHA}" "gitlab" "${ECO_CI_SEND_DATA}" "${ECO_CI_COMPANY_UUID}" "${ECO_CI_PROJECT_UUID}" "${ECO_CI_MACHINE_UUID}" "${ECO_CI_CALCULATE_CO2}" "${ECO_CI_JSON_OUTPUT}"
 
 .get_measurement:
     script:
         - echo 'running eco-ci measure script'
         - |
-            repo=$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
-            /tmp/eco-ci/main/scripts/make_measurement.sh \
-            -l "$ECO_CI_LABEL" \
-            -r "$CI_PIPELINE_ID" \
-            -b "$CI_COMMIT_REF_NAME" \
-            -R "$repo" \
-            -c "$CI_COMMIT_SHA" \
-            -sd "$ECO_CI_SEND_DATA" \
-            -s "gitlab" \
-            -n "gitlab-ci.yml" \
-            -cbc "$ECO_CI_COMPANY_UUID" \
-            -cbp "$ECO_CI_PROJECT_UUID" \
-            -cbm "$ECO_CI_MACHINE_UUID"
+            /tmp/eco-ci/main/scripts/make_measurement.sh make_measurement "${ECO_CI_LABEL}"
 
 .display_results:
     script:
         - echo 'running eco-ci display script'
         - |
-            set -x
             FORMAT_CLR="\e[44m" && TXT_CLEAR="\e[0m"
-            repo=$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
-            /tmp/eco-ci/main/scripts/display_results.sh \
-            -b "$CI_COMMIT_REF_NAME" \
-            -db "$ECO_CI_DISPLAY_BADGE" \
-            -r "$CI_PIPELINE_ID" \
-            -R "$repo" \
-            -dt "$ECO_CI_DISPLAY_TABLE" \
-            -sd "$ECO_CI_SEND_DATA" \
-            -s "gitlab" \
-            -sc "$ECO_CI_SHOW_CARBON"
+            /tmp/eco-ci/main/scripts/display_results.sh "${ECO_CI_DISPLAY_TABLE}" "${ECO_CI_DISPLAY_BADGE}"
         - echo -e "$FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$TXT_CLEAR"
         - cp /tmp/eco-ci/output.txt ./eco-ci-output.txt
