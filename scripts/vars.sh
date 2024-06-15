@@ -25,7 +25,7 @@ function cpu_vars {
 
     model_name=$(cat /proc/cpuinfo  | grep "model name" || true)
 
-    echo "Currently running on follow CPU Model ${model_name}"
+    echo "Machine has following CPU Model ${model_name}"
 
     echo "Full CPU Info"
     cat /proc/cpuinfo
