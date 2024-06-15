@@ -30,9 +30,9 @@ variables:
 
 .display_results:
     script:
-        - echo 'running eco-ci display script'
         - |
+            echo 'running eco-ci display script'
             FORMAT_CLR="\e[44m" && TXT_CLEAR="\e[0m"
             /tmp/eco-ci-repo/scripts/display_results.sh "${ECO_CI_DISPLAY_TABLE}" "${ECO_CI_DISPLAY_BADGE}"
-        - echo -e "$FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$TXT_CLEAR"
-        - cp /tmp/eco-ci/output.txt ./eco-ci-output.txt
+            echo -e "$FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$TXT_CLEAR"
+            cp /tmp/eco-ci/output.txt ./eco-ci-output.txt
