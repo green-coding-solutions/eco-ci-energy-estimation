@@ -100,8 +100,9 @@ runs:
       shell: bash
       run: |
         ${{github.action_path}}/scripts/make_measurement.sh make_measurement "${{inputs.label}}"
-        if ${{inputs.json-output}}; then
-          lap_data_file="/tmp/eco-ci/lap-data.json"
+        data_file="/tmp/test.bash"
+        lap_data_file="/tmp/eco-ci/lap-data.json"
+        if [[ -e $lap_data_file ]]; then
           echo "data-lap-json=$(cat $lap_data_file)" >> $GITHUB_OUTPUT
         fi
     - if: inputs.task == 'display-results'
