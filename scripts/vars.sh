@@ -3,7 +3,7 @@ set -euo pipefail
 
 var_file="/tmp/eco-ci/vars.sh"
 
-add_var() {
+function add_var() {
     key=$1
     value=$2
     if [ ! -f $var_file ]; then
@@ -12,7 +12,7 @@ add_var() {
     echo "${1}=\"${2}\"" >> /tmp/eco-ci/vars.sh
 }
 
-read_vars() {
+function read_vars() {
     if [ -f $var_file ]; then
         source $var_file
     fi
