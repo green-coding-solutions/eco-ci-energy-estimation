@@ -35,9 +35,11 @@ inputs:
   pr-comment:
     description: 'Add a comment to the PR with the results during display-results step'
     default: false
+    required: false
   json-output:
     description: 'Output measurement data also as JSON artifacts'
     default: false
+    required: false
   gh-api-base:
       description: 'Base URL of the Github API to send data to. Default is api.github.com, but can be changed to your hostname if you have Github Enterprise'
       default: ${{ github.api_url }}
@@ -79,12 +81,16 @@ runs:
       shell: bash
       run: |
         workflow_id="${{github.workflow}}"
+        workflow_name="$NAME"
         if ${{inputs.send-data}}; then
           curl_response=$(curl -s -H "Authorization: Bearer ${{github.token}}" ${{ inputs.gh-api-base }}/repos/${{ github.repository }}/actions/workflows)
           workflow_id=$(echo $curl_response | jq '.workflows[] | select(.name == "${{ github.workflow }}") | .id')
         fi
 
-        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$NAME" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.company-uuid }}" "${{ inputs.project-uuid }}" "${{ inputs.machine-uuid }}" "${{ inputs.calculate-co2 }}" "${{ inputs.json-output }}"
+        workflow_id=${workflow_id:-"not_set"}
+        workflow_name=${workflow_name:-"not_set"}
+
+        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.company-uuid }}" "${{ inputs.project-uuid }}" "${{ inputs.machine-uuid }}" "${{ inputs.calculate-co2 }}" "${{ inputs.json-output }}"
 
     - if:  inputs.task == 'get-measurement'
       id: run-lap-model
