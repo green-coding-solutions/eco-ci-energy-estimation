@@ -66,6 +66,7 @@ cat /tmp/eco-ci/energy-total.txt
 cat /tmp/eco-ci/cpu-util-total.txt
 
 if [[ "$JSON_OUTPUT" == 'true' ]]; then
+    echo "JSON Dump:"
    cat /tmp/eco-ci/lap-data.json
 fi
 

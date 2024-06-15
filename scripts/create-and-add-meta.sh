@@ -21,8 +21,6 @@ function create_json_file() {
     }
 EOF
 
-    echo "Encoded JSON:" $file
-
     # Remove all line breaks
     tr -d '\n' < "$file" > /tmp/eco-ci/temp-lap-data.json && mv /tmp/eco-ci/temp-lap-data.json "$file"
 }

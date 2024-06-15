@@ -120,7 +120,7 @@ function display_results {
 
         echo "show create-and-add-meta.sh output"
         source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${total_data_file}"
-        source "$(dirname "$0")/add-data.sh" "${total_data_file}" "TOTAL" "${cpu_avg}" "${total_energy}" "${power_avg}" "${total_time}"
+        source "$(dirname "$0")/add-data.sh" create_json_file "${total_data_file}" "TOTAL" "${cpu_avg}" "${total_energy}" "${power_avg}" "${total_time}"
     fi
 }
 

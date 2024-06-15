@@ -126,7 +126,7 @@ function make_measurement() {
             lap_data_file="/tmp/eco-ci/lap-data.json"
             echo "show create-and-add-meta.sh output"
             source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${lap_data_file}"
-            source "$(dirname "$0")/add-data.sh" "${lap_data_file}" "${label}" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time}"
+            source "$(dirname "$0")/add-data.sh" create_json_file "${lap_data_file}" "${label}" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time}"
         fi
 
         # merge all current data to the totals file. This means we will include the overhead since we do it AFTER this processing block
