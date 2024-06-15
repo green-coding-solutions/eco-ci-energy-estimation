@@ -2,33 +2,39 @@ image: ubuntu:22.04
 include:
   remote: 'https://raw.githubusercontent.com/green-coding-solutions/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
 
+# trigger rebuild
 stages:
   - test
 
-test-job:
-  stage: test 
+
+test-job:   # This job runs in the test stage.
+  stage: test    # It only starts when the job in the build stage completes successfully.
   script:
-    # Please input valid UUIDs here if you want to use CarbonDB (https://www.green-coding.io/projects/carbondb/)
-    # Generate one here for example: https://www.freecodeformat.com/validate-uuid-guid.php
     #- export ECO_CI_COMPANY_UUID="YOUR COMPANY UUID"
     #- export ECO_CI_PROJECT_UUID="YOUR PROJECT UUID"
     #- export ECO_CI_MACHINE_UUID="YOUR MACHINE UUID"
 
-    # Change this to you machine, if you are not using the default.
-    # https://docs.gitlab.com/ee/ci/runners/hosted_runners/linux.html
-    #- export MACHINE_POWER_DATA="gitlab_EPYC_7B12_saas-linux-small-amd64.txt"
+    - apt-get update
+    - apt-get install git jq curl -y # git, jq and curl are a depedency for Eco-CI as we need to clone the gitlab repo
 
-    - !reference [.initialize_energy_estimator, script]
     - !reference [.start_measurement, script]
-    - sleep 10s
-    - export ECO_CI_LABEL="measurement 1 (script)"
+    - sleep 2
+    - export ECO_CI_LABEL="Sleep 2"
+    - ls -alh /tmp/eco-ci
+    - echo "Step"
+    - cat /tmp/eco-ci/cpu-util-step.txt
     - !reference [.get_measurement, script]
-    - sleep 3s
-    - export ECO_CI_LABEL="measurement 2 (script)"
+    - echo "Total"
+    - cat /tmp/eco-ci/cpu-util-total.txt
+    - echo "Energy"
+    - cat /tmp/eco-ci/energy-step.txt
+
+    - timeout 10s grep -R xxx / 1> /dev/null 2>/dev/null || true
+    - export ECO_CI_LABEL="grep with timeout"
     - !reference [.get_measurement, script]
-    - export ECO_CI_SHOW_CARBON="true"
     - !reference [.display_results, script]
 
   artifacts:
     paths:
       - eco-ci-output.txt
+      - metrics.txt
