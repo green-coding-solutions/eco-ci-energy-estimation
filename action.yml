@@ -84,8 +84,7 @@ runs:
           workflow_id=$(echo $curl_response | jq '.workflows[] | select(.name == "${{ github.workflow }}") | .id')
         fi
 
-        source ${{github.action_path}}/scripts/setup.sh
-        start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$NAME" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.company-uuid }}" "${{ inputs.project-uuid }}" "${{ inputs.machine-uuid }}" "${{ inputs.calculate-co2 }}" "${{ inputs.json-output }}"
+        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$NAME" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.company-uuid }}" "${{ inputs.project-uuid }}" "${{ inputs.machine-uuid }}" "${{ inputs.calculate-co2 }}" "${{ inputs.json-output }}"
 
     - if:  inputs.task == 'get-measurement'
       id: run-lap-model

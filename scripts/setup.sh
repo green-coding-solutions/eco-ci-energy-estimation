@@ -17,6 +17,8 @@ function start_measurement {
     cat /tmp/eco-ci/timer-total.txt
     lap_measurement
 
+    echo $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12}
+
     # call init_variables
     add_var "MACHINE_POWER_DATA" "$1"
     cpu_vars "$1"
