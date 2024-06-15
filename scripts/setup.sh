@@ -17,8 +17,6 @@ function start_measurement {
     cat /tmp/eco-ci/timer-total.txt
     lap_measurement
 
-    echo $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12}
-
     # call init_variables
     add_var "MACHINE_POWER_DATA" "$1"
     cpu_vars "$1"
@@ -32,9 +30,21 @@ function start_measurement {
     add_var COMMIT_HASH "$7"
     add_var SOURCE "$8"
     add_var SEND_DATA "$9"
-    add_var CB_COMPANY_UUID "${10}"
-    add_var CB_PROJECT_UUID "${11}"
-    add_var CB_MACHINE_UUID "${12}"
+    if [[ "${10}" == '-' ]]; then
+        add_var CB_COMPANY_UUID ""
+    else
+        add_var CB_COMPANY_UUID "${10}"
+    fi
+    if [[ "${11}" == '-' ]]; then
+        add_var CB_PROJECT_UUID ""
+    else
+        add_var CB_PROJECT_UUID "${10}"
+    fi
+    if [[ "${12}" == '-' ]]; then
+        add_var CB_MACHINE_UUID ""
+    else
+        add_var CB_MACHINE_UUID "${10}"
+    fi
     add_var CALCULATE_CO2 "${13}"
     add_var JSON_OUTPUT "${14}"
 
