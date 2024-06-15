@@ -38,12 +38,12 @@ function start_measurement {
     if [[ "${11}" == '-' ]]; then
         add_var CB_PROJECT_UUID ""
     else
-        add_var CB_PROJECT_UUID "${10}"
+        add_var CB_PROJECT_UUID "${11}"
     fi
     if [[ "${12}" == '-' ]]; then
         add_var CB_MACHINE_UUID ""
     else
-        add_var CB_MACHINE_UUID "${10}"
+        add_var CB_MACHINE_UUID "${12}"
     fi
     add_var CALCULATE_CO2 "${13}"
     add_var JSON_OUTPUT "${14}"
