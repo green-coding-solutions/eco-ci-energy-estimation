@@ -110,7 +110,7 @@ runs:
           echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
         fi
 
-    - if: github.event_name == 'pull_request' && inputs.pr-comment == 'true'
+    - if: inputs.task == 'display-results' && inputs.pr-comment == 'true' && github.event_name == 'pull_request'
       name: Minimize Old Comment and Post New Comment
       id: pr-comment
       shell: bash
