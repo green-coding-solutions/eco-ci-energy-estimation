@@ -65,12 +65,14 @@ cat /tmp/eco-ci/cpu-util-step.txt
 cat /tmp/eco-ci/energy-total.txt
 cat /tmp/eco-ci/cpu-util-total.txt
 
+$shell "$(dirname "$0")/scripts/display_results.sh" display_results $ECO_CI_DISPLAY_TABLE $ECO_CI_DISPLAY_BADGE
+
 if [[ "$JSON_OUTPUT" == 'true' ]]; then
     echo "JSON Dump:"
    cat /tmp/eco-ci/lap-data.json
+   cat /tmp/eco-ci/total-data.json
 fi
 
-$shell "$(dirname "$0")/scripts/display_results.sh" display_results $ECO_CI_DISPLAY_TABLE $ECO_CI_DISPLAY_BADGE
 
 echo -e "$ECO_CI_FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$ECO_CI_TXT_CLEAR"
 echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))

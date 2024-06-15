@@ -115,9 +115,7 @@ function display_results {
     fi
 
     if [[ ${JSON_OUTPUT} == 'true' ]]; then
-        # write data to output
         total_data_file="/tmp/eco-ci/total-data.json"
-
         echo "show create-and-add-meta.sh output"
         source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${total_data_file}"
         source "$(dirname "$0")/add-data.sh" create_json_file "${total_data_file}" "TOTAL" "${cpu_avg}" "${total_energy}" "${power_avg}" "${total_time}"

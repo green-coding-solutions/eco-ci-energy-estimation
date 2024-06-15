@@ -112,8 +112,8 @@ runs:
       run: |
         ${{github.action_path}}/scripts/display_results.sh display_results "${{inputs.display-table}}" "${{inputs.display-badge}}"
         cat "/tmp/eco-ci/output.txt" >> $GITHUB_STEP_SUMMARY
-        if ${{inputs.json-output}}; then
-          total_data_file="/tmp/eco-ci/total-data.json"
+        total_data_file="/tmp/eco-ci/total-data.json"
+        if [[ -e $total_data_file ]]; then
           echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
         fi
 
