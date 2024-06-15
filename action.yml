@@ -81,7 +81,7 @@ runs:
       shell: bash
       run: |
         workflow_id="${{github.workflow}}"
-        workflow_name="$NAME"
+        workflow_name="${{github.workflow}}"
 
         if ${{inputs.send-data}}; then
           workflow_id=$(curl -s -H "Authorization: Bearer ${{github.token}}" ${{ inputs.gh-api-base }}/repos/${{ github.repository }}/actions/runs/${{ github.run_id }} | jq -r .workflow_id)
