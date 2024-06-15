@@ -9,6 +9,7 @@ variables:
   ECO_CI_JSON_OUTPUT: "false"
   ECO_CI_CALCULATE_CO2: "true"
   ECO_CI_CLONE_BRANCH: "main"
+  MACHINE_POWER_DATA: "gitlab_EPYC_7B12_saas-linux-small-amd64.sh"
 
 .start_measurement:
     script:
@@ -17,24 +18,21 @@ variables:
             if [[ -d /tmp/eco-ci ]]; then
                 rm -rf /tmp/eco-ci
             fi
-            git clone --depth 1 --single-branch --branch "${ECO_CI_CLONE_BRANCH}" https://github.com/green-coding-solutions/eco-ci-energy-estimation /tmp/eco-ci/repo
+            git clone --depth 1 --single-branch --branch "${ECO_CI_CLONE_BRANCH}" https://github.com/green-coding-solutions/eco-ci-energy-estimation /tmp/eco-ci-repo
 
-            if [[ -n $MACHINE_POWER_DATA ]]; then
-              MACHINE_POWER_DATA="gitlab_EPYC_7B12_saas-linux-small-amd64.txt"
-            fi
-            /tmp/eco-ci/repo/scripts/setup.sh start_measurement "${MACHINE_POWER_DATA}" "${CI_PIPELINE_ID}" "${CI_COMMIT_REF_NAME}" "${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}" "${CI_PROJECT_ID}" "${gitlab-ci.yml}" "${CI_COMMIT_SHA}" "gitlab" "${ECO_CI_SEND_DATA}" "${ECO_CI_COMPANY_UUID}" "${ECO_CI_PROJECT_UUID}" "${ECO_CI_MACHINE_UUID}" "${ECO_CI_CALCULATE_CO2}" "${ECO_CI_JSON_OUTPUT}"
+            /tmp/eco-ci-repo/scripts/setup.sh start_measurement "${MACHINE_POWER_DATA}" "${CI_PIPELINE_ID}" "${CI_COMMIT_REF_NAME}" "${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}" "${CI_PROJECT_ID}" "${gitlab-ci.yml}" "${CI_COMMIT_SHA}" "gitlab" "${ECO_CI_SEND_DATA}" "${ECO_CI_COMPANY_UUID}" "${ECO_CI_PROJECT_UUID}" "${ECO_CI_MACHINE_UUID}" "${ECO_CI_CALCULATE_CO2}" "${ECO_CI_JSON_OUTPUT}"
 
 .get_measurement:
     script:
         - echo 'running eco-ci measure script'
         - |
-            /tmp/eco-ci/repo/scripts/make_measurement.sh make_measurement "${ECO_CI_LABEL}"
+            /tmp/eco-ci-repo/scripts/make_measurement.sh make_measurement "${ECO_CI_LABEL}"
 
 .display_results:
     script:
         - echo 'running eco-ci display script'
         - |
             FORMAT_CLR="\e[44m" && TXT_CLEAR="\e[0m"
-            /tmp/eco-ci/repo/scripts/display_results.sh "${ECO_CI_DISPLAY_TABLE}" "${ECO_CI_DISPLAY_BADGE}"
+            /tmp/eco-ci-repo/scripts/display_results.sh "${ECO_CI_DISPLAY_TABLE}" "${ECO_CI_DISPLAY_BADGE}"
         - echo -e "$FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$TXT_CLEAR"
         - cp /tmp/eco-ci/output.txt ./eco-ci-output.txt
