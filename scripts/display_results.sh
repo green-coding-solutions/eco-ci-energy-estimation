@@ -36,35 +36,38 @@ function display_results {
     total_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
     power_avg=$(echo "$total_energy $total_time" | awk '{printf "%.2f", $1 / $2}')
 
-    ## Gitlab Specific Output
-    if [[ $SOURCE == 'gitlab' ]]; then
-        echo "\"$CI_JOB_NAME: Energy [Joules]:\" $total_energy" | tee -a $output metrics.txt
-        echo "\"$CI_JOB_NAME: Avg. CPU Utilization:\" $cpu_avg" | tee -a $output metrics.txt
-        echo "\"$CI_JOB_NAME: Avg. Power [Watts]:\" $power_avg" | tee -a $output metrics.txt
-        echo "\"$CI_JOB_NAME: Duration [seconds]:\" $total_time" | tee -a $output metrics.txt
-        echo "----------------" >> $output
 
-        for (( i=1; i<=$MEASUREMENT_COUNT; i++ )); do
-            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$MEASUREMENT_${i}_ENERGY)" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$MEASUREMENT_${i}_CPU_AVG)" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$MEASUREMENT_${i}_POWER_AVG)" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$MEASUREMENT_${i}_TIME)" | tee -a $output metrics.txt
-            echo "----------------" >> $output
-        done
-    fi
 
     if [[ ${display_table} == 'true' ]]; then
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
-        echo "Eco-CI Output: " >> $output_pr
-        echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
-        echo "|---|---|---|---|---|" | tee -a $output $output_pr
-        echo "|Total Run (incl. overhead)|$cpu_avg|$total_energy|$power_avg|$total_time|" | tee -a $output $output_pr
-        #display measurument lines in table summary
-        for (( i=1; i<=$MEASUREMENT_COUNT; i++ ))
-        do
-            echo "|$(eval echo \$MEASUREMENT_${i}_LABEL)|$(eval echo \$MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$MEASUREMENT_${i}_ENERGY)|$(eval echo \$MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
-        done
-        echo '' | tee -a $output $output_pr
+
+        ## Gitlab Specific Output
+        if [[ $SOURCE == 'gitlab' ]]; then
+            echo "\"${CI_JOB_NAME}: Energy [Joules]:\" $total_energy" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Avg. CPU Utilization:\" $cpu_avg" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" $power_avg" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Duration [seconds]:\" $total_time" | tee -a $output metrics.txt
+            echo "----------------" >> $output
+
+            for (( i=1; i<=$MEASUREMENT_COUNT; i++ )); do
+                echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$MEASUREMENT_${i}_ENERGY)" | tee -a $output metrics.txt
+                echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$MEASUREMENT_${i}_CPU_AVG)" | tee -a $output metrics.txt
+                echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$MEASUREMENT_${i}_POWER_AVG)" | tee -a $output metrics.txt
+                echo "\"${CI_JOB_NAME}: Label: $(eval echo \$MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$MEASUREMENT_${i}_TIME)" | tee -a $output metrics.txt
+                echo "----------------" >> $output
+            done
+        else
+            echo "Eco-CI Output: " >> $output_pr
+            echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
+            echo "|---|---|---|---|---|" | tee -a $output $output_pr
+            echo "|Total Run (incl. overhead)|$cpu_avg|$total_energy|$power_avg|$total_time|" | tee -a $output $output_pr
+            #display measurument lines in table summary
+            for (( i=1; i<=$MEASUREMENT_COUNT; i++ ))
+            do
+                echo "|$(eval echo \$MEASUREMENT_${i}_LABEL)|$(eval echo \$MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$MEASUREMENT_${i}_ENERGY)|$(eval echo \$MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
+            done
+            echo '' | tee -a $output $output_pr
+        fi
     fi
 
 
