@@ -26,3 +26,10 @@ EOF
     # Remove all line breaks
     tr -d '\n' < "$file" > /tmp/eco-ci/temp-lap-data.json && mv /tmp/eco-ci/temp-lap-data.json "$file"
 }
+
+option="$1"
+case $option in
+  create_json_file)
+    create_json_file $2
+    ;;
+esac

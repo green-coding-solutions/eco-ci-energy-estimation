@@ -24,7 +24,7 @@ function start_measurement {
 
     add_var RUN_ID "$2"
     add_var BRANCH "$3"
-    add_var REPO "$4"
+    add_var REPOSITORY "$4"
     add_var WORKFLOW_ID "$5"
     add_var WORKFLOW_NAME "$6"
     add_var COMMIT_HASH "$7"

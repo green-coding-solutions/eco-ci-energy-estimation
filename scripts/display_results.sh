@@ -100,7 +100,7 @@ function display_results {
     fi
 
     if [[ ${SEND_DATA} == 'true' && ${display_badge} == 'true' ]]; then
-        repo_enc=$( echo ${REPO} | jq -Rr @uri)
+        repo_enc=$( echo ${REPOSITORY} | jq -Rr @uri)
         branch_enc=$( echo ${BRANCH} | jq -Rr @uri)
         get_endpoint=$DASHBOARD_API_BASE"/v1/ci/measurement/get"
         metrics_url="https://metrics.green-coding.io"

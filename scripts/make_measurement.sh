@@ -47,10 +47,8 @@ function make_measurement() {
     # Capture current cpu util file and trim trailing empty lines from the file to not run into read/write race condition later
     sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
 
-    echo "Ready to infer"
     # check wc -l of cpu-util is greater than 0
     if [[ $(wc -l < /tmp/eco-ci/cpu-util-temp.txt) -gt 0 ]]; then
-        echo "Values are there"
         make_inference # will populate /tmp/eco-ci/energy-step.txt
 
         if [[ $MEASUREMENT_COUNT == '' ]]; then
@@ -103,7 +101,7 @@ function make_measurement() {
                 \"energy_unit\":\"$unit\",
                 \"cpu\":\"$model_name_uri\",
                 \"commit_hash\":\"${COMMIT_HASH}\",
-                \"repo\":\"${REPO}\",
+                \"repo\":\"${REPOSITORY}\",
                 \"branch\":\"${BRANCH}\",
                 \"workflow\":\"$WORKFLOW_ID\",
                 \"run_id\":\"${RUN_ID}\",
@@ -128,7 +126,7 @@ function make_measurement() {
             lap_data_file="/tmp/eco-ci/lap-data.json"
             echo "show create-and-add-meta.sh output"
             source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${lap_data_file}"
-            source "$(dirname "$0")/add-data.sh" "${lap_data_file}" "$label" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time}"
+            source "$(dirname "$0")/add-data.sh" "${lap_data_file}" "${label}" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time}"
         fi
 
         # merge all current data to the totals file. This means we will include the overhead since we do it AFTER this processing block

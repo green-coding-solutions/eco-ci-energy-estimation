@@ -65,6 +65,9 @@ cat /tmp/eco-ci/cpu-util-step.txt
 cat /tmp/eco-ci/energy-total.txt
 cat /tmp/eco-ci/cpu-util-total.txt
 
+if [[ "$JSON_OUTPUT" == 'true' ]]; then
+   cat /tmp/eco-ci/lap-data.json
+fi
 
 $shell "$(dirname "$0")/scripts/display_results.sh" display_results $ECO_CI_DISPLAY_TABLE $ECO_CI_DISPLAY_BADGE
 
