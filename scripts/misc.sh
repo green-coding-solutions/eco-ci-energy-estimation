@@ -53,7 +53,7 @@ get_carbon_intensity() {
 }
 
 get_embodied_co2 (){
-    time=$1
+    time="$1"
 
     SCI_M=${SCI_M:-}
     if [ -n "$SCI_M" ]; then
@@ -66,7 +66,7 @@ get_embodied_co2 (){
 }
 
 get_energy_co2 (){
-    total_energy=$1
+    total_energy="$1"
 
     CO2I=${CO2I:-}
 

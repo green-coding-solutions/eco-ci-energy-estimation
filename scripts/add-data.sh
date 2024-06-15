@@ -41,6 +41,6 @@ EOM
 option="$1"
 case $option in
   create_json_file)
-    create_json_file $2 $3 $4 $5 $6 $7
+    create_json_file "$2" "$3" "$4" "$5" "$6" "$7"
     ;;
 esac

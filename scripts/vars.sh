@@ -4,8 +4,8 @@ set -euo pipefail
 var_file="/tmp/eco-ci/vars.sh"
 
 function add_var() {
-    key=$1
-    value=$2
+    key="$1"
+    value="$2"
     if [ ! -f $var_file ]; then
         touch $var_file
     fi
@@ -21,7 +21,7 @@ function read_vars() {
 function cpu_vars {
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
-    machine_power_data=$1
+    machine_power_data="$1"
 
     model_name=$(cat /proc/cpuinfo  | grep "model name" || true)
 

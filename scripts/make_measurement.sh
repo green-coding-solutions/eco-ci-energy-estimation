@@ -32,7 +32,7 @@ function make_inference() {
 }
 
 function make_measurement() {
-    label=$1
+    label="$1"
 
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
@@ -149,6 +149,6 @@ case $option in
     make_inference
     ;;
   make_measurement)
-    make_measurement $2
+    make_measurement "$2"
     ;;
 esac

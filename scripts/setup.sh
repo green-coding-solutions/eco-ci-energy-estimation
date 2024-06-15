@@ -92,7 +92,7 @@ function end_measurement {
 option="$1"
 case $option in
   start_measurement)
-    start_measurement $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12} ${13} ${14} ${15}
+    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}"
     ;;
   lap_measurement)
     lap_measurement

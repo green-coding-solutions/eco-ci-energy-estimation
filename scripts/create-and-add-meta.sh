@@ -5,7 +5,7 @@ source "$(dirname "$0")/vars.sh"
 read_vars
 
 function create_json_file() {
-    file=$1
+    file="$1"
 
     run_id_enc=$( echo ${RUN_ID} | jq -Rr @uri)
     workflow_id_enc=$( echo ${WORKFLOW_ID} | jq -Rr @uri)
@@ -28,6 +28,6 @@ EOF
 option="$1"
 case $option in
   create_json_file)
-    create_json_file $2
+    create_json_file "$2"
     ;;
 esac

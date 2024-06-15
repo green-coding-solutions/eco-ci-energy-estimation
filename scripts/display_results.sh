@@ -127,7 +127,7 @@ function display_results {
 option="$1"
 case $option in
   display_results)
-    display_results $2 $3
+    display_results "$2" "$3"
     ;;
 esac
 
