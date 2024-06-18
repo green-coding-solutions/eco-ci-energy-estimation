@@ -41,7 +41,7 @@ inputs:
     default: false
     required: false
   gh-api-base:
-      description: 'Base URL of the Github API to send data to (including schema). Default is ${{ github.api_url }} (which resolves to https://api.github.com in free and many enterprise setups), but can be changed to your hostname if you have a custom hosted Github Enterprise'
+      description: 'Base URL of the Github API to send data to (including schema). Default is "github.api_url" (which resolves to https://api.github.com in free and many enterprise setups), but can be changed to your hostname if you have a custom hosted Github Enterprise'
       default: ${{ github.api_url }}
       required: false
   company-uuid:
