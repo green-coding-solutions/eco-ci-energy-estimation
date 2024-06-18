@@ -108,7 +108,7 @@ jobs:
             - Eco-CI uses the github api to post/edit PR comments and get the workflow id
             - set to github's default api, but can be changed if you are using github enterprise
         - `company-uuid`: (optional)
-            - If you want to add your CI/CD runs to the [CarbonDB](https://www.green-coding.io/projects/carbondb/) you can set your company uuid here. If you set this all your runs will be found for your company. Please note that if your CI is public your company uuid will be exposed and other people could check your CO2 footprint.
+            - If you want to add your CI/CD runs to the [CarbonDB](https://www.green-coding.io/projects/carbondb/) you can set your company uuid here. If you set this all your runs will be found for your company. Please note that if your CI is public your company uuid will be exposed and other people could check your CO2 footprint. We recommend setting these variables as GitHub secrets in this case.
             - Please note that we will add the label as a tag so you can see which steps generated how much CO2
         - `project-uuid`: (optional)
             - If you want to group your CI/CD runs by project
@@ -129,7 +129,7 @@ jobs:
         - used with display-results
         - Shows the badge for the ci run during display-results step
         - automatically false if `send-data is also false
-    - `json_output`: (optional) (default: false)
+    - `json-output`: (optional) (default: false)
         - will output data to JSON to `/tmp/eco-ci/lap-data.json` and `/tmp/eco-ci/total-data.json`
 
 #### Electricity Maps Token
@@ -168,7 +168,7 @@ with `continue-on-error:true`, as energy and CO2 metrics is not critical to the 
 For both tasks `get-measurement` and `display-results` the lap measurements and total measurement can be consumed in JSON format.
 You can use the outputs `data-lap-json` or `data-total-json` respectively.
 
-You must set `json_output` to true in GitHub or `export JSON_OUTPUT="true"` for it to be active.
+You must set `json-output` to true in GitHub or `export ECO_CI_JSON_OUTPUT="true"` for it to be active.
 
 Here is an example demonstrating how this can be achieved:
 
