@@ -91,8 +91,8 @@ function display_results {
             echo '🌳 CO2 Data:' | tee -a $output $output_pr
             echo "City: <b>$GEO_CITY</b>, Lat: <b>$GEO_LAT</b>, Lon: <b>$GEO_LON</b>" | tee -a $output $output_pr
             echo "IP: <b>$GEO_IP</b>" | tee -a $output $output_pr
-            echo "CO₂ from energy is: $CO2EQ_ENERGY" | tee -a $output $output_pr
-            echo "CO₂ from manufacturing (embodied carbon) is: $CO2EQ_EMBODIED" | tee -a $output $output_pr
+            echo "CO₂ from energy is: ${CO2EQ_ENERGY} g" | tee -a $output $output_pr
+            echo "CO₂ from manufacturing (embodied carbon) is: ${CO2EQ_EMBODIED} g" | tee -a $output $output_pr
             echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>$CO2I gCO₂eq/kWh</b>" | tee -a $output $output_pr
             printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" $CO2EQ | tee -a $output $output_pr
         else
