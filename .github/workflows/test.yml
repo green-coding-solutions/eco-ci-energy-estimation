@@ -39,6 +39,9 @@ jobs:
         uses: ./
         with:
           task: start-measurement
+          company-uuid: "20b269ce-cd67-4788-8614-030eaf5a0b47"
+          project-uuid: "00000000-E63D-43E9-9714-A4DE9464F3D8"
+          machine-uuid: "00000001-E63D-43E9-9714-A4DE9464F3D8"
 
       - name: Sleep step
         run: sleep 2
