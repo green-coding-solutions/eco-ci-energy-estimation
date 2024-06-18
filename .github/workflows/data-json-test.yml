@@ -12,12 +12,12 @@ on:
     # Reason being that we pull our ML model and this could have changed in the meantime
     - cron: '22 4 * * 6'
   workflow_dispatch:
-  
+
 jobs:
   test-data-output-action:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -25,10 +25,15 @@ jobs:
         uses: ./
         with:
           task: start-measurement
+          json-output: true
 
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
+
+      - name: Sleep 2
+        run: |
+          sleep 2
 
       - name: Node Setup Energy Measurment
         id: data-node-setup
