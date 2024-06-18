@@ -69,10 +69,10 @@ EOM
 
 # Add the data point to the JSON file
 if [ -s "$FILE" ]; then
-    jq --argjson newstep "$NEW_STEP" '. + $newstep' "$FILE" > /tmp/eco-ci/tmp.$$.json && mv /tmp/eco-ci/tmp.$$.json "$FILE"
+    jq --argjson newstep "$NEW_STEP" '. + $newstep' "$FILE" > tmp.$$.json && mv tmp.$$.json "$FILE"
 else
     echo "$NEW_STEP" > "$FILE"
 fi
 
 # Remove all line breaks
-tr -d '\n' < "$FILE" > /tmp/eco-ci/temp-lap-data.json && mv /tmp/eco-ci/temp-lap-data.json "$FILE"
+tr -d '\n' < "$FILE" > temp && mv temp "$FILE"

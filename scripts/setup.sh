@@ -1,73 +1,129 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
 # Call the function to read and set the variables
 source "$(dirname "$0")/vars.sh" read_vars
 
 function initialize {
-
-    if [[ -d /tmp/eco-ci ]]; then
-      rm -rf /tmp/eco-ci
+    if [[ $reset == true ]]; then
+        if [[ -d /tmp/eco-ci ]]; then
+          rm -rf /tmp/eco-ci
+        fi
+        mkdir /tmp/eco-ci
     fi
-    mkdir -p "/tmp/eco-ci"
+    
+    git clone --depth 1 --single-branch --branch main https://github.com/green-coding-solutions/spec-power-model /tmp/eco-ci/spec-power-model
 
-    # call init_variables
-    source "$(dirname "$0")/vars.sh" add_var "MACHINE_POWER_DATA" "$1"
-    source "$(dirname "$0")/vars.sh" cpu_vars "$1"
-    source "$(dirname "$0")/vars.sh" add_var DASHBOARD_API_BASE "https://api.green-coding.io"
+    ## Reimplement ascii graph when we find a better library
+    # install go ascii
+    
+    if [[ $install_go == true ]]; then
+        go install github.com/guptarohit/asciigraph/cmd/asciigraph@latest
+    fi
+
+    # check for gcc
+    if ! command -v gcc &> /dev/null
+    then
+        echo "gcc could not be found, please install it"
+        exit
+    fi
+
+    # compile
+    gcc /tmp/eco-ci/spec-power-model/demo-reporter/cpu-utilization.c -o /tmp/eco-ci/demo-reporter
 
 }
 
+
+function setup_python {
+    # Create a venv, and backup old
+    python3 -m venv /tmp/eco-ci/venv
+
+    VENV_VALUE=${VIRTUAL_ENV:-}
+    PREVIOUS_VENV=''
+
+    if [[ $VENV_VALUE != '' ]]; then
+       PREVIOUS_VENV=$VENV_VALUE
+       source "$(dirname "$0")/vars.sh" add_var PREVIOUS_VENV $PREVIOUS_VENV
+    fi
+
+    #  Installing requirements
+    # first activate our venv
+    source /tmp/eco-ci/venv/bin/activate
+    python3 -m pip install --upgrade pip
+    python3 -m pip install -r /tmp/eco-ci/spec-power-model/requirements.txt
+    # now reset to old venv
+    deactivate our venv
+    # reactivate the old one, if it was present
+    if [[ $PREVIOUS_VENV != '' ]]; then
+      source $PREVIOUS_VENV/bin/activate
+    fi
+}
 
 function start_measurement {
-    touch /tmp/eco-ci/cpu-util-step.txt
-    touch /tmp/eco-ci/cpu-util-total.txt
-    touch /tmp/eco-ci/energy-step.txt
-    touch /tmp/eco-ci/energy-total.txt
-    touch /tmp/eco-ci/timer-step.txt
+    # call init_variables
+    source "$(dirname "$0")/vars.sh" cpu_vars
 
-    # start global timer
+    source "$(dirname "$0")/vars.sh" add_var API_BASE "https://api.green-coding.io"
+    source "$(dirname "$0")/vars.sh" add_var INIT "DONE"
+
+    # start measurement
+    killall -9 -q /tmp/eco-ci/demo-reporter || true
+    /tmp/eco-ci/demo-reporter | tee -a /tmp/eco-ci/cpu-util-total.txt > /tmp/eco-ci/cpu-util.txt &
+    # start a timer
+    date +%s > /tmp/eco-ci/timer.txt
     date +%s > /tmp/eco-ci/timer-total.txt
-    lap_measurement
-}
-
-function lap_measurement {
-    # start step timer
-    date +%s > /tmp/eco-ci/timer-step.txt
-
-    # start writing cpu utilization with actual sleep durations
-    end_measurement
-    bash "$(dirname "$0")/cpu-utilization.sh" > /tmp/eco-ci/cpu-util-step.txt 2> /dev/null < /dev/null &
-}
-
-function end_measurement {
-    pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization.sh"  || true;
 }
 
 # Main script logic
 if [ $# -eq 0 ]; then
-  echo "No option provided. Please specify an option: initialize, or start_measurement."
+  echo "No option provided. Please specify an option: initialize, setup_python, or start_measurement."
   exit 1
 fi
 
 
 option="$1"
+
 case $option in
   initialize)
-    initialize $2
+    func=initialize
+    ;;
+  setup_python)
+    func=setup_python
     ;;
   start_measurement)
-    start_measurement
-    ;;
-  end_measurement)
-    end_measurement
-    ;;
-  lap_measurement)
-    lap_measurement
+    func=start_measurement
     ;;
   *)
-    echo "Invalid option ${option}. Please specify an option: initialize, lap_measurement, end_measurement or start_measurement."
+    echo "Invalid option. Please specify an option: initialize, setup_python, or start_measurement."
     exit 1
     ;;
 esac
+
+install_go=true
+reset=true
+
+while [[ $# -gt 1 ]]; do
+    opt="$2"
+
+    case $opt in
+        -g|--go) 
+        install_go=$3
+        shift
+        ;;
+        -r|--reset) 
+        reset=$3
+        shift
+        ;;
+        \?) echo "Invalid option -$2" >&2
+        ;;
+    esac
+    shift
+done
+
+if [[ $func == initialize ]]; then
+    initialize
+elif [[ $func == setup_python ]]; then
+    setup_python
+elif [[ $func == start_measurement ]]; then
+    start_measurement
+fi

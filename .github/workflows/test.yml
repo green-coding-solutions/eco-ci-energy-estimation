@@ -20,12 +20,14 @@ permissions:
 
 jobs:
   test-action:
-    runs-on: ${{ matrix.os }}
-    continue-on-error: false
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04]
+    runs-on: ubuntu-latest
+#    runs-on: ${matrix.os}
+#    continue-on-error: false
+#    strategy:
+#      fail-fast: true
+#      matrix:
+#        os: [ubuntu-latest, ubuntu-24.04, ubuntu-20.04, ubuntu-18.04, ubuntu-20.04-16core]
+#        # It might be the case
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,11 +45,7 @@ jobs:
       - name: Sleep step
         run: sleep 2
 
-      - name: Dump ECO-CI CPU Step before
-        run: |
-          cat /tmp/eco-ci/cpu-util-step.txt
-
-      - name: Dump ECO-CI CPU before
+      - name: Dump ECO-CI CPU
         run: |
           cat /tmp/eco-ci/cpu-util-total.txt
 
@@ -57,15 +55,6 @@ jobs:
         with:
           task: get-measurement
           label: "Sleep 3s"
-
-      - name: Dump ECO-CI CPU Step actual processed
-        run: |
-          cat /tmp/eco-ci/cpu-util-temp.txt
-
-      - name: Dump ECO-CI Energy Step actual processed
-        run: |
-          cat /tmp/eco-ci/energy-step.txt
-
 
       - name: Filesystem
         run: timeout 10s ls -alhR /usr/lib

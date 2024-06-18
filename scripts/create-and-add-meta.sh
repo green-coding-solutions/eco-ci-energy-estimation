@@ -55,4 +55,4 @@ cat > "$FILE" << EOF
 EOF
 
 # Remove all line breaks
-tr -d '\n' < "$FILE" > /tmp/eco-ci/temp-lap-data.json && mv /tmp/eco-ci/temp-lap-data.json "$FILE"
+tr -d '\n' < "$FILE" > temp && mv temp "$FILE"
