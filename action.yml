@@ -116,6 +116,10 @@ runs:
         if [[ -e $total_data_file ]]; then
           echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
         fi
+        echo "Checking if PR comment is needed"
+        echo "inputs.pr-comment: ${{ inputs.pr-comment }}"
+        echo "github.event_name: ${{ github.event_name }}"
+
 
     - if: inputs.task == 'display-results' && inputs.pr-comment == 'true' && github.event_name == 'pull_request'
       name: Minimize Old Comment and Post New Comment
@@ -124,6 +128,7 @@ runs:
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
+        echo 'Running PR-Comment task'
         COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "${{ inputs.gh-api-base }}/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
 
         echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username and (.body | index("Eco-CI") // false))' | while read -r comment; do
