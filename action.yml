@@ -12,6 +12,10 @@ inputs:
     description: 'Label for the get-measurement task, to mark what this measurement correlates to in your workflow'
     default: null
     required: false
+  machine-power-data:
+    description: 'The file to read the machine power data from. Default will be 4 core AMD EPYC 7763 Github Runner'
+    default: "github_EPYC_7763_4_CPU_shared.sh"
+    required: false
   send-data:
     description: 'Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
     default: true
@@ -24,10 +28,6 @@ inputs:
     description: 'Show the energy reading results in a table during display-results step'
     default: true
     required: false
-  display-graph:
-    description: 'Show the graph of the energy use over time during display-results step'
-    default: true
-    required: false
   display-badge:
     description: 'Shows the badge for the ci run during display-results step'
     default: true
@@ -35,9 +35,9 @@ inputs:
   pr-comment:
     description: 'Add a comment to the PR with the results during display-results step'
     default: false
-  api-base:
+  gh-api-base:
       description: 'Base URL of the Github API to send data to. Default is api.github.com, but can be changed to your hostname if you have Github Enterprise'
-      default: 'api.github.com'
+      default: ${{ github.api_url }}
       required: false
   company-uuid:
       description: 'If you want to add data to the CarbonDB you can set this to your company UUID'
@@ -75,62 +75,7 @@ runs:
       name: Setup
       shell: bash
       run: |
-        if command -v python3 &>/dev/null; then
-            echo "Python is already installed."
-        else
-            echo "Python is not installed. Installing..."
-            apt-get update
-            apt-get install -y python3.12 python3.12-venv || apt-get install -y python3.10 python3.10-venv
-            echo "Python has been installed."
-        fi
-
-        python_version=$(python3 --version 2>&1)
-        python_major_version=$(python3 -c 'import sys; print(sys.version_info[0])')
-        python_minor_version=$(python3 -c 'import sys; print(sys.version_info[1])')
-        python_cache_path="/tmp/eco-ci/venv/lib/python${python_major_version}.${python_minor_version}/site-packages"
-        echo "python_cache_path=$python_cache_path" >> $GITHUB_OUTPUT
-
-
-        # call the initialize function of setup.sh
-        ${{github.action_path}}/scripts/setup.sh initialize -g ${{inputs.display-graph}}
-
-      # To identify the hash for our cache we cannot use the classic mechansim of
-      # hashFiles('/tmp/eco-ci/spec-power-model/requirements.txt')
-      # hashFiles is restricted to ONLY work in the GITHUB_WORKSPACE which is for the calling action
-      # therefore we need to construct the hash ourselfs beforehand and save it to an output variable
-    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
-      name: Hash requirements file
-      id: hash-requirements
-      shell: bash
-      run: echo "myhash=$(md5sum /tmp/eco-ci/spec-power-model/requirements.txt | cut -d ' ' -f1)" >> $GITHUB_OUTPUT;
-
-    - if:  inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE'
-      name: Cache pip packages
-      id: cache-pip
-      uses: actions/cache@v4
-      env:
-        cache-name: cache-pip-packages
-      with:
-        # npm cache files are stored in `~/.npm` on Linux/macOS
-        path: ${{ steps.initialize.outputs.python_cache_path }}
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.hash-requirements.outputs.myhash }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-${{ steps.hash-requirements.outputs.myhash }}
-
-    - if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE' && steps.cache-pip.outputs.cache-hit == 'true'
-      name: Inform about cache hit
-      continue-on-error: true
-      shell: bash
-      run: |
-        echo "Cache hit succeeded! 😀"
-
-    - if: inputs.task == 'start-measurement' && env.ECO_CI_INIT != 'DONE' && steps.cache-pip.outputs.cache-hit != 'true'
-      name: Inform about cache hit
-      continue-on-error: true
-      shell: bash
-      run: |
-        echo "Cache hit failed! ❌"
-
+        ${{github.action_path}}/scripts/setup.sh initialize "${{inputs.machine-power-data}}"
 
     - if:  inputs.task == 'start-measurement'
       name: Starting measurement
@@ -138,10 +83,8 @@ runs:
       # if measurement is started first time the reporter might not have run already
       # we prefer this over manual startint / stopping as it is less error prone for users
       run: |
-        ${{github.action_path}}/scripts/setup.sh setup_python
-
         if ${{inputs.send-data}}; then
-          curl_response=$(curl -s -H "Authorization: Bearer ${{github.token}}" ${{ github.api_url }}/repos/${{ github.repository }}/actions/workflows)
+          curl_response=$(curl -s -H "Authorization: Bearer ${{github.token}}" ${{ inputs.gh-api-base }}/repos/${{ github.repository }}/actions/workflows)
           workflow_id=$(echo $curl_response | jq '.workflows[] | select(.name == "${{ github.workflow }}") | .id')
           ${{github.action_path}}/scripts/vars.sh add_var "WORKFLOW_ID" $workflow_id
         else
@@ -168,7 +111,7 @@ runs:
       id: run-total-model
       shell: bash
       run: |
-        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -dg ${{inputs.display-graph}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -sc ${{inputs.show-carbon}} -s "github"
+        ${{github.action_path}}/scripts/display_results.sh -dt ${{inputs.display-table}} -db ${{inputs.display-badge}} -b "${{inputs.branch}}" -r ${{ github.run_id }} -R "${{ github.repository }}" -sd ${{inputs.send-data}} -sc ${{inputs.show-carbon}} -s "github"
         cat "/tmp/eco-ci/output.txt" >> $GITHUB_STEP_SUMMARY
         total_data_file="/tmp/eco-ci/total-data.json"
         echo "data-total-json=$(cat $total_data_file)" >> $GITHUB_OUTPUT
@@ -180,7 +123,7 @@ runs:
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
+        COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "${{ inputs.gh-api-base }}/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
 
         echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username and (.body | index("Eco-CI") // false))' | while read -r comment; do
             COMMENT_ID=$(echo "$comment" | jq -r '.id')
@@ -193,12 +136,12 @@ runs:
         $INNER_BODY
 
         </details>" '{"body": $body}')
-            curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
+            curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "${{ inputs.gh-api-base }}/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
             echo "Comment $COMMENT_ID collapsed."
         done
 
         NEW_COMMENT=$(cat "/tmp/eco-ci/output-pr.txt" | jq -Rs '.')
-        API_URL="https://${{inputs.api-base}}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+        API_URL="${{ inputs.gh-api-base }}/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
         curl -X POST -H "Authorization: Bearer ${{github.token}}" -d @- $API_URL <<EOF
         {
           "body": $NEW_COMMENT

@@ -6,7 +6,6 @@ variables:
   ECO_CI_SEND_DATA: "true"
   ECO_CI_DISPLAY_BADGE: "true" # true
   ECO_CI_DISPLAY_TABLE: "true" # true
-  ECO_CI_DISPLAY_GRAPH: "false" # false
   ECO_CI_SHOW_CARBON: "true"
   ECO_CI_COMPANY_UUID: ""
   ECO_CI_PROJECT_UUID: ""
@@ -15,14 +14,11 @@ variables:
 .initialize_energy_estimator:
     script:
         - |
-            apt-get update
-            apt-get install git uuid-runtime python3.10 python3.10-venv gcc bc jq curl golang-go psmisc -y
-            if [[ -d /tmp/eco-ci ]]; then
-                rm -rf /tmp/eco-ci
+
+            if [[ -n $MACHINE_POWER_DATA ]]; then
+              MACHINE_POWER_DATA="gitlab_EPYC_7B12_saas-linux-small-amd64.txt"
             fi
-            git clone --depth 1 --single-branch --branch main https://github.com/green-coding-solutions/eco-ci-energy-estimation /tmp/eco-ci/main
-            /tmp/eco-ci/main/scripts/setup.sh initialize -r false -g false
-            /tmp/eco-ci/main/scripts/setup.sh setup_python
+            /tmp/eco-ci/main/scripts/setup.sh initialize $MACHINE_POWER_DATA
 
 .start_measurement:
     script:
@@ -62,7 +58,6 @@ variables:
             -r "$CI_PIPELINE_ID" \
             -R "$repo" \
             -dt "$ECO_CI_DISPLAY_TABLE" \
-            -dg "$ECO_CI_DISPLAY_GRAPH" \
             -sd "$ECO_CI_SEND_DATA" \
             -s "gitlab" \
             -sc "$ECO_CI_SHOW_CARBON"
