@@ -248,7 +248,7 @@ that the splitting factor is `4/128 = 0.03125`.
 An uncertainty is if Hyper-Threading / SMT is turned on or off, but we believe it is reasonable to assume that for Shared runners they will turn it on as it generally increases
 throughput and performance in shared environments.
 
-If you have trouble finding out the splitting factor for your system: Open an issue! We are happy to help!!
+If you have trouble finding out the splitting factor for your system: [Open an issue!](https://github.com/green-coding-solutions/eco-ci-energy-estimation/issues) We are happy to help!!
 
 Once you have the file ready we are happy to merge it in through a PR! In future versions we also plan to include a loading mechanism, where you can just
 ingest a file from your repository without having to upstream it with us. But since this is a community open source plugin upstream is preferred, right :)
