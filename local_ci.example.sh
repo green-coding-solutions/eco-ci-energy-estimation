@@ -28,7 +28,7 @@ MACHINE_POWER_DATA="default.sh"
 # Initialize
 echo "Initialize"
 
-$shell "$(dirname "$0")/scripts/setup.sh" start_measurement "$MACHINE_POWER_DATA" "MY_RUN_ID" "NO_BRANCH" "LOCAL_TEST_REPO" "$ECO_CI_WORKFLOW_ID" "MY WORKFLOW NAME" "NO SHA" "gitlab" "$ECO_CI_SEND_DATA" "$ECO_CI_COMPANY_UUID" "$ECO_CI_PROJECT_UUID" "$ECO_CI_MACHINE_UUID" "$CALCULATE_CO2" "$JSON_OUTPUT"
+$shell "$(dirname "$0")/scripts/setup.sh" start_measurement "$MACHINE_POWER_DATA" "MY_RUN_ID" "NO_BRANCH" "LOCAL_TEST_REPO" "$ECO_CI_WORKFLOW_ID" "MY WORKFLOW NAME" "NO SHA" "local" "$ECO_CI_SEND_DATA" "$ECO_CI_COMPANY_UUID" "$ECO_CI_PROJECT_UUID" "$ECO_CI_MACHINE_UUID" "$CALCULATE_CO2" "$JSON_OUTPUT"
 
 echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
