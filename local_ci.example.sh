@@ -60,9 +60,13 @@ ECO_CI_FORMAT_CLR="\e[44m"
 ECO_CI_TXT_CLEAR="\e[0m"
 
 echo "Dump files"
+echo "/tmp/eco-ci/energy-step.txt"
 cat /tmp/eco-ci/energy-step.txt
+echo "/tmp/eco-ci/cpu-util-step.txt"
 cat /tmp/eco-ci/cpu-util-step.txt
+echo "/tmp/eco-ci/energy-total.txt"
 cat /tmp/eco-ci/energy-total.txt
+echo "/tmp/eco-ci/cpu-util-total.txt"
 cat /tmp/eco-ci/cpu-util-total.txt
 
 $shell "$(dirname "$0")/scripts/display_results.sh" display_results $ECO_CI_DISPLAY_TABLE $ECO_CI_DISPLAY_BADGE

@@ -18,18 +18,33 @@ function display_results {
     JSON_OUTPUT=${JSON_OUTPUT:-}
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
+    if [[ $MEASUREMENT_COUNT == '' ]]; then
+        MEASUREMENT_COUNT=0
+    fi
+
     output="/tmp/eco-ci/output.txt"
     output_pr="/tmp/eco-ci/output-pr.txt"
 
+    source "$(dirname "$0")/make_measurement.sh" end_measurement
+
+    if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -eq 0 ]]; then
+        # Capture current cpu util file and trim trailing empty lines from the file to not run into read/write race condition later
+        sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
+        if [[ $(wc -l < /tmp/eco-ci/cpu-util-step.txt) -gt 0 ]]; then
+            source "$(dirname "$0")/make_measurement.sh" make_inference # will populate /tmp/eco-ci/energy-step.txt
+        fi
+        # merge all current data to the totals file. This is only needed when no get_measurement step was used
+        sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt >> /tmp/eco-ci/cpu-util-total.txt
+        sed '/^[[:space:]]*$/d' /tmp/eco-ci/energy-step.txt >> /tmp/eco-ci/energy-total.txt
+    fi
+
+    # Check again if we can display now
     if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -eq 0 ]]; then
         echo "Could not display table as no measurement data was present!"
         [ -n "$GITHUB_STEP_SUMMARY" ] && echo "❌ Could not display table as no measurement data was present!" >> $GITHUB_STEP_SUMMARY
         return 1
     fi
 
-    # TODO: Hier müsste ich eigentlich mal stop measurement machen!!!!
-    # Und die Overheads von Energy auch richtig kalkulieren!
-    # und power_acc ist doppelt! hier kann ich auch total_energy nehmen
 
     cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
     total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
