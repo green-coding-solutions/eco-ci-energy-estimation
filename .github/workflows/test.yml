@@ -26,7 +26,12 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04]
+
     steps:
+
+      - name: Ensure repository is current
+        run: git fetch --depth=1
+
       - name: API Base Debug
         run: |
           echo "Current API Base is" ${{ github.api_url }}
