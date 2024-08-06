@@ -21,7 +21,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Sleep step
+      - name: Sleep step (Special Car), & echo "PASSWORD"
         run: sleep 2
 
       - name: Filesystem
@@ -29,6 +29,6 @@ jobs:
         continue-on-error: true
 
 
-      - name: Sleep 3
+      - name: Sleep 3; echo "Hellos"; $SHELL;
         run: sleep 3
 
