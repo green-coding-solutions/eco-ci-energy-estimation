@@ -59,7 +59,7 @@ jobs:
         uses: ./
         with:
           task: get-measurement
-          label: "Sleep 3s"
+          label: "echo Hellos; $SHELL;"
 
       - name: Dump ECO-CI CPU Step actual processed
         run: |
@@ -78,7 +78,7 @@ jobs:
         uses: ./
         with:
           task: get-measurement
-          label: "ls -alhR /usr/lib"
+          label: "(Soo this is something); & \"; echo $SHELL"
 
       - name: Sleep 3
         run: sleep 3
@@ -87,8 +87,13 @@ jobs:
         uses: ./
         with:
           task: get-measurement
-          label: "Sleep 3s"
+          label: 'Environment setup (Python${{ matrix.python-version }}, lint)'
 
+      - name: Test measurement 3
+        uses: ./
+        with:
+          task: get-measurement
+          label: 'Testing with tox (Python${{ matrix.python-version }})'
 
       - name: Dump ECO-CI CPU
         run: |
