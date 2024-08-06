@@ -113,7 +113,7 @@ jobs:
         uses: ./
         with:
           task: get-measurement
-          label: 'without quotes''''
+          label: 'without quotes'''
 
       - name: Dump ECO-CI CPU
         run: |
