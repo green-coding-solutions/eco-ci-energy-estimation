@@ -60,7 +60,7 @@ jobs:
         uses: ./
         with:
           task: get-measurement
-          label: "echo Hellos; $SHELL; '"
+          label: "echo Hellos; $SHELL; \""
 
       - name: Dump ECO-CI CPU Step actual processed
         run: |
