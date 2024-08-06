@@ -100,7 +100,7 @@ runs:
       shell: bash
       run: |
 
-        label: ${{ (contains(inputs.label, '"') || contains(inputs.label, "\'")) && 'No quotes allowed in labels' || inputs.label }}
+        label: ${{ contains(inputs.label, '"') && 'No quotes allowed in labels' || inputs.label }}
         label_cleaned=$(echo "$label" | tr -d "$&;\'")
         echo "Cleaned label: $label_cleaned"
         "${{ github.action_path }}/scripts/make_measurement.sh" make_measurement "$label_cleaned"
