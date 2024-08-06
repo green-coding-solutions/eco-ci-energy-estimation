@@ -28,9 +28,9 @@ jobs:
         os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04]
 
     steps:
-
-      - name: Ensure repository is current
-        run: git fetch --depth=1
+      - uses: actions/checkout@v4
+        with:
+          path: .
 
       - name: API Base Debug
         run: |
