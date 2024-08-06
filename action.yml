@@ -99,7 +99,7 @@ runs:
         NAME: ${{ github.workflow }}
       shell: bash
       run: |
-        label="${{ inputs.label }}"
+        label=${{ inputs.label }}
         label_cleaned=$(echo "$label" | tr -cd '[:alnum:][:space:]')
         echo "Cleaned label: $label_cleaned"
         "${{ github.action_path }}/scripts/make_measurement.sh" make_measurement "$label_cleaned"
