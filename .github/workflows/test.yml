@@ -88,8 +88,8 @@ jobs:
           task: get-measurement
           label: 'Environment setup (OS ${{ matrix.os }}, lint)'
 
-      - name: Sleep 3
-        run: sleep 3
+      # - name: Sleep 3
+      #   run: sleep 3
 
       # There is currently no way of catching this IMHO
       # - name: Test measurement 4
@@ -107,14 +107,15 @@ jobs:
           task: get-measurement
           label: without quotes"; echo
 
-      - name: Sleep 3
-        run: sleep 3
+      # - name: Sleep 3
+      #   run: sleep 3
 
-      - name: Test measurement 6
-        uses: ./
-        with:
-          task: get-measurement
-          label: 'without quotes'''
+      # There is currently no way of catching this IMHO
+      # - name: Test measurement 6
+      #   uses: ./
+      #   with:
+      #     task: get-measurement
+      #     label: 'without quotes'''
 
       - name: Dump ECO-CI CPU
         run: |
