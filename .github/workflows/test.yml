@@ -70,11 +70,6 @@ jobs:
         run: |
           cat /tmp/eco-ci/energy-step.txt
 
-
-      - name: Filesystem
-        run: timeout 10s ls -alhR /usr/lib
-        continue-on-error: true
-
       - name: Test measurement 2
         uses: ./
         with:
