@@ -70,6 +70,9 @@ jobs:
         run: |
           cat /tmp/eco-ci/energy-step.txt
 
+      - name: Sleep 3
+        run: sleep 3
+
       - name: Test measurement 2
         uses: ./
         with:
@@ -79,17 +82,11 @@ jobs:
       - name: Sleep 3
         run: sleep 3
 
-      - name: Test measurement 2
-        uses: ./
-        with:
-          task: get-measurement
-          label: 'Environment setup (Python${{ matrix.python-version }}, lint)'
-
       - name: Test measurement 3
         uses: ./
         with:
           task: get-measurement
-          label: 'Testing with tox (Python${{ matrix.python-version }})'
+          label: 'Environment setup (Python${{ matrix.os }}, lint)'
 
       - name: Dump ECO-CI CPU
         run: |
