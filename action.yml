@@ -99,7 +99,9 @@ runs:
         NAME: ${{ github.workflow }}
       shell: bash
       run: |
-        ${{github.action_path}}/scripts/make_measurement.sh make_measurement "${{inputs.label}}"
+        label="${{ inputs.label }}"
+        label_escaped=$(printf '%q' "$label")
+        "${{ github.action_path }}/scripts/make_measurement.sh" make_measurement "$label_escaped"
         data_file="/tmp/test.bash"
         lap_data_file="/tmp/eco-ci/lap-data.json"
         if [[ -e $lap_data_file ]]; then
