@@ -1,4 +1,4 @@
-name: test-action
+name: test-action-test-file
 
 on:
   pull_request:
