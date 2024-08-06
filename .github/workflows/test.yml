@@ -74,7 +74,7 @@ jobs:
         uses: ./
         with:
           task: get-measurement
-          label: "(Soo this is something); & \"; echo $SHELL"
+          label: "(Soo this is something); & ; echo $SHELL"
 
       - name: Sleep 3
         run: sleep 3
