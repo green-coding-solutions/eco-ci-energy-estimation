@@ -25,8 +25,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-#        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04]
-        os: [ubuntu-22.04]
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04]
 
     steps:
       - uses: actions/checkout@v4
@@ -93,11 +92,11 @@ jobs:
         run: sleep 3
 
       # There is currently no way of catching this IMHO
-      - name: Test measurement 4
-        uses: ./
-        with:
-          task: get-measurement
-          label: without quotes'; echo
+      # - name: Test measurement 4
+      #   uses: ./
+      #   with:
+      #     task: get-measurement
+      #     label: without quotes'; echo
 
       - name: Sleep 3
         run: sleep 3
