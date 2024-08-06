@@ -1,5 +1,4 @@
-name: test-action-edit
-
+name: test-action
 on:
   workflow_dispatch:
 
@@ -21,7 +20,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Sleep step"
+      - name: Sleep step
         run: sleep 2
 
       - name: Filesystem
