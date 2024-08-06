@@ -100,8 +100,9 @@ runs:
       shell: bash
       run: |
         label="${{ inputs.label }}"
-        label_escaped=$(echo "$label" | tr -cd '[:alnum:][:space:]')
-        "${{ github.action_path }}/scripts/make_measurement.sh" make_measurement "$label_escaped"
+        label_cleaned=$(echo "$label" | tr -cd '[:alnum:][:space:]')
+        echo "Cleaned label: $label_cleaned"
+        "${{ github.action_path }}/scripts/make_measurement.sh" make_measurement "$label_cleaned"
         data_file="/tmp/test.bash"
         lap_data_file="/tmp/eco-ci/lap-data.json"
         if [[ -e $lap_data_file ]]; then
