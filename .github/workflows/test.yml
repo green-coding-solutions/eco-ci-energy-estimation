@@ -86,7 +86,34 @@ jobs:
         uses: ./
         with:
           task: get-measurement
-          label: 'Environment setup (Python${{ matrix.os }}, lint)'
+          label: 'Environment setup (OS ${{ matrix.os }}, lint)'
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Test measurement 4
+        uses: ./
+        with:
+          task: get-measurement
+          label: without quotes'; echo
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Test measurement 5
+        uses: ./
+        with:
+          task: get-measurement
+          label: without quotes"; echo
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Test measurement 6
+        uses: ./
+        with:
+          task: get-measurement
+          label: 'without quotes''''
 
       - name: Dump ECO-CI CPU
         run: |

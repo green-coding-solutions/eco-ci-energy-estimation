@@ -17,7 +17,11 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04]
     steps:
-      - name: Sleep step (Special Car), & echo "PASSWORD"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Sleep step"
         run: sleep 2
 
       - name: Filesystem
@@ -25,6 +29,6 @@ jobs:
         continue-on-error: true
 
 
-      - name: Sleep 3; echo "Hellos"; $SHELL;
+      - name: Sleep 3
         run: sleep 3
 
