@@ -99,7 +99,10 @@ runs:
         NAME: ${{ github.workflow }}
       shell: bash
       run: |
-        ${{github.action_path}}/scripts/make_measurement.sh make_measurement "${{inputs.label}}"
+        label='${{ contains(inputs.label, '"') && 'No quotes allowed in labels' || inputs.label }}'
+        label_cleaned=$(echo "$label" | tr -d "$&;\'")
+        echo "Cleaned label: $label_cleaned"
+        "${{ github.action_path }}/scripts/make_measurement.sh" make_measurement "$label_cleaned"
         data_file="/tmp/test.bash"
         lap_data_file="/tmp/eco-ci/lap-data.json"
         if [[ -e $lap_data_file ]]; then

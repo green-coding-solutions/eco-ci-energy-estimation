@@ -1,4 +1,4 @@
-name: test-action
+name: test-action-test-file
 
 on:
   pull_request:
@@ -26,10 +26,11 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04]
+
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          path: .
 
       - name: API Base Debug
         run: |
@@ -59,7 +60,7 @@ jobs:
         uses: ./
         with:
           task: get-measurement
-          label: "Sleep 3s"
+          label: "echo Hellos; $SHELL; \""
 
       - name: Dump ECO-CI CPU Step actual processed
         run: |
@@ -69,17 +70,6 @@ jobs:
         run: |
           cat /tmp/eco-ci/energy-step.txt
 
-
-      - name: Filesystem
-        run: timeout 10s ls -alhR /usr/lib
-        continue-on-error: true
-
-      - name: Test measurement 2
-        uses: ./
-        with:
-          task: get-measurement
-          label: "ls -alhR /usr/lib"
-
       - name: Sleep 3
         run: sleep 3
 
@@ -87,8 +77,45 @@ jobs:
         uses: ./
         with:
           task: get-measurement
-          label: "Sleep 3s"
+          label: "(Soo this is something); & ; echo $SHELL"
 
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Test measurement 3
+        uses: ./
+        with:
+          task: get-measurement
+          label: 'Environment setup (OS ${{ matrix.os }}, lint)'
+
+      # - name: Sleep 3
+      #   run: sleep 3
+
+      # There is currently no way of catching this IMHO
+      # - name: Test measurement 4
+      #   uses: ./
+      #   with:
+      #     task: get-measurement
+      #     label: without quotes'; echo
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Test measurement 5
+        uses: ./
+        with:
+          task: get-measurement
+          label: without quotes"; echo
+
+      # - name: Sleep 3
+      #   run: sleep 3
+
+      # There is currently no way of catching this IMHO
+      # - name: Test measurement 6
+      #   uses: ./
+      #   with:
+      #     task: get-measurement
+      #     label: 'without quotes'''
 
       - name: Dump ECO-CI CPU
         run: |
