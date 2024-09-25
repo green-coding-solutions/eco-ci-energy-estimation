@@ -101,7 +101,7 @@ jobs:
           - Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.io/ci-index.html
         - `calculate-co2`: (optional) (default: true)
           - You might typically always want this value to be shown unless you are in a restricted network and cannot make outbound requests 
-          - Gets the location using https://ipapi.co/
+          - Gets the location using https://ipapi.co/ or https://www.ip2location.io/
           - Get the CO2 grid intensity for the location from https://www.electricitymaps.com/
           - Estimates the amount of carbon the measurement has produced
         - `gh-api-base`: (optional) (default: 'api.github.com')
@@ -148,6 +148,22 @@ You will also need to set it in your workflow files where you call `display-resu
       task: display-results
       pr-comment: true
 
+```
+
+#### IP2LOCATIONIO_API_KEY
+
+You can choose to use IP2Location.io API instead of the default ipapi.co API. You will need a IP2Location.io API Key if you wish to use the API,and you can easily obtain a free one at here: https://www.ip2location.io/sign-up.
+
+You will need to set the API key as a secret `IP2LOCATIONIO_API_KEY`. See the documentation how to do this https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
+
+You will also need to set it in your workflow files, for example:
+```
+      - name: Start Measurement
+        uses: ./
+        env:
+            IP2LOCATIONIO_API_KEY: ${{ secrets.IP2LOCATIONIO_API_KEY }}
+        with:
+          task: start-measurement
 ```
 
 #### Continuing on Errors
