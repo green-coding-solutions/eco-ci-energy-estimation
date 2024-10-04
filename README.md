@@ -120,7 +120,7 @@ jobs:
 - `get-measurement`: Measures the energy at this point in time since either the start-measurement or last get-measurement action call.
     - `label`: (optional) (default: 'measurement ##')
 
-  - `display-results`: Outputs the energy results to the`$GITHUB_STEP_SUMMARY`. Creates a table that shows the energy results of all the `get-measurements`, and then a final row for the entire run. Displays the average cpu utilization, the total Joules used, and average wattage for each measurement+total run. This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge. The total measurement of this task is provided as output `data-total-json` in json format (see example below).
+- `display-results`: Outputs the energy results to the`$GITHUB_STEP_SUMMARY`. Creates a table that shows the energy results of all the `get-measurements`, and then a final row for the entire run. Displays the average cpu utilization, the total Joules used, and average wattage for each measurement+total run. This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge. The total measurement of this task is provided as output `data-total-json` in json format (see example below).
     - `pr-comment`: (optional) (default: false)
         - if on, will post a comment on the PR issue with the Eco-CI results. only occurs if the triggering event is a pull_request
         - remember to set `pull-requests: write` to true in your workflow file
