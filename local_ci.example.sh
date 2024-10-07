@@ -38,31 +38,18 @@ sleep 2s
 echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
 
 
-$shell "$(dirname "$0")/scripts/make_measurement.sh" make_measurement "My_label"
-
-# Do some other work
-echo "ls -alhR"
-timeout 3s ls -alhR / &> /dev/null || true
-echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
-
-echo "Sleeping "
-sleep 1
-echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
-
-$shell "$(dirname "$0")/scripts/make_measurement.sh" make_measurement "other label"
-#"My other label"
-
-echo "Display Results"
-echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
-
 # Display results
 ECO_CI_FORMAT_CLR="\e[44m"
 ECO_CI_TXT_CLEAR="\e[0m"
 
 echo "Dump files"
+echo "/tmp/eco-ci/energy-step.txt"
 cat /tmp/eco-ci/energy-step.txt
+echo "/tmp/eco-ci/cpu-util-step.txt"
 cat /tmp/eco-ci/cpu-util-step.txt
+echo "/tmp/eco-ci/energy-total.txt"
 cat /tmp/eco-ci/energy-total.txt
+echo "/tmp/eco-ci/cpu-util-total.txt"
 cat /tmp/eco-ci/cpu-util-total.txt
 
 $shell "$(dirname "$0")/scripts/display_results.sh" display_results $ECO_CI_DISPLAY_TABLE $ECO_CI_DISPLAY_BADGE

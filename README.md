@@ -108,13 +108,15 @@ jobs:
             - Eco-CI uses the github api to post/edit PR comments and get the workflow id
             - set to github's default api, but can be changed if you are using github enterprise
         - `company-uuid`: (optional)
-            - If you want to add your CI/CD runs to the [CarbonDB](https://www.green-coding.io/projects/carbondb/) you can set your company uuid here. If you set this all your runs will be found for your company. Please note that if your CI is public your company uuid will be exposed and other people could check your CO2 footprint. We recommend setting these variables as GitHub secrets in this case.
+            - If you want to add your CI/CD runs to the [CarbonDB](https://www.green-coding.io/projects/carbondb/) you can set your company uuid here. If you set this all your runs will be found for your company. 
+            - Please note that if your CI is public your company uuid will be exposed and other people could check your CO2 footprint. We recommend setting these variables as GitHub Secrets in this case.
             - Please note that we will add the label as a tag so you can see which steps generated how much CO2
         - `project-uuid`: (optional)
             - If you want to group your CI/CD runs by project
+            - This parameter is mandatory if you already set `company-uuid`
         - `machine-uuid`: (optional)
             - If you want to make the runs look like they all ran on the same machine. This is not recommended as it will not be accurate but can be helpful for debugging.
-            - Leave this field empty if you want an auto-generated value
+            - This parameter is mandatory if you already set `company-uuid`
 
 
 - `get-measurement`: Measures the energy at this point in time since either the start-measurement or last get-measurement action call.
@@ -217,6 +219,7 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v3
         with:
           task: start-measurement
+          send-data: false # most likely you do not want send data from private repos
  ```
 
 ### Support for dedicated runners / non-standard machines

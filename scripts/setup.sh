@@ -66,8 +66,7 @@ function start_measurement {
 
     # this measurement we purely do for the overhead calculation
     if [[ $(wc -l < /tmp/eco-ci/cpu-util-temp.txt) -gt 0 ]]; then
-        source "$(dirname "$0")/make_measurement.sh"
-        make_inference # will populate /tmp/eco-ci/energy-step.txt
+        source "$(dirname "$0")/make_measurement.sh" make_inference # will populate /tmp/eco-ci/energy-step.txt
     fi
 
     # save the values for the overhead
