@@ -18,10 +18,10 @@ variables:
             if [[ -d /tmp/eco-ci ]]; then
                 rm -rf /tmp/eco-ci
             fi
-            if [ ! -d "/tmp/eco-ci-repo" ] ; then
+            if [[ ! -d /tmp/eco-ci-repo ]]; then
                 git clone --depth 1 --single-branch --branch "${ECO_CI_CLONE_BRANCH}" https://github.com/green-coding-solutions/eco-ci-energy-estimation /tmp/eco-ci-repo
             fi
-            
+
             /tmp/eco-ci-repo/scripts/setup.sh start_measurement "${ECO_CI_MACHINE_POWER_DATA}" "${CI_PIPELINE_ID}" "${CI_COMMIT_REF_NAME}" "${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}" "${CI_PROJECT_ID}" "gitlab-ci.yml" "${CI_COMMIT_SHA}" "gitlab" "${ECO_CI_SEND_DATA}" "${ECO_CI_COMPANY_UUID}" "${ECO_CI_PROJECT_UUID}" "${ECO_CI_MACHINE_UUID}" "${ECO_CI_CALCULATE_CO2}" "${ECO_CI_JSON_OUTPUT}"
 
 .get_measurement:
