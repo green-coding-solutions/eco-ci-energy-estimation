@@ -1,4 +1,4 @@
-name: test-action-test-file
+name: Test CarbonDB
 
 on:
   pull_request:
