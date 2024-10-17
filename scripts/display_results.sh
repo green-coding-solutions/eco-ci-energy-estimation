@@ -14,7 +14,7 @@ function display_results {
     MEASUREMENT_RAN=${MEASUREMENT_RAN:-}
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
-    DASHBOARD_API_BASE=${DASHBOARD_API_BASE:-}
+    API_ENDPOINT_BADGE_GET=${API_ENDPOINT_BADGE_GET:-}
     JSON_OUTPUT=${JSON_OUTPUT:-}
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
@@ -105,12 +105,11 @@ function display_results {
     if [[ ${SEND_DATA} == 'true' && ${display_badge} == 'true' ]]; then
         repo_enc=$( echo ${REPOSITORY} | jq -Rr @uri)
         branch_enc=$( echo ${BRANCH} | jq -Rr @uri)
-        get_endpoint=$DASHBOARD_API_BASE"/v1/ci/badge/get"
         metrics_url="https://metrics.green-coding.io"
 
         echo "Badge for your README.md:" >> $output
         echo ' ```' >> $output
-        echo "[![Energy Used](${get_endpoint}?repo=${repo_enc}&branch=${branch_enc}&workflow=$WORKFLOW_ID)](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$WORKFLOW_ID)" >> $output
+        echo "[![Energy Used](${API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=$WORKFLOW_ID)](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$WORKFLOW_ID)" >> $output
         echo ' ```' >> $output
 
         echo "See energy runs here:" >> $output

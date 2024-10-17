@@ -39,7 +39,7 @@ function make_measurement() {
     MODEL_NAME=${MODEL_NAME:-}
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
-    DASHBOARD_API_BASE=${DASHBOARD_API_BASE:-}
+    API_ENDPOINT_ADD=${API_ENDPOINT_ADD:-}
 
     # capture time
     step_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-step.txt)))
@@ -91,12 +91,11 @@ function make_measurement() {
                 CO2EQ=$(echo "$CO2EQ_EMBODIED $CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
             fi
 
-            add_endpoint=$DASHBOARD_API_BASE"/v1/ci/measurement/add"
             value_mJ=$(echo "$step_energy 1000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
             unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
 
-            curl -X POST "${add_endpoint}" -H 'Content-Type: application/json' -d "{
+            curl -X POST "${API_ENDPOINT_ADD}" -H 'Content-Type: application/json' -d "{
                 \"energy_value\":\"${value_mJ}\",
                 \"energy_unit\":\"${unit}\",
                 \"cpu\":\"${model_name_uri}\",
@@ -111,9 +110,10 @@ function make_measurement() {
                 \"cpu_util_avg\":\"${cpu_avg}\",
                 \"duration\":\"${step_time}\",
                 \"workflow_name\":\"${WORKFLOW_NAME}\",
-                \"cb_company_uuid\":\"${CB_COMPANY_UUID}\",
-                \"cb_project_uuid\":\"${CB_PROJECT_UUID}\",
-                \"cb_machine_uuid\":\"${CB_MACHINE_UUID}\",
+                \"filter_type\":\"${CB_COMPANY_UUID}\",
+                \"filter_project\":\"${CB_PROJECT_UUID}\",
+                \"filter_machine\":\"${CB_MACHINE_UUID}\",
+                \"filter_tags\":\"${CB_MACHINE_UUID}\",
                 \"lat\":\"${LAT:-""}\",
                 \"lon\":\"${LON:-""}\",
                 \"city\":\"${CITY:-""}\",
