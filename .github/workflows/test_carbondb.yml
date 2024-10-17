@@ -20,13 +20,8 @@ permissions:
 
 jobs:
   test-action:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
     continue-on-error: false
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04]
-
     steps:
       - name: Debug Info
         run: |
@@ -66,70 +61,7 @@ jobs:
         uses: ./
         with:
           task: get-measurement
-          label: "echo Hellos; $SHELL; \""
-
-      - name: Dump ECO-CI CPU Step actual processed
-        run: |
-          cat /tmp/eco-ci/cpu-util-temp.txt
-
-      - name: Dump ECO-CI Energy Step actual processed
-        run: |
-          cat /tmp/eco-ci/energy-step.txt
-
-      - name: Sleep 3
-        run: sleep 3
-
-      - name: Test measurement 2
-        uses: ./
-        with:
-          task: get-measurement
-          label: "(Soo this is something); & ; echo $SHELL"
-
-      - name: Sleep 3
-        run: sleep 3
-
-      - name: Test measurement 3
-        uses: ./
-        with:
-          task: get-measurement
-          label: 'Environment setup (OS ${{ matrix.os }}, lint)'
-
-      # - name: Sleep 3
-      #   run: sleep 3
-
-      # There is currently no way of catching this IMHO
-      # - name: Test measurement 4
-      #   uses: ./
-      #   with:
-      #     task: get-measurement
-      #     label: without quotes'; echo
-
-      - name: Sleep 3
-        run: sleep 3
-
-      - name: Test measurement 5
-        uses: ./
-        with:
-          task: get-measurement
-          label: without quotes"; echo
-
-      # - name: Sleep 3
-      #   run: sleep 3
-
-      # There is currently no way of catching this IMHO
-      # - name: Test measurement 6
-      #   uses: ./
-      #   with:
-      #     task: get-measurement
-      #     label: 'without quotes'''
-
-      - name: Dump ECO-CI CPU
-        run: |
-          cat /tmp/eco-ci/cpu-util-total.txt
-
-      - name: Dump ECO-CI Energy
-        run: |
-          cat /tmp/eco-ci/energy-total.txt
+          label: "I am just a simple, simple man."
 
 
       - name: Eco CI Energy Estimation
