@@ -42,11 +42,10 @@ jobs:
         with:
           task: start-measurement
           # type should be auto set to machine.ci
-          company: "My cool company"
           project: "CI Testing"
           machine: "ubuntu-latest"
-          tags: '["That-os-one","That-is-number-two"]'
-          api-endpoint: "http://api-478gtuzwbe72.green-coding.io:9142/v2/ci/measurement/add"
+          tags: "That,is,very cool"
+          api-endpoint-add: "http://api-478gtuzwbe72.green-coding.io:9142/v2/ci/measurement/add"
 
       - name: Sleep step
         run: sleep 2

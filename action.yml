@@ -57,8 +57,8 @@ inputs:
       default: 'ubuntu-latest'
       required: false
   tags:
-      description: 'If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set tags for drill-down later. Please supply as JSON list of strings. Ex ["a", "b", "c"]. Defaults to "[]"'
-      default: '[]'
+      description: 'If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set tags for drill-down later. Please supply comma separated. Tags cannot have commas itself or contain quotes. Defaults to empty'
+      default: ''
       required: false
   api-endpoint-add:
       description: 'When using the GMT Dasboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v2/ci/measurement/add"'
