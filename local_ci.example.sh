@@ -20,7 +20,7 @@ ECO_CI_CALCULATE_CO2='true'
 ECO_CI_JSON_OUTPUT='true'
 
 # Change this to a local installation of the GMT if you have
-ECO_CI_API_ENDPOINT_ADD='http://api-478gtuzwbe72.green-coding.io:9142/v2/ci/measurement/add'
+ECO_CI_API_ENDPOINT_ADD='https://api.green-coding.io/v2/ci/measurement/add'
 ECO_CI_API_BADGE_GET='https://api.green-coding.io/v1/ci/badge/get'
 
 # Use a generated power curve from Cloud Energy here
