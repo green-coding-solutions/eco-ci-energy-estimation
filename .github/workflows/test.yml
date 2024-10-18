@@ -1,4 +1,4 @@
-name: test-action-test-file
+name: Test PR & Periodic
 
 on:
   pull_request:

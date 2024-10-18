@@ -1,4 +1,4 @@
-name: test-action
+name: Test Overhead
 
 on:
   workflow_dispatch:
