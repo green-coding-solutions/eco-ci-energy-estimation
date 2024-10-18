@@ -20,7 +20,6 @@ function start_measurement {
     # call init_variables
     add_var "MACHINE_POWER_DATA" "$1"
     cpu_vars "$1"
-    add_var DASHBOARD_API_BASE "https://api.green-coding.io"
 
     add_var RUN_ID "$2"
     add_var BRANCH "$3"
@@ -30,23 +29,14 @@ function start_measurement {
     add_var COMMIT_HASH "$7"
     add_var SOURCE "$8"
     add_var SEND_DATA "$9"
-    if [[ "${10}" == '-' ]]; then
-        add_var CB_COMPANY_UUID ""
-    else
-        add_var CB_COMPANY_UUID "${10}"
-    fi
-    if [[ "${11}" == '-' ]]; then
-        add_var CB_PROJECT_UUID ""
-    else
-        add_var CB_PROJECT_UUID "${11}"
-    fi
-    if [[ "${12}" == '-' ]]; then
-        add_var CB_MACHINE_UUID ""
-    else
-        add_var CB_MACHINE_UUID "${12}"
-    fi
-    add_var CALCULATE_CO2 "${13}"
-    add_var JSON_OUTPUT "${14}"
+    add_var FILTER_TYPE "${10}"
+    add_var FILTER_PROJECT "${11}"
+    add_var FILTER_MACHINE "${12}"
+    add_var FILTER_TAGS "${13}"
+    add_var CALCULATE_CO2 "${14}"
+    add_var JSON_OUTPUT "${15}"
+    add_var API_ENDPOINT_ADD ${16}
+    add_var API_ENDPOINT_BADGE_GET ${17}
 
     touch /tmp/eco-ci/cpu-util-step.txt
     touch /tmp/eco-ci/cpu-util-total.txt
@@ -92,7 +82,7 @@ function end_measurement {
 option="$1"
 case $option in
   start_measurement)
-    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}"
+    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}" "${16}" "${17}" "${18}"
     ;;
   lap_measurement)
     lap_measurement

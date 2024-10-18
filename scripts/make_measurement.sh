@@ -39,7 +39,6 @@ function make_measurement() {
     MODEL_NAME=${MODEL_NAME:-}
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
-    DASHBOARD_API_BASE=${DASHBOARD_API_BASE:-}
 
     # capture time
     step_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-step.txt)))
@@ -77,6 +76,7 @@ function make_measurement() {
 
 
         if [[ $SEND_DATA == 'true' ]]; then
+            echo "Sending data to ${API_ENDPOINT_ADD}"
 
             source "$(dirname "$0")/misc.sh"
             get_energy_co2 "$step_energy"
@@ -91,29 +91,32 @@ function make_measurement() {
                 CO2EQ=$(echo "$CO2EQ_EMBODIED $CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
             fi
 
-            add_endpoint=$DASHBOARD_API_BASE"/v1/ci/measurement/add"
-            value_mJ=$(echo "$step_energy 1000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
+            value_uJ=$(echo "$step_energy 1000000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
             unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
 
-            curl -X POST "${add_endpoint}" -H 'Content-Type: application/json' -d "{
-                \"energy_value\":\"${value_mJ}\",
-                \"energy_unit\":\"${unit}\",
+            tags_as_json_list=''
+            if [[ "$FILTER_TAGS" != '' ]]; then # prevent sending [""] array if empty
+              tags_as_json_list=$(echo "\"${FILTER_TAGS}\"" | sed s/,/\",\"/g)
+            fi
+
+            curl -X POST "${API_ENDPOINT_ADD}" -H 'Content-Type: application/json' -d "{
+                \"energy_uj\":\"${value_uJ}\",
                 \"cpu\":\"${model_name_uri}\",
                 \"commit_hash\":\"${COMMIT_HASH}\",
                 \"repo\":\"${REPOSITORY}\",
                 \"branch\":\"${BRANCH}\",
                 \"workflow\":\"${WORKFLOW_ID}\",
                 \"run_id\":\"${RUN_ID}\",
-                \"project_id\":\"\",
                 \"label\":\"${label}\",
                 \"source\":\"${SOURCE}\",
                 \"cpu_util_avg\":\"${cpu_avg}\",
                 \"duration\":\"${step_time}\",
                 \"workflow_name\":\"${WORKFLOW_NAME}\",
-                \"cb_company_uuid\":\"${CB_COMPANY_UUID}\",
-                \"cb_project_uuid\":\"${CB_PROJECT_UUID}\",
-                \"cb_machine_uuid\":\"${CB_MACHINE_UUID}\",
+                \"filter_type\":\"${FILTER_TYPE}\",
+                \"filter_project\":\"${FILTER_PROJECT}\",
+                \"filter_machine\":\"${FILTER_MACHINE}\",
+                \"filter_tags\":[${tags_as_json_list}],
                 \"lat\":\"${LAT:-""}\",
                 \"lon\":\"${LON:-""}\",
                 \"city\":\"${CITY:-""}\",

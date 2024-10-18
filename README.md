@@ -360,7 +360,14 @@ See also our [work on analysing fixed frequency in Cloud Providers and CI/CD](ht
 
 ### Testing
 
-For local testing you can just run in the docker container of your choice, directly from the root of the repository:
+For local testing you can just run in the docker container of your choice, directly from the root of the repository.
+
+Here is an example with the Circle-CI base image:
+```bash
+docker run --rm -it -v ./:/tmp/data:ro cimg/base:current bash /tmp/data/local_ci.example.sh
+```
+
+### Testing for KDE pipelines
 ```bash
 docker run --rm -it -v ./:/tmp/data:ro invent-registry.kde.org/sysadmin/ci-images/suse-qt67:latest bash /tmp/data/local_ci.example.sh
 ```
