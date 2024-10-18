@@ -95,7 +95,10 @@ function make_measurement() {
             unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
 
-            tags_as_json_list=$(echo "\"${FILTER_TAGS}\"" | sed s/,/\",\"/g)
+            tags_as_json_list=''
+            if [[ "$FILTER_TAGS" != '' ]]; then # prevent sending [""] array if empty
+              tags_as_json_list=$(echo "\"${FILTER_TAGS}\"" | sed s/,/\",\"/g)
+            fi
 
             curl -X POST "${API_ENDPOINT_ADD}" -H 'Content-Type: application/json' -d "{
                 \"energy_uj\":\"${value_uJ}\",
