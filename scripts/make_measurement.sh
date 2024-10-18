@@ -92,7 +92,6 @@ function make_measurement() {
             fi
 
             value_uJ=$(echo "$step_energy 1000000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
-            unit="mJ"
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
 
             tags_as_json_list=''
