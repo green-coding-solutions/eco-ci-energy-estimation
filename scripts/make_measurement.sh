@@ -89,7 +89,9 @@ function make_measurement() {
             CO2EQ_ENERGY=${CO2EQ_ENERGY:-}      # Default to an empty string if unset
 
             if [ -n "$CO2EQ_EMBODIED" ] && [ -n "$CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
-                CO2EQ=$(echo "$CO2EQ_EMBODIED $CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
+                carbon_ug=$(echo "$CO2EQ_EMBODIED $CO2EQ_ENERGY 1000000" | awk '{printf "%d", ($1 + $2) * $3 }')
+            else
+                carbon_ug='null'
             fi
 
             energy_uj=$(echo "$step_energy 1000000" | awk '{printf "%d", $1 * $2}' | cut -d '.' -f 1)
@@ -121,8 +123,8 @@ function make_measurement() {
                 \"lat\":\"${LAT:-""}\",
                 \"lon\":\"${LON:-""}\",
                 \"city\":\"${CITY:-""}\",
-                \"co2i\":\"${CO2I:-""}\",
-                \"co2eq\":\"${CO2EQ:-""}\"
+                \"carbon_intensity_g\":${CO2I:-"null"},
+                \"carbon_ug\":${carbon_ug}
             }"
         fi
 
