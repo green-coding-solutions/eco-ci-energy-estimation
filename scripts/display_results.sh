@@ -32,8 +32,9 @@ function display_results {
 
     cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
     total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
-    total_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
-    power_avg=$(echo "$total_energy $total_time" | awk '{printf "%.2f", $1 / $2}')
+    total_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
+    total_time_s=$(echo "$total_time_us 1000000" | awk '{printf "%.2f", $1 / $2}')
+    power_avg=$(echo "$total_energy $total_time_s" | awk '{printf "%.2f", $1 / $2}')
 
 
 
@@ -45,7 +46,7 @@ function display_results {
             echo "\"${CI_JOB_NAME}: Energy [Joules]:\" $total_energy" | tee -a $output metrics.txt
             echo "\"${CI_JOB_NAME}: Avg. CPU Utilization:\" $cpu_avg" | tee -a $output metrics.txt
             echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" $power_avg" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Duration [seconds]:\" $total_time" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Duration [seconds]:\" $total_time_s" | tee -a $output metrics.txt
             echo "----------------" >> $output
 
             for (( i=1; i<=$MEASUREMENT_COUNT; i++ )); do
@@ -59,7 +60,7 @@ function display_results {
             echo "Eco-CI Output: " >> $output_pr
             echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
             echo "|---|---|---|---|---|" | tee -a $output $output_pr
-            echo "|Total Run (incl. overhead)|$cpu_avg|$total_energy|$power_avg|$total_time|" | tee -a $output $output_pr
+            echo "|Total Run (incl. overhead)|$cpu_avg|$total_energy|$power_avg|$total_time_s|" | tee -a $output $output_pr
             #display measurument lines in table summary
             for (( i=1; i<=$MEASUREMENT_COUNT; i++ ))
             do
@@ -73,7 +74,7 @@ function display_results {
     if [[ ${CALCULATE_CO2} == 'true' ]]; then
         source "$(dirname "$0")/misc.sh"
         get_energy_co2 "$total_energy"
-        get_embodied_co2 "$total_time"
+        get_embodied_co2 "$total_time_s"
         read_vars # reload set vars
 
         # CO2 API might have failed or not set, so we only calculate total if it worked
@@ -119,7 +120,7 @@ function display_results {
         total_data_file="/tmp/eco-ci/total-data.json"
         echo "show create-and-add-meta.sh output"
         source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${total_data_file}"
-        source "$(dirname "$0")/add-data.sh" create_json_file "${total_data_file}" "TOTAL" "${cpu_avg}" "${total_energy}" "${power_avg}" "${total_time}"
+        source "$(dirname "$0")/add-data.sh" create_json_file "${total_data_file}" "TOTAL" "${cpu_avg}" "${total_energy}" "${power_avg}" "${total_time_s}"
     fi
 }
 

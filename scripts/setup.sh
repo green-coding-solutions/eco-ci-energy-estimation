@@ -13,7 +13,7 @@ function start_measurement {
     mkdir -p "/tmp/eco-ci"
 
     # start global timer
-    date +%s > /tmp/eco-ci/timer-total.txt
+    date "+%s%6N" > /tmp/eco-ci/timer-total.txt
     cat /tmp/eco-ci/timer-total.txt
     lap_measurement
 
@@ -68,7 +68,7 @@ function start_measurement {
 
 function lap_measurement {
     # start step timer
-    date +%s > /tmp/eco-ci/timer-step.txt
+    date "+%s%6N" > /tmp/eco-ci/timer-step.txt
 
     # start writing cpu utilization with actual sleep durations
     end_measurement

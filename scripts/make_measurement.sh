@@ -40,8 +40,9 @@ function make_measurement() {
     MEASUREMENT_COUNT=${MEASUREMENT_COUNT:-}
     WORKFLOW_ID=${WORKFLOW_ID:-}
 
-    # capture time
-    step_time=$(($(date +%s) - $(cat /tmp/eco-ci/timer-step.txt)))
+    # capture time - Note that we need 64 bit here!
+    step_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-step.txt)))
+    step_time_s=$(echo "$step_time_us 1000000" | awk '{printf "%.2f", $1 / $2}')
 
     # Capture current cpu util file and trim trailing empty lines from the file to not run into read/write race condition later
     sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
@@ -64,13 +65,13 @@ function make_measurement() {
 
         cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
         step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
-        power_avg=$(echo "$step_energy $step_time" | awk '{printf "%.2f", $1 / $2}')
+        power_avg=$(echo "$step_energy $step_time_s" | awk '{printf "%.2f", $1 / $2}')
 
         add_var "MEASUREMENT_${MEASUREMENT_COUNT}_LABEL" "$label"
         add_var "MEASUREMENT_${MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"
         add_var "MEASUREMENT_${MEASUREMENT_COUNT}_ENERGY" "$step_energy"
         add_var "MEASUREMENT_${MEASUREMENT_COUNT}_POWER_AVG" "$power_avg"
-        add_var "MEASUREMENT_${MEASUREMENT_COUNT}_TIME" "$step_time"
+        add_var "MEASUREMENT_${MEASUREMENT_COUNT}_TIME" "$step_time_s"
 
         echo $step_energy >> /tmp/eco-ci/energy-values.txt
 
@@ -80,7 +81,7 @@ function make_measurement() {
 
             source "$(dirname "$0")/misc.sh"
             get_energy_co2 "$step_energy"
-            get_embodied_co2 "$step_time"
+            get_embodied_co2 "$step_time_s"
             read_vars # reload set vars
 
             # CO2 API might have failed or not set, so we only calculate total if it worked
@@ -110,7 +111,7 @@ function make_measurement() {
                 \"label\":\"${label}\",
                 \"source\":\"${SOURCE}\",
                 \"cpu_util_avg\":\"${cpu_avg}\",
-                \"duration\":\"${step_time}\",
+                \"duration_us\":\"${step_time_us}\",
                 \"workflow_name\":\"${WORKFLOW_NAME}\",
                 \"filter_type\":\"${FILTER_TYPE}\",
                 \"filter_project\":\"${FILTER_PROJECT}\",
@@ -128,7 +129,7 @@ function make_measurement() {
             lap_data_file="/tmp/eco-ci/lap-data.json"
             echo "show create-and-add-meta.sh output"
             source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${lap_data_file}"
-            source "$(dirname "$0")/add-data.sh" create_json_file "${lap_data_file}" "${label}" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time}"
+            source "$(dirname "$0")/add-data.sh" create_json_file "${lap_data_file}" "${label}" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time_s}"
         fi
 
         # merge all current data to the totals file. This means we will include the overhead since we do it AFTER this processing block
