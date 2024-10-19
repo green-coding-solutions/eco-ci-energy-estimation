@@ -92,7 +92,8 @@ function make_measurement() {
                 CO2EQ=$(echo "$CO2EQ_EMBODIED $CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
             fi
 
-            value_uJ=$(echo "$step_energy 1000000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
+            energy_uj=$(echo "$step_energy 1000000" | awk '{printf "%d", $1 * $2}' | cut -d '.' -f 1)
+
             model_name_uri=$(echo $MODEL_NAME | jq -Rr @uri)
 
             tags_as_json_list=''
@@ -101,7 +102,7 @@ function make_measurement() {
             fi
 
             curl -X POST "${API_ENDPOINT_ADD}" -H 'Content-Type: application/json' -d "{
-                \"energy_uj\":\"${value_uJ}\",
+                \"energy_uj\":\"${energy_uj}\",
                 \"cpu\":\"${model_name_uri}\",
                 \"commit_hash\":\"${COMMIT_HASH}\",
                 \"repo\":\"${REPOSITORY}\",
