@@ -106,7 +106,7 @@ runs:
         workflow_id=${workflow_id:-"not_set"}
         workflow_name=${workflow_name:-"not_set"}
 
-        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.type }}" "${{ inputs.project }}" "${{ inputs.machine }}" "${{ inputs.tags }}" "${{ inputs.calculate-co2 }}" "${{ inputs.json-output }}" "${{ inputs.api-endpoint-add }}" "${{ inputs.api-endpoint-badge-get }}"
+        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.type }}" "${{ inputs.project }}" "${{ inputs.machine }}" "${{ inputs.tags }}" "${{ inputs.calculate-co2 }}" "${{ inputs.authentication-token }}" "${{ inputs.json-output }}" "${{ inputs.api-endpoint-add }}" "${{ inputs.api-endpoint-badge-get }}"
 
     - if:  inputs.task == 'get-measurement'
       id: run-lap-model

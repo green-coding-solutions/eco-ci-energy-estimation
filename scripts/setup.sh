@@ -36,8 +36,8 @@ function start_measurement {
     add_var 'ECO_CI_CALCULATE_CO2' "${14}"
     add_var 'ECO_CI_API_AUTHENTICATION_TOKEN' "${15}"
     add_var 'ECO_CI_JSON_OUTPUT' "${16}"
-    add_var 'ECO_CI_API_ENDPOINT_ADD' ${17}
-    add_var 'ECO_CI_API_ENDPOINT_BADGE_GET' ${18}
+    add_var 'ECO_CI_API_ENDPOINT_ADD' "${17}"
+    add_var 'ECO_CI_API_ENDPOINT_BADGE_GET' "${18}"
 
     touch /tmp/eco-ci/cpu-util-step.txt
     touch /tmp/eco-ci/cpu-util-total.txt
