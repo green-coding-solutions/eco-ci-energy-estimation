@@ -44,7 +44,7 @@ function start_measurement {
     touch /tmp/eco-ci/energy-total.txt
     touch /tmp/eco-ci/timer-step.txt
 
-    if [[ "${13}" == 'true' ]]; then
+    if [[ "${14}" == 'true' ]]; then
         source "$(dirname "$0")/misc.sh"
         get_geoip # will set $GEO_CITY, $GEO_LAT, $GEO_LONG and $GEO_IP
         read_vars # reload set vars
