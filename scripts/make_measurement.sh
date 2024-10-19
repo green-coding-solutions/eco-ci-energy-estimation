@@ -25,7 +25,7 @@ function make_inference() {
         echo 'Using legacy mode inference'
         while read -r read_var_time read_var_util; do
             # The pattern contains a . and [ ] but this no problem as no other dot appears anywhere
-            power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap[$read_var_util]" ' 0 ~ pattern { print $2 }' $ECO_CI_MACHINE_POWER_DATA)
+            power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap\\[${read_var_util}\\]" ' $0 ~ pattern { print $2 }' $ECO_CI_MACHINE_POWER_DATA)
             echo "${read_var_time} ${power_value}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-step.txt
         done < /tmp/eco-ci/cpu-util-temp.txt
     fi
@@ -51,7 +51,7 @@ function make_measurement() {
     if [[ $(wc -l < /tmp/eco-ci/cpu-util-temp.txt) -gt 0 ]]; then
         make_inference # will populate /tmp/eco-ci/energy-step.txt
 
-        if [[ $ECO_CI_MEASUREMENT_COUNT == '' ]]; then
+        if [[ -z $ECO_CI_MEASUREMENT_COUNT ]]; then
             ECO_CI_MEASUREMENT_COUNT=1
             add_var 'ECO_CI_MEASUREMENT_COUNT' $ECO_CI_MEASUREMENT_COUNT
         else
@@ -59,7 +59,7 @@ function make_measurement() {
             add_var 'ECO_CI_MEASUREMENT_COUNT' $ECO_CI_MEASUREMENT_COUNT
         fi
 
-        if [[ "$label" == '' ]]; then
+        if [[ -z $label ]]; then
             label="Measurement #${ECO_CI_MEASUREMENT_COUNT}"
         fi
 

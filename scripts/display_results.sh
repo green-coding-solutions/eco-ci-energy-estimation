@@ -26,10 +26,6 @@ function display_results {
         return 1
     fi
 
-    # TODO: Hier müsste ich eigentlich mal stop measurement machen!!!!
-    # Und die Overheads von Energy auch richtig kalkulieren!
-    # und power_acc ist doppelt! hier kann ich auch total_energy nehmen
-
     cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
     total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
     total_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
@@ -93,7 +89,7 @@ function display_results {
             echo "City: <b>${ECO_CI_GEO_CITY}</b>, Lat: <b>${ECO_CI_GEO_LAT}</b>, Lon: <b>${ECO_CI_GEO_LON}</b>" | tee -a $output $output_pr
             echo "IP: <b>${ECO_CI_GEO_IP}</b>" | tee -a $output $output_pr
             echo "CO₂ from energy is: ${ECO_CI_CO2EQ_ENERGY} g" | tee -a $output $output_pr
-            echo "CO₂ from manufacturing (embodied carbon) is: ${CO2EQ_EMBODIED} g" | tee -a $output $output_pr
+            echo "CO₂ from manufacturing (embodied carbon) is: ${ECO_CI_CO2EQ_EMBODIED} g" | tee -a $output $output_pr
             echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>${ECO_CI_CO2I} gCO₂eq/kWh</b>" | tee -a $output $output_pr
             printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" ${ECO_CI_CO2EQ} | tee -a $output $output_pr
         else
