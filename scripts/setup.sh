@@ -80,6 +80,14 @@ function end_measurement {
     pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization.sh"  || true;
 }
 
+if [[ $# -lt 19 ]]; then
+    echo "Error: Insufficient arguments provided. Listing supplied arguments:"
+    for arg in "$@"; do
+      echo "Argument: $arg"
+    done
+    exit 1
+fi
+
 option="$1"
 case $option in
   start_measurement)
