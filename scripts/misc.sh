@@ -49,7 +49,8 @@ get_carbon_intensity() {
 
     co2_intensity=$(echo "$response" | jq '.carbonIntensity')
 
-    add_var 'ECO_CI_ECO_CI_CO2I' "$co2_intensity"
+    echo "Carbon Intesity from API is ${co2_intensity}"
+    add_var 'ECO_CI_CO2I' "$co2_intensity"
 }
 
 get_embodied_co2 (){

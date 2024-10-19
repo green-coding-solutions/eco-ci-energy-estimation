@@ -67,11 +67,11 @@ function make_measurement() {
         step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
         power_avg=$(echo "$step_energy $step_time_s" | awk '{printf "%.2f", $1 / $2}')
 
-        add_var "MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_LABEL" "$label"
-        add_var "MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"
-        add_var "MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_ENERGY" "$step_energy"
-        add_var "MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_POWER_AVG" "$power_avg"
-        add_var "MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_TIME" "$step_time_s"
+        add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_LABEL" "$label"
+        add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"
+        add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_ENERGY" "$step_energy"
+        add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_POWER_AVG" "$power_avg"
+        add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_TIME" "$step_time_s"
 
         echo $step_energy >> /tmp/eco-ci/energy-values.txt
 
