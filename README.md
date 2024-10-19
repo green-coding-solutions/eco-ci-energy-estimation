@@ -107,15 +107,21 @@ jobs:
         - `gh-api-base`: (optional) (default: 'api.github.com')
             - Eco-CI uses the github api to post/edit PR comments and get the workflow id
             - set to github's default api, but can be changed if you are using github enterprise
-        - `company-uuid`: (optional)
-            - If you want to add your CI/CD runs to the [CarbonDB](https://www.green-coding.io/projects/carbondb/) you can set your company uuid here. If you set this all your runs will be found for your company. Please note that if your CI is public your company uuid will be exposed and other people could check your CO2 footprint. We recommend setting these variables as GitHub secrets in this case.
+        - `type`: (optional)
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "machine.ci".[CarbonDB](https://www.green-coding.io/projects/carbondb/)
             - Please note that we will add the label as a tag so you can see which steps generated how much CO2
-        - `project-uuid`: (optional)
-            - If you want to group your CI/CD runs by project
-        - `machine-uuid`: (optional)
-            - If you want to make the runs look like they all ran on the same machine. This is not recommended as it will not be accurate but can be helpful for debugging.
-            - Leave this field empty if you want an auto-generated value
-
+        - `project`: (optional)
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "CI/CD".[CarbonDB](https://www.green-coding.io/projects/carbondb/)
+        - `machine`: (optional)
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "ubuntu-latest".[CarbonDB](https://www.green-coding.io/projects/carbondb/)
+        - `tags`: (optional)
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set tags for drill-down later. Please supply comma separated. Tags cannot have commas itself or contain quotes. Defaults to empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
+        - `authentication-token`: (optional)
+            - If you are not using the default user for the GMT API supply your auth token. We recommend to have this as a GitHub Secret.
+        - `api-endpoint-add`: (optional)
+            - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v2/ci/measurement/add"
+        - `api-endpoint-badge-get`: (optional)
+            - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io//v1/ci/badge/get
 
 - `get-measurement`: Measures the energy at this point in time since either the start-measurement or last get-measurement action call.
     - `label`: (optional) (default: 'measurement ##')

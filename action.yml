@@ -60,12 +60,16 @@ inputs:
       description: 'If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set tags for drill-down later. Please supply comma separated. Tags cannot have commas itself or contain quotes. Defaults to empty'
       default: ''
       required: false
+  authentication-token:
+      description: 'If you are not using the default user for the GMT API supply your auth token. We recommend to have this as a GitHub Secret'
+      default: ''
+      required: false
   api-endpoint-add:
-      description: 'When using the GMT Dasboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v2/ci/measurement/add"'
+      description: 'When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v2/ci/measurement/add"'
       default: 'https://api.green-coding.io/v2/ci/measurement/add'
       required: false
   api-endpoint-badge-get:
-      description: 'When using the GMT Dasboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io//v1/ci/badge/get'
+      description: 'When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io//v1/ci/badge/get'
       default: 'https://api.green-coding.io/v1/ci/badge/get'
       required: false
 
@@ -102,7 +106,7 @@ runs:
         workflow_id=${workflow_id:-"not_set"}
         workflow_name=${workflow_name:-"not_set"}
 
-        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.type }}" "${{ inputs.project }}" "${{ inputs.machine }}" "${{ inputs.tags }}" "${{ inputs.calculate-co2 }}" "${{ inputs.json-output }}" "${{ inputs.api-endpoint-add }}" "${{ inputs.api-endpoint-badge-get }}"
+        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.type }}" "${{ inputs.project }}" "${{ inputs.machine }}" "${{ inputs.tags }}" "${{ inputs.calculate-co2 }}" "${{ inputs.authentication-token }}" "${{ inputs.json-output }}" "${{ inputs.api-endpoint-add }}" "${{ inputs.api-endpoint-badge-get }}"
 
     - if:  inputs.task == 'get-measurement'
       id: run-lap-model

@@ -19,6 +19,8 @@ ECO_CI_FILTER_TAGS='' # Tags must be comma separated. Tags cannot have commas it
 ECO_CI_CALCULATE_CO2='true'
 ECO_CI_JSON_OUTPUT='true'
 
+ECO_CI_API_AUTHENTICATION_TOKEN=''
+
 # Change this to a local installation of the GMT if you have
 ECO_CI_API_ENDPOINT_ADD='https://api.green-coding.io/v2/ci/measurement/add'
 ECO_CI_API_BADGE_GET='https://api.green-coding.io/v1/ci/badge/get'
@@ -29,14 +31,14 @@ ECO_CI_MACHINE_POWER_DATA="default.sh"
 # Initialize
 echo "Initialize"
 
-$shell "$(dirname "$0")/scripts/setup.sh" start_measurement "$ECO_CI_MACHINE_POWER_DATA" "MY_RUN_ID" "NO_BRANCH" "LOCAL_TEST_REPO" "$ECO_CI_WORKFLOW_ID" "MY WORKFLOW NAME" "NO SHA" "local" "$ECO_CI_SEND_DATA" "$ECO_CI_FILTER_TYPE" "$ECO_CI_FILTER_PROJECT" "$ECO_CI_FILTER_MACHINE" "$ECO_CI_FILTER_TAGS" "$ECO_CI_CALCULATE_CO2" "$ECO_CI_JSON_OUTPUT" "$ECO_CI_API_ENDPOINT_ADD" "$ECO_CI_API_BADGE_GET"
+$shell "$(dirname "$0")/scripts/setup.sh" start_measurement "$ECO_CI_MACHINE_POWER_DATA" "MY_RUN_ID" "NO_BRANCH" "LOCAL_TEST_REPO" "$ECO_CI_WORKFLOW_ID" "MY WORKFLOW NAME" "NO SHA" "local" "$ECO_CI_SEND_DATA" "$ECO_CI_FILTER_TYPE" "$ECO_CI_FILTER_PROJECT" "$ECO_CI_FILTER_MACHINE" "$ECO_CI_FILTER_TAGS" "$ECO_CI_CALCULATE_CO2" "$ECO_CI_API_AUTHENTICATION_TOKEN" "$ECO_CI_JSON_OUTPUT" "$ECO_CI_API_ENDPOINT_ADD" "$ECO_CI_API_BADGE_GET"
 
-echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
 # Do some work
 echo "Sleeping"
 sleep 2s
-echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
 
 $shell "$(dirname "$0")/scripts/make_measurement.sh" make_measurement "My_label"
@@ -44,17 +46,17 @@ $shell "$(dirname "$0")/scripts/make_measurement.sh" make_measurement "My_label"
 # Do some other work
 echo "ls -alhR"
 timeout 3s ls -alhR / &> /dev/null || true
-echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
 echo "Sleeping "
 sleep 1
-echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
 $shell "$(dirname "$0")/scripts/make_measurement.sh" make_measurement "other label"
 #"My other label"
 
 echo "Display Results"
-echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
 # Display results
 ECO_CI_FORMAT_CLR="\e[44m"
@@ -76,7 +78,7 @@ fi
 
 echo -e "\n"
 echo -e "$ECO_CI_FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$ECO_CI_TXT_CLEAR"
-echo "Duration: "$(($(date +%s) - $(cat /tmp/eco-ci/timer-total.txt)))
+echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
 $shell "$(dirname "$0")/scripts/setup.sh" end_measurement
 

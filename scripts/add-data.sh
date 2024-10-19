@@ -17,11 +17,11 @@ function create_json_file() {
     # Define the data point to add to the JSON file
     NEW_STEP=$(cat <<EOM
     {
-        "label": "$label",
-        "cpu_avg_percent": "$cpu",
-        "energy_joules": "$energy",
-        "power_avg_watts": "$power",
-        "time": "$time"
+        "label": "${label}",
+        "cpu_avg_percent": "${cpu}",
+        "energy_joules": "${energy}",
+        "power_avg_watts": "${power}",
+        "time": "${time}"
     }
 EOM
     )
