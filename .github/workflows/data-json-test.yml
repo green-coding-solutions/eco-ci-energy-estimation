@@ -26,6 +26,11 @@ jobs:
         with:
           task: start-measurement
           json-output: true
+          project: "Eco-CI"
+          machine: "ubuntu-latest"
+          tags: "CI/CD,JSON-Workflow"
+          gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
+          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -41,7 +46,6 @@ jobs:
         with:
           task: get-measurement
           label: 'node setup'
-          send-data: false
 
       - name: Print node setup data
         run: |
@@ -88,7 +92,6 @@ jobs:
         with:
           task: get-measurement
           label: "sleep"
-          send-data: false
 
       - name: Print sleep data
         run: |
@@ -126,12 +129,18 @@ jobs:
             exit 1
           fi
 
+      - name: Final
+        uses: ./
+        with:
+          task: get-measurement
+          label: "final"
+
+      # must be called here, otherwise we cannot access JSON
       - name: Eco CI Energy Estimation
         id: data-total
         uses: ./
         with:
           task: display-results
-          send-data: false
 
       - name: Print total data
         run: |

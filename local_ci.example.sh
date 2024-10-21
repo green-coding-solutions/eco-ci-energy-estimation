@@ -11,7 +11,7 @@ ECO_CI_WORKFLOW_ID='YOUR WORKFLOW ID'
 
 # If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set data for drill-down later
 # The values given are just some default recommendations
-ECO_CI_FILTER_TYPE=''
+ECO_CI_FILTER_TYPE='machine.ci'
 ECO_CI_FILTER_PROJECT='CI/CD'
 ECO_CI_FILTER_MACHINE='local-runner'
 ECO_CI_FILTER_TAGS='' # Tags must be comma separated. Tags cannot have commas itself or contain quotes

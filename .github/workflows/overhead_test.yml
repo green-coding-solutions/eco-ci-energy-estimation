@@ -17,6 +17,16 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04]
     steps:
+      - name: Initialize Energy Estimation
+        uses: ./
+        with:
+          task: start-measurement
+          project: "Eco-CI"
+          machine: "ubuntu-latest"
+          tags: "CI/CD,Overhead-Test-Workflow"
+          gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
+          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
@@ -32,3 +42,12 @@ jobs:
       - name: Sleep 3
         run: sleep 3
 
+      - name: Final
+        uses: ./
+        with:
+          task: get-measurement
+
+      - name: Eco CI Energy Estimation
+        uses: ./
+        with:
+          task: display-results

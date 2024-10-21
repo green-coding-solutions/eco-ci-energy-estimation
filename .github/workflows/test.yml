@@ -42,7 +42,9 @@ jobs:
           task: start-measurement
           project: "Eco-CI"
           machine: "ubuntu-latest"
-          tags: "CI/CD"
+          tags: "CI/CD,Test PR & Periodic-Workflow"
+          gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
+          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
 
       - name: Sleep step
         run: sleep 2
@@ -125,11 +127,13 @@ jobs:
         run: |
           cat /tmp/eco-ci/energy-total.txt
 
+      - name: Final
+        uses: ./
+        with:
+          task: get-measurement
 
       - name: Eco CI Energy Estimation
         uses: ./
-        env:
-          ELECTRICITY_MAPS_TOKEN: ${{ secrets.ELECTRICITY_MAPS_TOKEN }}
         with:
           task: display-results
           pr-comment: true
