@@ -43,7 +43,6 @@ jobs:
           project: "Eco-CI"
           machine: "ubuntu-latest"
           tags: "CI/CD"
-          api-endpoint-add: "http://api-478gtuzwbe72.green-coding.io:9142/v2/ci/measurement/add"
 
       - name: Sleep step
         run: sleep 2
