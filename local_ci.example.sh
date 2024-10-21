@@ -19,7 +19,8 @@ ECO_CI_FILTER_TAGS='' # Tags must be comma separated. Tags cannot have commas it
 ECO_CI_CALCULATE_CO2='true'
 ECO_CI_JSON_OUTPUT='true'
 
-ECO_CI_API_AUTHENTICATION_TOKEN=''
+ECO_CI_GMT_API_TOKEN=''
+ECO_CI_ELECTRICITYMAPS_API_TOKEN=''
 
 # Change this to a local installation of the GMT if you have
 ECO_CI_API_ENDPOINT_ADD='https://api.green-coding.io/v2/ci/measurement/add'
@@ -31,7 +32,7 @@ ECO_CI_MACHINE_POWER_DATA="default.sh"
 # Initialize
 echo "Initialize"
 
-$shell "$(dirname "$0")/scripts/setup.sh" start_measurement "$ECO_CI_MACHINE_POWER_DATA" "MY_RUN_ID" "NO_BRANCH" "LOCAL_TEST_REPO" "$ECO_CI_WORKFLOW_ID" "MY WORKFLOW NAME" "NO SHA" "local" "$ECO_CI_SEND_DATA" "$ECO_CI_FILTER_TYPE" "$ECO_CI_FILTER_PROJECT" "$ECO_CI_FILTER_MACHINE" "$ECO_CI_FILTER_TAGS" "$ECO_CI_CALCULATE_CO2" "$ECO_CI_API_AUTHENTICATION_TOKEN" "$ECO_CI_JSON_OUTPUT" "$ECO_CI_API_ENDPOINT_ADD" "$ECO_CI_API_BADGE_GET"
+$shell "$(dirname "$0")/scripts/setup.sh" start_measurement "$ECO_CI_MACHINE_POWER_DATA" "MY_RUN_ID" "NO_BRANCH" "LOCAL_TEST_REPO" "$ECO_CI_WORKFLOW_ID" "MY WORKFLOW NAME" "NO SHA" "local" "$ECO_CI_SEND_DATA" "$ECO_CI_FILTER_TYPE" "$ECO_CI_FILTER_PROJECT" "$ECO_CI_FILTER_MACHINE" "$ECO_CI_FILTER_TAGS" "$ECO_CI_CALCULATE_CO2" "$ECO_CI_GMT_API_TOKEN" "$ECO_CI_ELECTRICITYMAPS_API_TOKEN" "$ECO_CI_JSON_OUTPUT" "$ECO_CI_API_ENDPOINT_ADD" "$ECO_CI_API_BADGE_GET"
 
 echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 

@@ -34,10 +34,11 @@ function start_measurement {
     add_var 'ECO_CI_FILTER_MACHINE' "${12}"
     add_var 'ECO_CI_FILTER_TAGS' "${13}"
     add_var 'ECO_CI_CALCULATE_CO2' "${14}"
-    add_var 'ECO_CI_API_AUTHENTICATION_TOKEN' "${15}"
-    add_var 'ECO_CI_JSON_OUTPUT' "${16}"
-    add_var 'ECO_CI_API_ENDPOINT_ADD' "${17}"
-    add_var 'ECO_CI_API_ENDPOINT_BADGE_GET' "${18}"
+    add_var 'ECO_CI_GMT_API_TOKEN' "${15}"
+    add_var 'ECO_CI_ELECTRICITYMAPS_API_TOKEN' "${16}"
+    add_var 'ECO_CI_JSON_OUTPUT' "${17}"
+    add_var 'ECO_CI_API_ENDPOINT_ADD' "${18}"
+    add_var 'ECO_CI_API_ENDPOINT_BADGE_GET' "${19}"
 
     touch /tmp/eco-ci/cpu-util-step.txt
     touch /tmp/eco-ci/cpu-util-total.txt
@@ -47,9 +48,9 @@ function start_measurement {
 
     if [[ "${14}" == 'true' ]]; then
         source "$(dirname "$0")/misc.sh"
-        get_geoip # will set $GEO_CITY, $GEO_LAT, $GEO_LONG and $GEO_IP
+        get_geoip # will set $ECO_CI_GEO_CITY, $ECO_CI_GEO_LAT, $ECO_CI_GEO_LONG and $ECO_CI_GEO_IP
         read_vars # reload set vars
-        get_carbon_intensity # will set $CO2_INTENSITY
+        get_carbon_intensity # will set $ECO_CI_CO2I
     fi
 
     # Capture current cpu util file and trim trailing empty lines from the file to not run into read/write race condition later
@@ -93,7 +94,7 @@ fi
 
 case $option in
   start_measurement)
-    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}" "${16}" "${17}" "${18}" "${19}"
+    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}" "${16}" "${17}" "${18}" "${19}" "${20}"
     ;;
   lap_measurement)
     lap_measurement

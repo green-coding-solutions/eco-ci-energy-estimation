@@ -116,13 +116,14 @@ jobs:
             - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "ubuntu-latest".[CarbonDB](https://www.green-coding.io/projects/carbondb/)
         - `tags`: (optional)
             - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set tags for drill-down later. Please supply comma separated. Tags cannot have commas itself or contain quotes. Defaults to empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
-        - `authentication-token`: (optional)
+        - `gmt-api-token`: (optional)
             - If you are not using the default user for the GMT API supply your auth token. We recommend to have this as a GitHub Secret.
         - `api-endpoint-add`: (optional)
             - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v2/ci/measurement/add"
         - `api-endpoint-badge-get`: (optional)
             - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io//v1/ci/badge/get
-
+        - `electricitymaps-api-token`: (optional)
+            - API token for electricitymaps in case you get rate-limited. See details below.
 - `get-measurement`: Measures the energy at this point in time since either the start-measurement or last get-measurement action call.
     - `label`: (optional) (default: 'measurement ##')
 
@@ -142,19 +143,9 @@ jobs:
 
 We use https://app.electricitymaps.com/ to get the grid intensity for a given location. This service currently works without specifying a token but we recommend to still get one under https://api-portal.electricitymaps.com/
 
-You will need to set this token as a secret `ELECTRICITY_MAPS_TOKEN`. See the documentation how to do this https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
+You will need to set this token as a secret and pass it in the initalization. To learn how to create a secret see the GitHub documentation: https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
 
-You will also need to set it in your workflow files where you call `display-results` and `get-measurement`:
-```
-  - name: Eco CI Energy Estimation
-    uses: ./
-    env:
-      ELECTRICITY_MAPS_TOKEN: ${{ secrets.ELECTRICITY_MAPS_TOKEN }}
-    with:
-      task: display-results
-      pr-comment: true
-
-```
+You will then need to pass it in your workflow files in the initialization. See documentation above.
 
 #### Continuing on Errors
 
