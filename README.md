@@ -108,12 +108,11 @@ jobs:
             - Eco-CI uses the github api to post/edit PR comments and get the workflow id
             - set to github's default api, but can be changed if you are using github enterprise
         - `type`: (optional)
-            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "machine.ci".[CarbonDB](https://www.green-coding.io/projects/carbondb/)
-            - Please note that we will add the label as a tag so you can see which steps generated how much CO2
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "machine.ci". Cannot be empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
         - `project`: (optional)
-            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "CI/CD".[CarbonDB](https://www.green-coding.io/projects/carbondb/)
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "CI/CD". Cannot be empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
         - `machine`: (optional)
-            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "ubuntu-latest".[CarbonDB](https://www.green-coding.io/projects/carbondb/)
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "ubuntu-latest". Cannot be empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
         - `tags`: (optional)
             - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set tags for drill-down later. Please supply comma separated. Tags cannot have commas itself or contain quotes. Defaults to empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
         - `gmt-api-token`: (optional)
