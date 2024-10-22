@@ -12,6 +12,14 @@ function start_measurement {
     fi
     mkdir -p "/tmp/eco-ci"
 
+    # check if date returns a timestamp accurate to microseconds (16 digits)
+    # if not probably coreutils are missing (that's the case with alpine)
+    microseconds=$(date "+%s%6N")
+    if (( ${#microseconds} < 16 )); then
+      echo "ERROR: Date has returned a timestamp that is not accurate to microseconds! You may need to install coreutils."
+      exit 1
+    fi
+
     # start global timer
     date "+%s%6N" > /tmp/eco-ci/timer-total.txt
     cat /tmp/eco-ci/timer-total.txt
