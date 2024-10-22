@@ -3,11 +3,14 @@
 Eco-CI is a project aimed at estimating energy consumption in continuous integration (CI) environments. It provides functionality to calculate the energy consumption of CI jobs based on the power consumption characteristics of the underlying hardware.
 
 
-## Requirements
+## Requirements / Dependencies
 Following packages are expected:
 - `curl`
 - `jq`
-- `awk`
+- `awk` - Install `gawk` if you are on alpine
+- `date` with microsecond support. On *alpine* this means installing `coreutils`
+- `bc`
+- `bash` > 4.0
 
 ## Usage
 
@@ -249,7 +252,7 @@ If you have trouble finding out the splitting factor for your system: [Open an i
 Once you have the file ready we are happy to merge it in through a PR! In future versions we also plan to include a loading mechanism, where you can just
 ingest a file from your repository without having to upstream it with us. But since this is a community open source plugin upstream is preferred, right :)
 
-### GitLab:
+### GitLab
 To use Eco-CI in your GitLab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
 ```
 include:
@@ -274,7 +277,9 @@ variables:
   ECO_CI_SEND_DATA: "false"
 ```
 
-Then, for each job you need to export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of GitLab's [Metric Report](https://docs.gitlab.com/ee/ci/testing/metrics_reports.html) artifact (which we output to the default metrics.txt):
+
+### Artifacts for GitLab
+For each job you can export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of GitLab's [Metric Report](https://docs.gitlab.com/ee/ci/testing/metrics_reports.html) artifact (which we output to the default metrics.txt):
 
 ```
 artifacts:
@@ -285,52 +290,29 @@ artifacts:
       metrics: metrics.txt
 ```
 
-Here is a sample .gitlab-ci.yml example file to illustrate:
+### Gitlab sample file
 
-```
-image: ubuntu:22.04
-include:
-  remote: 'https://raw.githubusercontent.com/green-coding-solutions/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
-
-stages:
-  - test
-
-test-job:
-  stage: test
-  script:
-    - !reference [.start_measurement, script]
-
-    - sleep 10s # Your main pipeline logic here
-    - export ECO_CI_LABEL="measurement 1"
-    - !reference [.get_measurement, script]
-
-    - sleep 3s # more of your pipeline logic here
-    - export ECO_CI_LABEL="measurement 2"
-    - !reference [.get_measurement, script]
-
-    - !reference [.display_results, script]
-
-  artifacts:
-    paths:
-      - eco-ci-output.txt
-    reports:
-      metrics: metrics.txt
-  ```
+Please look at [.gitlab-ci.yml.example](.gitlab-ci.yml.example)
 
 
-### How does it work?
+## How does it work?
 - The Eco-CI at its core makes its energy estimations based on pre-calculated power curves from [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy)
 - When you initialize the Eco-CI, starts a small bash script to track the cpu utilization over a period of time. This tracking begins when you call the start-measurement function. Then, each time you call get-measurement, it will take the cpu-utilization data collected (either from the start, or since the last get-measurement call) and make an energy estimation based on the detected hardware and CPU utilization.
 
-### Limitations / Compatibility
+## Limitations / Compatibility
 - At the moment this will only work with linux based pipelines, mainly tested on ubuntu images.
   + The plugin is tested on:
-  + `ubuntu-latest` (22.04 at the time of writing)
-  + `ubuntu-24.04`
-  + `ubuntu-20.04`
-  + [Autoscaling Github Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners/managing-larger-runners#configuring-autoscaling-for-larger-runners) are not supported 
+  + GitHub
+      + `ubuntu-latest` (GitHub - 22.04 at the time of writing)
+      + `ubuntu-24.04` (GitHub)
+      + `ubuntu-20.04` (GitHub)
+      + [Autoscaling Github Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners/managing-larger-runners#configuring-autoscaling-for-larger-runners) are not supported
+      + The plugin technically supports large runners, but they will need extra pre-calculated power curved. Contact us if you need them and we are happy to bring them in!
+  + GitLab
+      + `saas-linux-small-amd64` (GitLab)
+  + Generic
+      + `alpine` (Install dependencies before - See above)
   + Also Windows and macOS are currently not supported.
-  + The plugin technically supports large runners, but they will need extra pre-calculated power curved. Contact us if you need them and we are happy to bring them in!
 
 - If you use Alpine, you must install coreutils so that time logging with date is possible with an accuracy of microseconds (`apk add coreutils`)
 

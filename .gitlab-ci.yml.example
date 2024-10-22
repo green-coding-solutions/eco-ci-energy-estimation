@@ -6,35 +6,32 @@ include:
 stages:
   - test
 
+before_script:
+  - apt-get update
+  - apt-get install git jq curl -y # git, jq and curl are dependencies for Eco-CI
 
 test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   script:
-    #- export ECO_CI_COMPANY_UUID="YOUR COMPANY UUID"
-    #- export ECO_CI_PROJECT_UUID="YOUR PROJECT UUID"
-    #- export ECO_CI_MACHINE_UUID="YOUR MACHINE UUID"
-
-    - apt-get update
-    - apt-get install git jq curl -y # git, jq and curl are a depedency for Eco-CI as we need to clone the gitlab repo
 
     - !reference [.start_measurement, script]
-    - sleep 2
-    - export ECO_CI_LABEL="Sleep 2"
-    - ls -alh /tmp/eco-ci
-    - echo "Step"
-    - cat /tmp/eco-ci/cpu-util-step.txt
-    - !reference [.get_measurement, script]
-    - echo "Total"
-    - cat /tmp/eco-ci/cpu-util-total.txt
-    - echo "Energy"
-    - cat /tmp/eco-ci/energy-step.txt
 
-    - timeout 10s grep -R xxx / 1> /dev/null 2>/dev/null || true
-    - export ECO_CI_LABEL="grep with timeout"
-    - !reference [.get_measurement, script]
-    - !reference [.display_results, script]
+    - sleep 2 # Placeholder for your main pipeline logic
+
+    - export ECO_CI_LABEL="Sleep 2" # Set a custom name for a step
+
+    - !reference [.get_measurement, script] # take a measurement
+
+    - sleep 10s # Placeholder for more main pipeline logic here
+
+    - export ECO_CI_LABEL="Sleep 10"
+    - !reference [.get_measurement, script] # Take another measurement
+
+    - !reference [.display_results, script] # Show the results
 
   artifacts:
     paths:
       - eco-ci-output.txt
-      - metrics.txt
+      - eco-ci-total-data.json # only if you have JSON output active
+    reports:
+      metrics: metrics.txt
