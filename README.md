@@ -9,7 +9,6 @@ Following packages are expected:
 - `jq`
 - `awk` - Install `gawk` if you are on alpine
 - `date` with microsecond support. On *alpine* this means installing `coreutils`
-- `bc`
 - `bash` > 4.0
 
 ## Usage
