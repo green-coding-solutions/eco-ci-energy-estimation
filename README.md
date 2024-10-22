@@ -295,6 +295,10 @@ include:
 stages:
   - test
 
+before_script:
+  - apt-get update
+  - apt-get install git jq curl -y # git, jq and curl are dependencies for Eco-CI
+
 test-job:
   stage: test
   script:
