@@ -7,9 +7,10 @@ Eco-CI is a project aimed at estimating energy consumption in continuous integra
 Following packages are expected:
 - `curl`
 - `jq`
-- `awk` - Install `gawk` if you are on alpine
+- `awk`
 - `date` with microsecond support. On *alpine* this means installing `coreutils`
 - `bash` > 4.0
+- `git` only if you use GitLab
 
 ## Usage
 
