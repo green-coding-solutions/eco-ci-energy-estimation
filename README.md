@@ -36,27 +36,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4 # use hash or @vX here (See note below)
         with:
           task: start-measurement
         # continue-on-error: true # recommended setting for production. See notes below.
 
 
       - name: 'Checkout repository'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'dev'
           submodules: 'true'
 
       - name: Checkout Repo Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'repo checkout'
         # continue-on-error: true # recommended setting for production. See notes below.
 
       - name: setup python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
@@ -67,7 +67,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup Python Measurment
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'python setup'
@@ -79,14 +79,14 @@ jobs:
           pytest
 
       - name: Tests measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'pytest'
         # continue-on-error: true # recommended setting for production. See notes below.
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4 # use hash or @vX here (See note below)
         with:
           task: display-results
         # continue-on-error: true # recommended setting for production. See notes below.
@@ -156,7 +156,7 @@ with `continue-on-error:true`, as energy and CO2 metrics is not critical to the 
 
 ```yaml
       - name: Eco CI Energy Estimation
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
         with:
           task: final-measurement
         continue-on-error: true
@@ -174,13 +174,13 @@ Here is an example demonstrating how this can be achieved:
 ```yaml
       # ...
       - name: 'Checkout repository'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'dev'
           submodules: 'true'
 
       - name: Checkout Repo Measurment
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
         id: checkout-step
         with:
           task: get-measurement
@@ -191,7 +191,7 @@ Here is an example demonstrating how this can be achieved:
           echo "total json: ${{ steps.checkout-step.outputs.data-lap-json }}"
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
         id: total-measurement-step
         with:
           task: display-results
@@ -213,7 +213,7 @@ jobs:
       actions: read
     steps:
       - name: Eco CI - Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
         with:
           task: start-measurement
  ```
@@ -326,8 +326,8 @@ See also our [work on analysing fixed frequency in Cloud Providers and CI/CD](ht
 
 ### Note on the integration / Auto-Updates
 - If you want the extension to automatically update within a version number, use the convenient @vX form. 
-  + `uses: green-coding-solutions/eco-ci-energy-estimation@v3 # will pick the latest minor v3.x`
-  + In case of a major change from @v3 to @v4 you need to upgrade manually. The upside is: If you use dependabot it will create a PR for you as it understands the notation
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@v4 # will pick the latest minor v3.x`
+  + In case of a major change from @v4 to @v5 you need to upgrade manually. The upside is: If you use dependabot it will create a PR for you as it understands the notation
     
 - If you want to pin the dependency and want to audit every release we recommend using the hash notation
   + `uses: green-coding-solutions/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #resolves to v2.2`
