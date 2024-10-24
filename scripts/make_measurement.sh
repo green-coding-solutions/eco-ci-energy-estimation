@@ -124,9 +124,10 @@ function make_measurement() {
                 \"filter_project\":\"${ECO_CI_FILTER_PROJECT}\",
                 \"filter_machine\":\"${ECO_CI_FILTER_MACHINE}\",
                 \"filter_tags\":[${tags_as_json_list}],
-                \"lat\":\"${ECO_CI_LAT:-""}\",
-                \"lon\":\"${ECO_CI_LON:-""}\",
-                \"city\":\"${ECO_CI_CITY:-""}\",
+                \"lat\":\"${ECO_CI_GEO_LAT:-""}\",
+                \"lon\":\"${ECO_CI_GEO_LON:-""}\",
+                \"city\":\"${ECO_CI_GEO_CITY:-""}\",
+                \"ip\":\"${ECO_CI_GEO_IP:-""}\",
                 \"carbon_intensity_g\":${ECO_CI_CO2I:-"null"},
                 \"carbon_ug\":${carbon_ug}
             }"
