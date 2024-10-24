@@ -1,5 +1,10 @@
 name: 'Eco CI Energy Estimation'
 description: 'Estimate the energy of Linux Github Actions Runner VMs via ML Model'
+
+branding:
+  icon: "battery-charging"
+  color: "green"
+
 inputs:
   task:
     description: 'Task to be executed (start-measurement, get-measurement, display-results)'
