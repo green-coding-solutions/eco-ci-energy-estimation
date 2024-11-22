@@ -4,18 +4,27 @@ set -euo pipefail
 source "$(dirname "$0")/vars.sh"
 
 get_geoip() {
-    if [ -n "${IP2LOCATIONIO_API_KEY}" ]; then
+    USE_IP2LOCATION_API=${USE_IP2LOCATION_API:-false}
+
+    # Check if the IP2Location.io API key is provided and non-empty (after trimming)
+    trimmed_api_key=$(echo "$IP2LOCATIONIO_API_KEY" | xargs)
+    
+    if [ "$USE_IP2LOCATION_API" = "true" ] && [ -n "$trimmed_api_key" ]; then
         echo "Detected IP2Location.io API Key, will use IP2Location.io API key now."
         http_code=$(curl -s -w "%{http_code}" -o /tmp/response_body.txt https://api.ip2location.io/?key=$IP2LOCATIONIO_API_KEY)
         response=$(< /tmp/response_body.txt)
         rm /tmp/response_body.txt
         if echo "$response" | jq '.latitude, .longitude, .city_name, .ip' | grep -q null; then
             echo -e "Required data is missing\nResponse is ${response}\nExiting" >&2
-            return
+            return 1
         fi
         response=$(echo "$response" | jq '. | .city = .city_name | del(.city_name)')
         echo "$response"
     else
+        if [ "$USE_IP2LOCATION_API" = "true" ] && [ -z "$trimmed_api_key" ]; then
+            echo "USE_IP2LOCATION_API is enabled but IP2LOCATIONIO_API_KEY is not provided or contains only spaces. Exiting." >&2
+            return 1
+        fi
         http_code=$(curl -s -w "%{http_code}" -o /tmp/response_body.txt https://ipapi.co/json)
         response=$(< /tmp/response_body.txt)
         rm /tmp/response_body.txt
@@ -27,7 +36,7 @@ get_geoip() {
             rm /tmp/response_body.txt
             if echo "$response" | jq '.latitude, .longitude, .city_name, .ip' | grep -q null; then
                 echo -e "Required data is missing\nResponse is ${response}\nExiting" >&2
-                return
+                return 1
             fi
             response=$(echo "$response" | jq '. | .city = .city_name | del(.city_name)')
         fi
