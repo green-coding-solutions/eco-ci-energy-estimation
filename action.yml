@@ -1,5 +1,10 @@
 name: 'Eco CI Energy Estimation'
 description: 'Estimate the energy of Linux Github Actions Runner VMs via ML Model'
+
+branding:
+  icon: "battery-charging"
+  color: "green"
+
 inputs:
   task:
     description: 'Task to be executed (start-measurement, get-measurement, display-results)'
@@ -44,17 +49,37 @@ inputs:
       description: 'Base URL of the Github API to send data to (including schema). Default is "github.api_url" (which resolves to https://api.github.com in free and many enterprise setups), but can be changed to your hostname if you have a custom hosted Github Enterprise'
       default: ${{ github.api_url }}
       required: false
-  company-uuid:
-      description: 'If you want to add data to the CarbonDB you can set this to your company UUID'
-      default: '-'
+  type:
+      description: 'If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "machine.ci"'
+      default: 'machine.ci'
       required: false
-  project-uuid:
-      description: 'If you want to add data to the CarbonDB you can set this to your project UUID'
-      default: '-'
+  project:
+      description: 'If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a project for drill-down later. Defaults to "CI/CD"'
+      default: 'CI/CD'
       required: false
-  machine-uuid:
-      description: 'If you want to add data to the CarbonDB you can set this to your machine UUID.'
-      default: '-'
+  machine:
+      description: 'If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a machine for drill-down later. Defaults to ubuntu-latest'
+      default: 'ubuntu-latest'
+      required: false
+  tags:
+      description: 'If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set tags for drill-down later. Please supply comma separated. Tags cannot have commas itself or contain quotes. Defaults to empty'
+      default: ''
+      required: false
+  gmt-api-token:
+      description: 'If you are not using the default user for the GMT API supply your auth token. We recommend to have this as a GitHub Secret'
+      default: ''
+      required: false
+  api-endpoint-add:
+      description: 'When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v2/ci/measurement/add"'
+      default: 'https://api.green-coding.io/v2/ci/measurement/add'
+      required: false
+  api-endpoint-badge-get:
+      description: 'When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io//v1/ci/badge/get'
+      default: 'https://api.green-coding.io/v1/ci/badge/get'
+      required: false
+  electricitymaps-api-token:
+      description: 'API token for electricitymaps in case you get rate-limited. See documentation for details'
+      default: ''
       required: false
 
 outputs:
@@ -90,7 +115,7 @@ runs:
         workflow_id=${workflow_id:-"not_set"}
         workflow_name=${workflow_name:-"not_set"}
 
-        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.company-uuid }}" "${{ inputs.project-uuid }}" "${{ inputs.machine-uuid }}" "${{ inputs.calculate-co2 }}" "${{ inputs.json-output }}"
+        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.type }}" "${{ inputs.project }}" "${{ inputs.machine }}" "${{ inputs.tags }}" "${{ inputs.calculate-co2 }}" "${{ inputs.gmt-api-token }}" "${{ inputs.electricitymaps-api-token }}" "${{ inputs.json-output }}" "${{ inputs.api-endpoint-add }}" "${{ inputs.api-endpoint-badge-get }}"
 
     - if:  inputs.task == 'get-measurement'
       id: run-lap-model

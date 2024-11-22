@@ -7,17 +7,17 @@ read_vars
 function create_json_file() {
     file="$1"
 
-    run_id_enc=$( echo ${RUN_ID} | jq -Rr @uri)
-    workflow_id_enc=$( echo ${WORKFLOW_ID} | jq -Rr @uri)
-    branch_enc=$( echo ${BRANCH} | jq -Rr @uri)
-    repo_enc=$( echo ${REPOSITORY} | jq -Rr @uri)
+    run_id_enc=$( echo ${ECO_CI_RUN_ID} | jq -Rr @uri)
+    workflow_id_enc=$( echo ${ECO_CI_WORKFLOW_ID} | jq -Rr @uri)
+    branch_enc=$( echo ${ECO_CI_BRANCH} | jq -Rr @uri)
+    repo_enc=$( echo ${ECO_CI_REPOSITORY} | jq -Rr @uri)
 
     cat > "$file" << EOF
     {
-        "repository": "$repo_enc",
-        "branch": "$branch_enc",
-        "workflow": "$workflow_id_enc",
-        "run_id": "$run_id_enc"
+        "repository": "${repo_enc}",
+        "branch": "${branch_enc}",
+        "workflow": "${workflow_id_enc}",
+        "run_id": "${run_id_enc}"
     }
 EOF
 

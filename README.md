@@ -3,11 +3,14 @@
 Eco-CI is a project aimed at estimating energy consumption in continuous integration (CI) environments. It provides functionality to calculate the energy consumption of CI jobs based on the power consumption characteristics of the underlying hardware.
 
 
-## Requirements
+## Requirements / Dependencies
 Following packages are expected:
 - `curl`
 - `jq`
 - `awk`
+- `date` with microsecond support. On *alpine* this means installing `coreutils`
+- `bash` > 4.0
+- `git` only if you use GitLab
 
 ## Usage
 
@@ -33,27 +36,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4 # use hash or @vX here (See note below)
         with:
           task: start-measurement
         # continue-on-error: true # recommended setting for production. See notes below.
 
 
       - name: 'Checkout repository'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'dev'
           submodules: 'true'
 
       - name: Checkout Repo Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'repo checkout'
         # continue-on-error: true # recommended setting for production. See notes below.
 
       - name: setup python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
@@ -64,7 +67,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Setup Python Measurment
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'python setup'
@@ -76,14 +79,14 @@ jobs:
           pytest
 
       - name: Tests measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4 # use hash or @vX here (See note below)
         with:
           task: get-measurement
           label: 'pytest'
         # continue-on-error: true # recommended setting for production. See notes below.
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3 # use hash or @vX here (See note below)
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4 # use hash or @vX here (See note below)
         with:
           task: display-results
         # continue-on-error: true # recommended setting for production. See notes below.
@@ -107,20 +110,26 @@ jobs:
         - `gh-api-base`: (optional) (default: 'api.github.com')
             - Eco-CI uses the github api to post/edit PR comments and get the workflow id
             - set to github's default api, but can be changed if you are using github enterprise
-        - `company-uuid`: (optional)
-            - If you want to add your CI/CD runs to the [CarbonDB](https://www.green-coding.io/projects/carbondb/) you can set your company uuid here. If you set this all your runs will be found for your company. Please note that if your CI is public your company uuid will be exposed and other people could check your CO2 footprint. We recommend setting these variables as GitHub secrets in this case.
-            - Please note that we will add the label as a tag so you can see which steps generated how much CO2
-        - `project-uuid`: (optional)
-            - If you want to group your CI/CD runs by project
-        - `machine-uuid`: (optional)
-            - If you want to make the runs look like they all ran on the same machine. This is not recommended as it will not be accurate but can be helpful for debugging.
-            - Leave this field empty if you want an auto-generated value
-
-
+        - `type`: (optional)
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "machine.ci". Cannot be empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
+        - `project`: (optional)
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "CI/CD". Cannot be empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
+        - `machine`: (optional)
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "ubuntu-latest". Cannot be empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
+        - `tags`: (optional)
+            - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set tags for drill-down later. Please supply comma separated. Tags cannot have commas itself or contain quotes. Defaults to empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
+        - `gmt-api-token`: (optional)
+            - If you are not using the default user for the GMT API supply your auth token. We recommend to have this as a GitHub Secret.
+        - `api-endpoint-add`: (optional)
+            - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v2/ci/measurement/add"
+        - `api-endpoint-badge-get`: (optional)
+            - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io//v1/ci/badge/get
+        - `electricitymaps-api-token`: (optional)
+            - API token for electricitymaps in case you get rate-limited. See details below.
 - `get-measurement`: Measures the energy at this point in time since either the start-measurement or last get-measurement action call.
     - `label`: (optional) (default: 'measurement ##')
 
-  - `display-results`: Outputs the energy results to the`$GITHUB_STEP_SUMMARY`. Creates a table that shows the energy results of all the `get-measurements`, and then a final row for the entire run. Displays the average cpu utilization, the total Joules used, and average wattage for each measurement+total run. This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge. The total measurement of this task is provided as output `data-total-json` in json format (see example below).
+- `display-results`: Outputs the energy results to the`$GITHUB_STEP_SUMMARY`. Creates a table that shows the energy results of all the `get-measurements`, and then a final row for the entire run. Displays the average cpu utilization, the total Joules used, and average wattage for each measurement+total run. This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge. The total measurement of this task is provided as output `data-total-json` in json format (see example below).
     - `pr-comment`: (optional) (default: false)
         - if on, will post a comment on the PR issue with the Eco-CI results. only occurs if the triggering event is a pull_request
         - remember to set `pull-requests: write` to true in your workflow file
@@ -136,19 +145,9 @@ jobs:
 
 We use https://app.electricitymaps.com/ to get the grid intensity for a given location. This service currently works without specifying a token but we recommend to still get one under https://api-portal.electricitymaps.com/
 
-You will need to set this token as a secret `ELECTRICITY_MAPS_TOKEN`. See the documentation how to do this https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
+You will need to set this token as a secret and pass it in the initalization. To learn how to create a secret see the GitHub documentation: https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
 
-You will also need to set it in your workflow files where you call `display-results` and `get-measurement`:
-```
-  - name: Eco CI Energy Estimation
-    uses: ./
-    env:
-      ELECTRICITY_MAPS_TOKEN: ${{ secrets.ELECTRICITY_MAPS_TOKEN }}
-    with:
-      task: display-results
-      pr-comment: true
-
-```
+You will then need to pass it in your workflow files in the initialization. See documentation above.
 
 #### IP2LOCATIONIO_API_KEY
 
@@ -173,7 +172,7 @@ with `continue-on-error:true`, as energy and CO2 metrics is not critical to the 
 
 ```yaml
       - name: Eco CI Energy Estimation
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
         with:
           task: final-measurement
         continue-on-error: true
@@ -191,13 +190,13 @@ Here is an example demonstrating how this can be achieved:
 ```yaml
       # ...
       - name: 'Checkout repository'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: 'dev'
           submodules: 'true'
 
       - name: Checkout Repo Measurment
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
         id: checkout-step
         with:
           task: get-measurement
@@ -208,7 +207,7 @@ Here is an example demonstrating how this can be achieved:
           echo "total json: ${{ steps.checkout-step.outputs.data-lap-json }}"
 
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
         id: total-measurement-step
         with:
           task: display-results
@@ -230,7 +229,7 @@ jobs:
       actions: read
     steps:
       - name: Eco CI - Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v3
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
         with:
           task: start-measurement
  ```
@@ -269,7 +268,7 @@ If you have trouble finding out the splitting factor for your system: [Open an i
 Once you have the file ready we are happy to merge it in through a PR! In future versions we also plan to include a loading mechanism, where you can just
 ingest a file from your repository without having to upstream it with us. But since this is a community open source plugin upstream is preferred, right :)
 
-### GitLab:
+### GitLab
 To use Eco-CI in your GitLab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
 ```
 include:
@@ -294,7 +293,9 @@ variables:
   ECO_CI_SEND_DATA: "false"
 ```
 
-Then, for each job you need to export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of GitLab's [Metric Report](https://docs.gitlab.com/ee/ci/testing/metrics_reports.html) artifact (which we output to the default metrics.txt):
+
+### Artifacts for GitLab
+For each job you can export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of GitLab's [Metric Report](https://docs.gitlab.com/ee/ci/testing/metrics_reports.html) artifact (which we output to the default metrics.txt):
 
 ```
 artifacts:
@@ -305,52 +306,31 @@ artifacts:
       metrics: metrics.txt
 ```
 
-Here is a sample .gitlab-ci.yml example file to illustrate:
+### Gitlab sample file
 
-```
-image: ubuntu:22.04
-include:
-  remote: 'https://raw.githubusercontent.com/green-coding-solutions/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
-
-stages:
-  - test
-
-test-job:
-  stage: test
-  script:
-    - !reference [.start_measurement, script]
-
-    - sleep 10s # Your main pipeline logic here
-    - export ECO_CI_LABEL="measurement 1"
-    - !reference [.get_measurement, script]
-
-    - sleep 3s # more of your pipeline logic here
-    - export ECO_CI_LABEL="measurement 2"
-    - !reference [.get_measurement, script]
-
-    - !reference [.display_results, script]
-
-  artifacts:
-    paths:
-      - eco-ci-output.txt
-    reports:
-      metrics: metrics.txt
-  ```
+Please look at [.gitlab-ci.yml.example](.gitlab-ci.yml.example)
 
 
-### How does it work?
+## How does it work?
 - The Eco-CI at its core makes its energy estimations based on pre-calculated power curves from [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy)
 - When you initialize the Eco-CI, starts a small bash script to track the cpu utilization over a period of time. This tracking begins when you call the start-measurement function. Then, each time you call get-measurement, it will take the cpu-utilization data collected (either from the start, or since the last get-measurement call) and make an energy estimation based on the detected hardware and CPU utilization.
 
-### Limitations / Compatibility
+## Limitations / Compatibility
 - At the moment this will only work with linux based pipelines, mainly tested on ubuntu images.
   + The plugin is tested on:
-  + `ubuntu-latest` (22.04 at the time of writing)
-  + `ubuntu-24.04`
-  + `ubuntu-20.04`
-  + [Autoscaling Github Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners/managing-larger-runners#configuring-autoscaling-for-larger-runners) are not supported 
+  + GitHub
+      + `ubuntu-latest` (GitHub - 22.04 at the time of writing)
+      + `ubuntu-24.04` (GitHub)
+      + `ubuntu-20.04` (GitHub)
+      + [Autoscaling Github Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners/managing-larger-runners#configuring-autoscaling-for-larger-runners) are not supported
+      + The plugin technically supports large runners, but they will need extra pre-calculated power curved. Contact us if you need them and we are happy to bring them in!
+  + GitLab
+      + `saas-linux-small-amd64` (GitLab)
+  + Generic
+      + `alpine` (Install dependencies before - See above)
   + Also Windows and macOS are currently not supported.
-  + The plugin technically supports large runners, but they will need extra pre-calculated power curved. Contact us if you need them and we are happy to bring them in!
+
+- If you use Alpine, you must install coreutils so that time logging with date is possible with an accuracy of microseconds (`apk add coreutils`)
 
 - If you have your pipelines split over multiple VM's (often the case with many jobs) ,you have to treat each VM as a seperate machine for the purposes of measuring and setting up Eco-CI.
 
@@ -362,8 +342,8 @@ See also our [work on analysing fixed frequency in Cloud Providers and CI/CD](ht
 
 ### Note on the integration / Auto-Updates
 - If you want the extension to automatically update within a version number, use the convenient @vX form. 
-  + `uses: green-coding-solutions/eco-ci-energy-estimation@v3 # will pick the latest minor v3.x`
-  + In case of a major change from @v3 to @v4 you need to upgrade manually. The upside is: If you use dependabot it will create a PR for you as it understands the notation
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@v4 # will pick the latest minor v3.x`
+  + In case of a major change from @v4 to @v5 you need to upgrade manually. The upside is: If you use dependabot it will create a PR for you as it understands the notation
     
 - If you want to pin the dependency and want to audit every release we recommend using the hash notation
   + `uses: green-coding-solutions/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #resolves to v2.2`
@@ -376,7 +356,14 @@ See also our [work on analysing fixed frequency in Cloud Providers and CI/CD](ht
 
 ### Testing
 
-For local testing you can just run in the docker container of your choice, directly from the root of the repository:
+For local testing you can just run in the docker container of your choice, directly from the root of the repository.
+
+Here is an example with the Circle-CI base image:
+```bash
+docker run --rm -it -v ./:/tmp/data:ro cimg/base:current bash /tmp/data/local_ci.example.sh
+```
+
+### Testing for KDE pipelines
 ```bash
 docker run --rm -it -v ./:/tmp/data:ro invent-registry.kde.org/sysadmin/ci-images/suse-qt67:latest bash /tmp/data/local_ci.example.sh
 ```

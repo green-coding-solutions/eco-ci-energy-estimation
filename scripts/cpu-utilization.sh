@@ -21,7 +21,7 @@ while true; do
     DIFF_TOTAL=$((TOTAL-PREV_TOTAL))
     DIFF_USAGE=$(echo "${DIFF_TOTAL} ${DIFF_IDLE} ${DIFF_TOTAL}" | awk '{printf "%.2f", (( 1000 * ($1 - $2) / $3) / 10) }')
     DIFF_USAGE=$(echo $DIFF_USAGE | sed 's/^\./0&/')
-    echo $(echo "$TIME_AFTER $TIME_BEFORE" | awk '{printf "%.10f", ($1 - $2) / 1000000000 }') "$DIFF_USAGE"
+    echo $(echo "${TIME_AFTER} ${TIME_BEFORE}" | awk '{printf "%.10f", ($1 - $2) / 1000000000 }') "$DIFF_USAGE"
 
     # Remember the total and idle CPU times for the next check.
     PREV_TOTAL="$TOTAL"
