@@ -153,7 +153,7 @@ You will then need to pass it in your workflow files in the initialization. See 
 
 You can choose to use IP2Location.io API instead of the default ipapi.co API. You will need a IP2Location.io API Key if you wish to use the API,and you can easily obtain a free one at here: https://www.ip2location.io/sign-up.
 
-To use IP2Location.io API as the default API, you will first need to add a new variable called `USE_IP2LOCATION_API`. To learn more on how to set up, kindly refer to GitHub documentation to get started: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#creating-configuration-variables-for-a-repository.
+To use IP2Location.io API as the default API, you will first need to add a new variable called `USE_IP2LOCATION_API`. To learn more on how to set up, kindly refer to GitHub documentation to get started: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#creating-configuration-variables-for-a-repository. Set the value of the variable to `true` to use the API.
 
 You will need to set the API key as a secret `IP2LOCATIONIO_API_KEY`. See the documentation how to do this https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
 
