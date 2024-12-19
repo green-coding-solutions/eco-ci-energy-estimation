@@ -11,10 +11,6 @@ function display_results {
 
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
-    MEASUREMENT_RAN=${ECO_CI_MEASUREMENT_RAN:-}
-    MEASUREMENT_COUNT=${ECO_CI_MEASUREMENT_COUNT:-}
-    WORKFLOW_ID=${ECO_CI_WORKFLOW_ID:-}
-    JSON_OUTPUT=${ECO_CI_JSON_OUTPUT:-}
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
     output='/tmp/eco-ci/output.txt'
@@ -67,6 +63,8 @@ function display_results {
         fi
     fi
 
+    repo_enc=$( echo "${ECO_CI_REPOSITORY}" | jq -Rr @uri)
+    branch_enc=$( echo "${ECO_CI_BRANCH}" | jq -Rr @uri)
 
     if [[ ${ECO_CI_CALCULATE_CO2} == 'true' ]]; then
         source "$(dirname "$0")/misc.sh"
@@ -91,7 +89,13 @@ function display_results {
             echo "CO₂ from energy is: ${ECO_CI_CO2EQ_ENERGY} g" | tee -a $output $output_pr
             echo "CO₂ from manufacturing (embodied carbon) is: ${ECO_CI_CO2EQ_EMBODIED} g" | tee -a $output $output_pr
             echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>${ECO_CI_CO2I} gCO₂eq/kWh</b>" | tee -a $output $output_pr
-            printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" ${ECO_CI_CO2EQ} | tee -a $output $output_pr
+            printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" "${ECO_CI_CO2EQ}" | tee -a $output $output_pr
+
+            if [[ "${display_badge}" == 'true' ]]; then
+                echo "Total cost of whole PR so far:<br>"
+                echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=energy'></a>" | tee -a $output $output_pr
+                echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=carbon'></a>" | tee -a $output $output_pr
+            fi
         else
             echo '❌ CO2 Data:' | tee -a $output $output_pr
             echo 'Error in retrieving values. Please see the detailed logs for the exact error messages!' | tee -a $output $output_pr
@@ -100,17 +104,14 @@ function display_results {
     fi
 
     if [[ "${ECO_CI_SEND_DATA}" == 'true' && "${display_badge}" == 'true' ]]; then
-        repo_enc=$( echo ${ECO_CI_REPOSITORY} | jq -Rr @uri)
-        branch_enc=$( echo ${ECO_CI_BRANCH} | jq -Rr @uri)
-        metrics_url='https://metrics.green-coding.io'
-
         echo "Badge for your README.md:" >> $output
         echo ' ```' >> $output
-        echo "[![Energy Used](${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
+        echo "[![Energy Used](${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
+        echo "[![Carbon emitted](${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&metric=carbon)" >> $output
         echo ' ```' >> $output
 
         echo 'See energy runs here:' >> $output
-        echo "${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$WORKFLOW_ID" >> $output
+        echo "${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}" >> $output
     fi
 
     if [[ ${ECO_CI_JSON_OUTPUT} == 'true' ]]; then

@@ -22,7 +22,7 @@ inputs:
     default: "github_EPYC_7763_4_CPU_shared.sh"
     required: false
   send-data:
-    description: 'Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
+    description: 'Send metrics data to dashboard (default: metrics.green-coding.io) to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
     default: true
     required: false
   calculate-co2:
@@ -74,9 +74,14 @@ inputs:
       default: 'https://api.green-coding.io/v2/ci/measurement/add'
       required: false
   api-endpoint-badge-get:
-      description: 'When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io//v1/ci/badge/get'
+      description: 'When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io/v1/ci/badge/get'
       default: 'https://api.green-coding.io/v1/ci/badge/get'
       required: false
+  dashboard-url:
+      description: 'The URL for the GMT Dashboard. Punch in yours if self-hosted. Defaults to "https://metrics.green-coding.io"'
+      default: 'https://metrics.green-coding.io'
+      required: false
+
   electricitymaps-api-token:
       description: 'API token for electricitymaps in case you get rate-limited. See documentation for details'
       default: ''
@@ -115,7 +120,7 @@ runs:
         workflow_id=${workflow_id:-"not_set"}
         workflow_name=${workflow_name:-"not_set"}
 
-        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.type }}" "${{ inputs.project }}" "${{ inputs.machine }}" "${{ inputs.tags }}" "${{ inputs.calculate-co2 }}" "${{ inputs.gmt-api-token }}" "${{ inputs.electricitymaps-api-token }}" "${{ inputs.json-output }}" "${{ inputs.api-endpoint-add }}" "${{ inputs.api-endpoint-badge-get }}"
+        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.type }}" "${{ inputs.project }}" "${{ inputs.machine }}" "${{ inputs.tags }}" "${{ inputs.calculate-co2 }}" "${{ inputs.gmt-api-token }}" "${{ inputs.electricitymaps-api-token }}" "${{ inputs.json-output }}" "${{ inputs.api-endpoint-add }}" "${{ inputs.api-endpoint-badge-get }}" "${{ inputs.dashboard-url }}"
 
     - if:  inputs.task == 'get-measurement'
       id: run-lap-model

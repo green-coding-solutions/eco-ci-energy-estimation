@@ -344,8 +344,11 @@ For local testing you can just run in the docker container of your choice, direc
 
 Here is an example with the Circle-CI base image:
 ```bash
-docker run --rm -it -v ./:/tmp/data:ro cimg/base:current bash /tmp/data/local_ci.example.sh
+docker run --network host --rm -it -v ./:/tmp/data:ro cimg/base:current bash /tmp/data/local_ci.example.sh
 ```
+
+In case you are testing with a local installation of the GMT append `--network host` to access `api.green-coding.internal`
+
 
 ### Testing for KDE pipelines
 ```bash
