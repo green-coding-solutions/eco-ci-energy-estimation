@@ -94,6 +94,12 @@ function display_results {
             echo "CO₂ from manufacturing (embodied carbon) is: ${ECO_CI_CO2EQ_EMBODIED} g" | tee -a $output $output_pr
             echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>${ECO_CI_CO2I} gCO₂eq/kWh</b>" | tee -a $output $output_pr
             printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" ${ECO_CI_CO2EQ} | tee -a $output $output_pr
+
+            if [[ "${display_badge}" == 'true' ]]; then
+                echo "Total cost of whole PR so far:<br>"
+                echo "<a href="${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}"><img src="${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=energy"></a>" | tee -a $output $output_pr
+                echo "<a href="${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}"><img src="${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=carbon"></a>" | tee -a $output $output_pr
+            fi
         else
             echo '❌ CO2 Data:' | tee -a $output $output_pr
             echo 'Error in retrieving values. Please see the detailed logs for the exact error messages!' | tee -a $output $output_pr
