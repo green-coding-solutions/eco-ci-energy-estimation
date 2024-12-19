@@ -7,7 +7,7 @@ ECO_CI_SEND_DATA='true'
 ECO_CI_DISPLAY_BADGE='true'
 ECO_CI_DISPLAY_TABLE='true'
 
-ECO_CI_WORKFLOW_ID='YOUR WORKFLOW ID'
+ECO_CI_WORKFLOW_ID='YOUR_WORKFLOW_ID'
 
 # If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set data for drill-down later
 # The values given are just some default recommendations
