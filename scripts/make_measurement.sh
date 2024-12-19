@@ -6,8 +6,9 @@ source "$(dirname "$0")/vars.sh"
 read_vars
 
 function make_inference() {
+    # First get values, in case any are unbound
+    # this will set them to an empty string if they are missing entirely
     BASH_VERSION=${BASH_VERSION:-}
-    ECO_CI_MACHINE_POWER_DATA=${ECO_CI_MACHINE_POWER_DATA:-}
 
     # clear energy file for step because we fill it later anew
     echo > /tmp/eco-ci/energy-step.txt
