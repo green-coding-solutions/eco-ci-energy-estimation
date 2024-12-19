@@ -63,8 +63,8 @@ function display_results {
         fi
     fi
 
-    repo_enc=$( echo ${ECO_CI_REPOSITORY} | jq -Rr @uri)
-    branch_enc=$( echo ${ECO_CI_BRANCH} | jq -Rr @uri)
+    repo_enc=$( echo "${ECO_CI_REPOSITORY}" | jq -Rr @uri)
+    branch_enc=$( echo "${ECO_CI_BRANCH}" | jq -Rr @uri)
 
     if [[ ${ECO_CI_CALCULATE_CO2} == 'true' ]]; then
         source "$(dirname "$0")/misc.sh"
@@ -89,7 +89,7 @@ function display_results {
             echo "CO₂ from energy is: ${ECO_CI_CO2EQ_ENERGY} g" | tee -a $output $output_pr
             echo "CO₂ from manufacturing (embodied carbon) is: ${ECO_CI_CO2EQ_EMBODIED} g" | tee -a $output $output_pr
             echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>${ECO_CI_CO2I} gCO₂eq/kWh</b>" | tee -a $output $output_pr
-            printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" ${ECO_CI_CO2EQ} | tee -a $output $output_pr
+            printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" "${ECO_CI_CO2EQ}" | tee -a $output $output_pr
 
             if [[ "${display_badge}" == 'true' ]]; then
                 echo "Total cost of whole PR so far:<br>"
