@@ -67,6 +67,8 @@ function display_results {
         fi
     fi
 
+    repo_enc=$( echo ${ECO_CI_REPOSITORY} | jq -Rr @uri)
+    branch_enc=$( echo ${ECO_CI_BRANCH} | jq -Rr @uri)
 
     if [[ ${ECO_CI_CALCULATE_CO2} == 'true' ]]; then
         source "$(dirname "$0")/misc.sh"
@@ -100,17 +102,14 @@ function display_results {
     fi
 
     if [[ "${ECO_CI_SEND_DATA}" == 'true' && "${display_badge}" == 'true' ]]; then
-        repo_enc=$( echo ${ECO_CI_REPOSITORY} | jq -Rr @uri)
-        branch_enc=$( echo ${ECO_CI_BRANCH} | jq -Rr @uri)
-        metrics_url='https://metrics.green-coding.io'
-
         echo "Badge for your README.md:" >> $output
         echo ' ```' >> $output
-        echo "[![Energy Used](${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})](${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
+        echo "[![Energy Used](${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
+        echo "[![Carbon emitted](${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&metric=carbon)" >> $output
         echo ' ```' >> $output
 
         echo 'See energy runs here:' >> $output
-        echo "${metrics_url}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$WORKFLOW_ID" >> $output
+        echo "${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=$WORKFLOW_ID" >> $output
     fi
 
     if [[ ${ECO_CI_JSON_OUTPUT} == 'true' ]]; then

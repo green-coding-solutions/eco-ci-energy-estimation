@@ -47,6 +47,7 @@ function start_measurement {
     add_var 'ECO_CI_JSON_OUTPUT' "${17}"
     add_var 'ECO_CI_API_ENDPOINT_ADD' "${18}"
     add_var 'ECO_CI_API_ENDPOINT_BADGE_GET' "${19}"
+    add_var 'ECO_CI_DASHBOARD_URL' "${20}"
 
     touch /tmp/eco-ci/cpu-util-step.txt
     touch /tmp/eco-ci/cpu-util-total.txt
@@ -102,7 +103,7 @@ fi
 
 case $option in
   start_measurement)
-    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}" "${16}" "${17}" "${18}" "${19}" "${20}"
+    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}" "${16}" "${17}" "${18}" "${19}" "${20}" "${21}"
     ;;
   lap_measurement)
     lap_measurement
