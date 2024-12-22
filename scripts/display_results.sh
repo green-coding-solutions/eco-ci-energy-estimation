@@ -92,10 +92,11 @@ function display_results {
             printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" "${ECO_CI_CO2EQ}" | tee -a $output $output_pr
 
             if [[ "${display_badge}" == 'true' ]]; then
+                random_number=$((RANDOM % 1000000000 + 1))
                 echo "<hr>" | tee -a $output $output_pr
                 echo "Total cost of whole PR so far: <br><br>" | tee -a $output $output_pr
-                echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=energy'></a>" | tee -a $output $output_pr
-                echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=carbon'></a>" | tee -a $output $output_pr
+                echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=energy#${random_number}'></a>" | tee -a $output $output_pr
+                echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=carbon#${random_number}'></a>" | tee -a $output $output_pr
             fi
         else
             echo '❌ CO2 Data:' | tee -a $output $output_pr
