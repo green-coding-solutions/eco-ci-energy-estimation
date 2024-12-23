@@ -106,14 +106,7 @@ function display_results {
     fi
 
     if [[ "${ECO_CI_SEND_DATA}" == 'true' && "${display_badge}" == 'true' ]]; then
-        echo "Badge for your README.md:" >> $output
-        echo ' ```' >> $output
-        echo "[![Energy Used](${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
-        echo "[![Carbon emitted](${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&metric=carbon)" >> $output
-        echo ' ```' >> $output
-
-        echo 'See energy runs here:' >> $output
-        echo "${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}" >> $output
+        echo "\nBadges for your README.md - See: [GMT CI Dashboard](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
     fi
 
     if [[ ${ECO_CI_JSON_OUTPUT} == 'true' ]]; then
