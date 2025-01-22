@@ -23,15 +23,24 @@ function cpu_vars {
 
     machine_power_data="$1"
 
-    model_name=$(cat /proc/cpuinfo  | grep "model name" || true)
+    if [[ -f '/proc/cpuinfo' ]]; then
+        model_name=$(cat /proc/cpuinfo  | grep 'model name' || true)
 
-    echo "Machine has following CPU Model ${model_name}"
+        echo "Machine has following CPU Model ${model_name}"
 
-    echo "Full CPU Info"
-    cat /proc/cpuinfo
+        echo 'Full CPU Info'
+        cat /proc/cpuinfo
+    else
+      echo '/proc/cpuinfo is not accesible ... cannot dump CPU model info'
+      model_name='UNKNOWN'
+    fi
 
-    echo "Full memory info"
-    cat /proc/meminfo
+    if [[ -f '/proc/meminfo' ]]; then
+        echo 'Full memory info'
+        cat /proc/meminfo
+    else
+        echo '/proc/meminfo does not exist. Cannot dump memory info'
+    fi
 
 
     if [[ "$machine_power_data" == "github_EPYC_7763_4_CPU_shared.sh" ]]; then

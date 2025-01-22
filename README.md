@@ -8,7 +8,7 @@ Following packages are expected:
 - `curl`
 - `jq`
 - `awk`
-- `date` with microsecond support. On *alpine* this means installing `coreutils`
+- `date` with microsecond support. On *alpine* and *macOS* this means installing `coreutils`
 - `bash` > 4.0
 - `git` only if you use GitLab
 
@@ -312,7 +312,9 @@ Please look at [.gitlab-ci.yml.example](.gitlab-ci.yml.example)
       + `saas-linux-small-amd64` (GitLab)
   + Generic
       + `alpine` (Install dependencies before - See above)
-  + Also Windows and macOS are currently not supported.
+  + *macOS* is working on our local test machines (see install details below). 
+      + Runners on GitHub are untested, but should work. You need tp create a power profile though (see Cloud Energy below). We are happy for beta testers! contact us :)
+  + Windows is currently only supported with WSL2
 
 - If you use Alpine, you must install coreutils so that time logging with date is possible with an accuracy of microseconds (`apk add coreutils`)
 
@@ -326,7 +328,7 @@ See also our [work on analysing fixed frequency in Cloud Providers and CI/CD](ht
 
 ### Note on the integration / Auto-Updates
 - If you want the extension to automatically update within a version number, use the convenient @vX form. 
-  + `uses: green-coding-solutions/eco-ci-energy-estimation@v4 # will pick the latest minor v3.x`
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@v4 # will pick the latest minor v4.x`
   + In case of a major change from @v4 to @v5 you need to upgrade manually. The upside is: If you use dependabot it will create a PR for you as it understands the notation
     
 - If you want to pin the dependency and want to audit every release we recommend using the hash notation
@@ -338,7 +340,38 @@ See also our [work on analysing fixed frequency in Cloud Providers and CI/CD](ht
   + We do **not** recommend this as it might contain beta features. We recommend using the releases and tagged versions only
 
 
-### Testing
+### macOS
+
+*macOS* requires the *GNU* `date` tool so it can properly create a microsecond timestamp.
+
+Install it with the package manager of your choice and then add it's binary first in the `PATH` variable, so that it precedes the *BSD* `date`.
+
+Example for `homebrew`:
+```bash
+brew install coreutils
+export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+# then you can run:
+bash local_ci.example.sh
+```
+
+### Local CI / Running in docker
+
+Although initially designed for use in *GitHub Actions* and *GitLab Pipelines* the Eco-CI tool works everywhere where `bash` works.
+
+This means you can just use it locally by following it's general 3-step inteface:
+- Start
+- Measure (optionally repeat if you want to lap multiple steps)
+- End & Display
+
+As an example we have set up a full example pipeline in the form of a `bash` file under `local_ci.example.sh`.
+
+In this file you find the needed calls along with some fake activity like calls to `sleep` and `ls` etc.
+
+You just need to slice the file to you needs and bring the code that you want to encapsulate with Eco-CI into the positions where currently the `sleep` and `ls` calls are.
+
+
+
+### Trying out with Docker and Circle-CI image
 
 For local testing you can just run in the docker container of your choice, directly from the root of the repository.
 
@@ -350,7 +383,8 @@ docker run --network host --rm -it -v ./:/tmp/data:ro cimg/base:current bash /tm
 In case you are testing with a local installation of the GMT append `--network host` to access `api.green-coding.internal`
 
 
-### Testing for KDE pipelines
+### Trying out with Docker and KDE pipelines
 ```bash
 docker run --rm -it -v ./:/tmp/data:ro invent-registry.kde.org/sysadmin/ci-images/suse-qt67:latest bash /tmp/data/local_ci.example.sh
 ```
+
