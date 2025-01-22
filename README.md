@@ -3,6 +3,28 @@
 Eco-CI is a project aimed at estimating energy consumption in continuous integration (CI) environments. It provides functionality to calculate the energy consumption of CI jobs based on the power consumption characteristics of the underlying hardware.
 
 
+## Table of Contents
+- [Requirements / Dependencies](#requirements--dependencies)
+- [How Does It Work?](#how-does-it-work)
+- [Usage](#usage)
+  - [GitHub](#github)
+    - [GitHub Action Mandatory and Optional Variables](#github-action-mandatory-and-optional-variables)
+    - [Electricity Maps Token](#electricity-maps-token)
+    - [Continuing on Errors](#continuing-on-errors)
+    - [Consuming the Measurements as JSON](#consuming-the-measurements-as-json)
+    - [Note on Private Repos](#note-on-private-repos)
+    - [Support for Dedicated Runners / Non-Standard Machines](#support-for-dedicated-runners--non-standard-machines)
+  - [GitLab](#gitlab)
+    - [Artifacts for GitLab](#artifacts-for-gitlab)
+    - [GitLab Sample File](#gitlab-sample-file)
+  - [macOS](#macos)
+  - [Local CI / Running in Docker](#local-ci--running-in-docker)
+    - [Trying out with Docker and Circle-CI image](#trying-out-with-docker-and-circle-ci-image)
+    - [Trying out with Docker and KDE pipelines](#trying-out-with-docker-and-kde-pipelines)
+  - [Jenkins](#jenkins)
+- [Note on the integration / Auto-Updates](#note-on-the-integration-auto-updates)
+- [Limitations / Compatibility](#limitations--compatibility)
+
 ## Requirements / Dependencies
 Following packages are expected:
 - `curl`
@@ -11,6 +33,10 @@ Following packages are expected:
 - `date` with microsecond support. On *alpine* and *macOS* this means installing `coreutils`
 - `bash` > 4.0
 - `git` only if you use GitLab
+
+## How does it work?
+- The Eco-CI at its core makes its energy estimations based on pre-calculated power curves from [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy)
+- When you initialize the Eco-CI, starts a small bash script to track the cpu utilization over a period of time. This tracking begins when you call the start-measurement function. Then, each time you call get-measurement, it will take the cpu-utilization data collected (either from the start, or since the last get-measurement call) and make an energy estimation based on the detected hardware and CPU utilization.
 
 ## Usage
 
@@ -218,7 +244,7 @@ jobs:
           task: start-measurement
  ```
 
-### Support for dedicated runners / non-standard machines
+#### Support for dedicated runners / non-standard machines
 
 This plugin is primarily designed for the [GitHub Shared Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources) and comes with their energy values already pre-calculated.
 
@@ -278,7 +304,7 @@ variables:
 ```
 
 
-### Artifacts for GitLab
+#### Artifacts for GitLab
 For each job you can export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of GitLab's [Metric Report](https://docs.gitlab.com/ee/ci/testing/metrics_reports.html) artifact (which we output to the default metrics.txt):
 
 ```
@@ -290,54 +316,9 @@ artifacts:
       metrics: metrics.txt
 ```
 
-### Gitlab sample file
+#### Gitlab sample file
 
 Please look at [.gitlab-ci.yml.example](.gitlab-ci.yml.example)
-
-
-## How does it work?
-- The Eco-CI at its core makes its energy estimations based on pre-calculated power curves from [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy)
-- When you initialize the Eco-CI, starts a small bash script to track the cpu utilization over a period of time. This tracking begins when you call the start-measurement function. Then, each time you call get-measurement, it will take the cpu-utilization data collected (either from the start, or since the last get-measurement call) and make an energy estimation based on the detected hardware and CPU utilization.
-
-## Limitations / Compatibility
-- At the moment this will only work with linux based pipelines, mainly tested on ubuntu images.
-  + The plugin is tested on:
-  + GitHub
-      + `ubuntu-latest` (GitHub - 22.04 at the time of writing)
-      + `ubuntu-24.04` (GitHub)
-      + `ubuntu-20.04` (GitHub)
-      + [Autoscaling Github Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners/managing-larger-runners#configuring-autoscaling-for-larger-runners) are not supported
-      + The plugin technically supports large runners, but they will need extra pre-calculated power curved. Contact us if you need them and we are happy to bring them in!
-  + GitLab
-      + `saas-linux-small-amd64` (GitLab)
-  + Generic
-      + `alpine` (Install dependencies before - See above)
-  + *macOS* is working on our local test machines (see install details below). 
-      + Runners on GitHub are untested, but should work. You need to create a power profile though (see Cloud Energy below). We are happy for beta testers! contact us :)
-  + Windows is currently only supported with WSL2
-
-- If you use Alpine, you must install coreutils so that time logging with date is possible with an accuracy of microseconds (`apk add coreutils`)
-
-- If you have your pipelines split over multiple VM's (often the case with many jobs) ,you have to treat each VM as a seperate machine for the purposes of measuring and setting up Eco-CI.
-
-- The underlying [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy) model requires the CPU to have a fixed frequency setting. This is typical for cloud testing and is the case for instance on GitHub, but not always the case in different CIs.
-
-See also our [work on analysing fixed frequency in Cloud Providers and CI/CD](https://www.green-coding.io/case-studies/cpu-utilization-usefulness/)
-
-- The Cloud Energy model data is trained via the [SPECpower](https://www.spec.org/power_ssj2008/results/) database, which was mostly collected on compute machines. Results will be off for non big cloud servers and also for machines that are memory heavy or machines which rely more heavily on their GPU's for computations.
-
-### Note on the integration / Auto-Updates
-- If you want the extension to automatically update within a version number, use the convenient @vX form. 
-  + `uses: green-coding-solutions/eco-ci-energy-estimation@v4 # will pick the latest minor v4.x`
-  + In case of a major change from @v4 to @v5 you need to upgrade manually. The upside is: If you use dependabot it will create a PR for you as it understands the notation
-    
-- If you want to pin the dependency and want to audit every release we recommend using the hash notation
-  + `uses: green-coding-solutions/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #resolves to v2.2`
-  + Note that this hash is just an example. You find the latest current hash under [Tags](https://github.com/green-coding-solutions/eco-ci-energy-estimation/tags)
-  + Dependabot also understands this notation so it will create an update with the changelog for you
-- If you want the bleeding edge features use the @main notation.
-  + `uses: green-coding-solutions/eco-ci-energy-estimation@main`
-  + We do **not** recommend this as it might contain beta features. We recommend using the releases and tagged versions only
 
 
 ### macOS
@@ -371,7 +352,7 @@ You just need to slice the file to you needs and bring the code that you want to
 
 
 
-### Trying out with Docker and Circle-CI image
+#### Trying out with Docker and Circle-CI image
 
 For local testing you can just run in the docker container of your choice, directly from the root of the repository.
 
@@ -383,8 +364,99 @@ docker run --network host --rm -it -v ./:/tmp/data:ro cimg/base:current bash /tm
 In case you are testing with a local installation of the GMT append `--network host` to access `api.green-coding.internal`
 
 
-### Trying out with Docker and KDE pipelines
+#### Trying out with Docker and KDE pipelines
 ```bash
 docker run --rm -it -v ./:/tmp/data:ro invent-registry.kde.org/sysadmin/ci-images/suse-qt67:latest bash /tmp/data/local_ci.example.sh
 ```
 
+### Jenkins
+
+For *Jenkins* Eco-CI can be easily used in combination with the *Execute Shell* plugin.
+
+By following Eco-CI's general 3-step you need to create 3 steps in your workflow that:
+- Start
+- Measure (optionally repeat if you want to lap multiple steps)
+- End & Display
+
+You need to have the `eco-ci-energy-estimation` repository checked out somewhere, where *Jenkins* can read it.
+
+#### Example codeblocks
+
+Replace `__PATH_WHERE_YOU_HAVE_THE_REPO__` with the actual repo location.
+
+**Start**:
+```bash
+bash __PATH_WHERE_YOU_HAVE_THE_REPO__/scripts/examples/jenkins_start.sh
+```
+
+**Measure Step**:
+You should set a custom text label for the step, here defined with the variable `LABEL`
+
+```bash
+LABEL="This is the step label"
+bash __PATH_WHERE_YOU_HAVE_THE_REPO__/scripts/examples/jenkins_measure.sh "${LABEL}"
+```
+
+
+**End and display data**:
+You should set a custom text label for the step, here defined with the variable `LABEL`
+
+```bash
+LABEL="This is the step label"
+bash __PATH_WHERE_YOU_HAVE_THE_REPO__/scripts/examples/jenkins_end_and_display.sh "${LABEL}"
+```
+
+See a full example of a freestyle pipeline with the codeblocks here: ![Screenshot Jenkins Freestyle pipeline](/screenshots/jenkins_eco_ci_integration_freestyle_pipeline.png)
+
+The data will then show up in the text log. See an example how this looks here: ![Screenshot Jenkins Eco-CI Output](/screenshots/jenkins_eco_ci_output.png)
+
+#### Jenkins on macOS
+
+If you use *Jenkins* on *macOS* you must have `coretuils` installed and `gdate` must replace the normal `date` function.
+
+Append this to every step where you call Eco-CI precede the linux `date` tool before the *macOS* native one:
+```bash
+set +x # if macOS to reduce noise
+export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH" # if macOS
+```
+
+## Note on the integration / Auto-Updates
+- If you want the extension to automatically update within a version number, use the convenient @vX form. 
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@v4 # will pick the latest minor v4.x`
+  + In case of a major change from @v4 to @v5 you need to upgrade manually. The upside is: If you use dependabot it will create a PR for you as it understands the notation
+    
+- If you want to pin the dependency and want to audit every release we recommend using the hash notation
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@06837b0b3b393a04d055979e1305852bda82f044 #resolves to v2.2`
+  + Note that this hash is just an example. You find the latest current hash under [Tags](https://github.com/green-coding-solutions/eco-ci-energy-estimation/tags)
+  + Dependabot also understands this notation so it will create an update with the changelog for you
+- If you want the bleeding edge features use the @main notation.
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@main`
+  + We do **not** recommend this as it might contain beta features. We recommend using the releases and tagged versions only
+
+
+## Limitations / Compatibility
+- At the moment this will only work with linux based pipelines, mainly tested on ubuntu images.
+  + The plugin is tested on:
+  + GitHub
+      + `ubuntu-latest` (GitHub - 22.04 at the time of writing)
+      + `ubuntu-24.04` (GitHub)
+      + `ubuntu-20.04` (GitHub)
+      + [Autoscaling Github Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners/managing-larger-runners#configuring-autoscaling-for-larger-runners) are not supported
+      + The plugin technically supports large runners, but they will need extra pre-calculated power curved. Contact us if you need them and we are happy to bring them in!
+  + GitLab
+      + `saas-linux-small-amd64` (GitLab)
+  + Generic
+      + `alpine` (Install dependencies before - See above)
+  + *macOS* is working on our local test machines (see install details below). 
+      + Runners on GitHub are untested, but should work. You need to create a power profile though (see Cloud Energy below). We are happy for beta testers! contact us :)
+  + Windows is currently only supported with WSL2
+
+- If you use Alpine, you must install coreutils so that time logging with date is possible with an accuracy of microseconds (`apk add coreutils`)
+
+- If you have your pipelines split over multiple VM's (often the case with many jobs) ,you have to treat each VM as a seperate machine for the purposes of measuring and setting up Eco-CI.
+
+- The underlying [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy) model requires the CPU to have a fixed frequency setting. This is typical for cloud testing and is the case for instance on GitHub, but not always the case in different CIs.
+
+See also our [work on analysing fixed frequency in Cloud Providers and CI/CD](https://www.green-coding.io/case-studies/cpu-utilization-usefulness/)
+
+- The Cloud Energy model data is trained via the [SPECpower](https://www.spec.org/power_ssj2008/results/) database, which was mostly collected on compute machines. Results will be off for non big cloud servers and also for machines that are memory heavy or machines which rely more heavily on their GPU's for computations.
