@@ -13,11 +13,13 @@ function make_inference() {
     # clear energy file for step because we fill it later anew
     echo > /tmp/eco-ci/energy-step.txt
 
+    power_data_file_path="$(dirname "$0")/../machine-power-data/${ECO_CI_MACHINE_POWER_DATA}"
+
     # bash mode inference is slower in initi<al reading
     # but 100x faster in reading. The net gain is after ~ 5 measurements
     if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} >= 4 )); then
         echo "Using bash mode inference"
-        source "$(dirname "$0")/../machine-power-data/${ECO_CI_MACHINE_POWER_DATA}" # will set cloud_energy_hashmap
+        source "${power_data_file_path}" # will set cloud_energy_hashmap
 
         while read -r read_var_time read_var_util; do
             echo "${read_var_time} ${cloud_energy_hashmap[$read_var_util]}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-step.txt
@@ -26,7 +28,8 @@ function make_inference() {
         echo 'Using legacy mode inference'
         while read -r read_var_time read_var_util; do
             # The pattern contains a . and [ ] but this no problem as no other dot appears anywhere
-            power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap\\[${read_var_util}\\]" ' $0 ~ pattern { print $2 }' $ECO_CI_MACHINE_POWER_DATA)
+
+            power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap\\\\[${read_var_util}\\\\]" ' $0 ~ pattern { print $2 }' "${power_data_file_path}")
             echo "${read_var_time} ${power_value}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-step.txt
         done < /tmp/eco-ci/cpu-util-temp.txt
     fi

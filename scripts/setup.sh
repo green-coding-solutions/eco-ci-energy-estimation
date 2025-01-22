@@ -83,11 +83,19 @@ function lap_measurement {
 
     # start writing cpu utilization with actual sleep durations
     end_measurement
-    bash "$(dirname "$0")/cpu-utilization.sh" > /tmp/eco-ci/cpu-util-step.txt 2> /dev/null < /dev/null &
+    if [[ $(uname) == "Darwin" ]]; then
+        bash "$(dirname "$0")/cpu-utilization-macos.sh" > /tmp/eco-ci/cpu-util-step.txt 2> /dev/null < /dev/null &
+    else
+        bash "$(dirname "$0")/cpu-utilization-linux.sh" > /tmp/eco-ci/cpu-util-step.txt 2> /dev/null < /dev/null &
+    fi
 }
 
 function end_measurement {
-    pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization.sh"  || true;
+    if [[ $(uname) == "Darwin" ]]; then
+        pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization-macos.sh"  || true;
+    else
+        pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization-linux.sh"  || true;
+    fi
 }
 
 
