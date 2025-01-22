@@ -3,7 +3,7 @@ set -euo pipefail
 
 shell=bash
 
-ECO_CI_SEND_DATA='true'
+ECO_CI_SEND_DATA='false'
 ECO_CI_DISPLAY_BADGE='true'
 ECO_CI_DISPLAY_TABLE='true'
 
@@ -33,7 +33,7 @@ ECO_CI_MACHINE_POWER_DATA="default.sh"
 # Initialize
 echo "Initialize"
 
-$shell "$(dirname "$0")/scripts/setup.sh" start_measurement "$ECO_CI_MACHINE_POWER_DATA" "MY_RUN_ID" "NO_BRANCH" "LOCAL_TEST_REPO" "$ECO_CI_WORKFLOW_ID" "MY WORKFLOW NAME" "NO SHA" "local" "$ECO_CI_SEND_DATA" "$ECO_CI_FILTER_TYPE" "$ECO_CI_FILTER_PROJECT" "$ECO_CI_FILTER_MACHINE" "$ECO_CI_FILTER_TAGS" "$ECO_CI_CALCULATE_CO2" "$ECO_CI_GMT_API_TOKEN" "$ECO_CI_ELECTRICITYMAPS_API_TOKEN" "$ECO_CI_JSON_OUTPUT" "$ECO_CI_API_ENDPOINT_ADD" "$ECO_CI_API_BADGE_GET" "$ECO_CI_DASHBOARD_URL"
+$shell "$(dirname "$0")/../setup.sh" start_measurement "$ECO_CI_MACHINE_POWER_DATA" "MY_RUN_ID" "NO_BRANCH" "LOCAL_TEST_REPO" "$ECO_CI_WORKFLOW_ID" "MY WORKFLOW NAME" "NO SHA" "local" "$ECO_CI_SEND_DATA" "$ECO_CI_FILTER_TYPE" "$ECO_CI_FILTER_PROJECT" "$ECO_CI_FILTER_MACHINE" "$ECO_CI_FILTER_TAGS" "$ECO_CI_CALCULATE_CO2" "$ECO_CI_GMT_API_TOKEN" "$ECO_CI_ELECTRICITYMAPS_API_TOKEN" "$ECO_CI_JSON_OUTPUT" "$ECO_CI_API_ENDPOINT_ADD" "$ECO_CI_API_BADGE_GET" "$ECO_CI_DASHBOARD_URL"
 
 echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
@@ -43,7 +43,7 @@ sleep 2s
 echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
 
-$shell "$(dirname "$0")/scripts/make_measurement.sh" make_measurement "My_label"
+$shell "$(dirname "$0")/../make_measurement.sh" make_measurement "My_label"
 
 # Do some other work
 echo "ls -alhR"
@@ -54,7 +54,7 @@ echo "Sleeping "
 sleep 1
 echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
-$shell "$(dirname "$0")/scripts/make_measurement.sh" make_measurement "other label"
+$shell "$(dirname "$0")/../make_measurement.sh" make_measurement "other label"
 #"My other label"
 
 echo "Display Results"
@@ -70,7 +70,7 @@ cat /tmp/eco-ci/cpu-util-step.txt
 cat /tmp/eco-ci/energy-total.txt
 cat /tmp/eco-ci/cpu-util-total.txt
 
-$shell "$(dirname "$0")/scripts/display_results.sh" display_results $ECO_CI_DISPLAY_TABLE $ECO_CI_DISPLAY_BADGE
+$shell "$(dirname "$0")/../display_results.sh" display_results $ECO_CI_DISPLAY_TABLE $ECO_CI_DISPLAY_BADGE
 
 if [[ "$ECO_CI_JSON_OUTPUT" == 'true' ]]; then
     echo "JSON Dump:"
@@ -82,5 +82,5 @@ echo -e "\n"
 echo -e "$ECO_CI_FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$ECO_CI_TXT_CLEAR"
 echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
-$shell "$(dirname "$0")/scripts/setup.sh" end_measurement
+$shell "$(dirname "$0")/../setup.sh" end_measurement
 
