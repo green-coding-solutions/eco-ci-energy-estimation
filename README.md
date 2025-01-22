@@ -313,7 +313,7 @@ Please look at [.gitlab-ci.yml.example](.gitlab-ci.yml.example)
   + Generic
       + `alpine` (Install dependencies before - See above)
   + *macOS* is working on our local test machines (see install details below). 
-      + Runners on GitHub are untested, but should work. You need tp create a power profile though (see Cloud Energy below). We are happy for beta testers! contact us :)
+      + Runners on GitHub are untested, but should work. You need to create a power profile though (see Cloud Energy below). We are happy for beta testers! contact us :)
   + Windows is currently only supported with WSL2
 
 - If you use Alpine, you must install coreutils so that time logging with date is possible with an accuracy of microseconds (`apk add coreutils`)
@@ -344,7 +344,7 @@ See also our [work on analysing fixed frequency in Cloud Providers and CI/CD](ht
 
 *macOS* requires the *GNU* `date` tool so it can properly create a microsecond timestamp.
 
-Install it with the package manager of your choice and then add it's binary first in the `PATH` variable, so that it precedes the *BSD* `date`.
+Install it with the package manager of your choice and then add its binary first in the `PATH` variable, so that it precedes the *BSD* `date`.
 
 Example for `homebrew`:
 ```bash
@@ -358,7 +358,7 @@ bash local_ci.example.sh
 
 Although initially designed for use in *GitHub Actions* and *GitLab Pipelines* the Eco-CI tool works everywhere where `bash` works.
 
-This means you can just use it locally by following it's general 3-step inteface:
+This means you can just use it locally by following it's general 3-step interface:
 - Start
 - Measure (optionally repeat if you want to lap multiple steps)
 - End & Display

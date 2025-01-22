@@ -31,7 +31,7 @@ function cpu_vars {
         echo 'Full CPU Info'
         cat /proc/cpuinfo
     else
-      echo '/proc/cpuinfo is not accesible ... cannot dump CPU model info'
+      echo '/proc/cpuinfo is not accessible ... cannot dump CPU model info'
       model_name='UNKNOWN'
     fi
 
