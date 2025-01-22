@@ -19,7 +19,7 @@ function make_inference() {
     # but 100x faster in reading. The net gain is after ~ 5 measurements
     if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} >= 4 )); then
         echo "Using bash mode inference"
-        source power_data_file_path # will set cloud_energy_hashmap
+        source "${power_data_file_path}" # will set cloud_energy_hashmap
 
         while read -r read_var_time read_var_util; do
             echo "${read_var_time} ${cloud_energy_hashmap[$read_var_util]}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-step.txt
