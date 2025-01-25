@@ -137,3 +137,25 @@ jobs:
         with:
           task: display-results
           pr-comment: true
+
+      - name: Validate macOS energy values
+        if: ${{ contains('macos', matrix.os) }}
+        run: |
+          min=30
+          max=40
+          total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
+          if [[ $total_energy -ge $min && $total_energy -le $max ]]; then
+              echo "Energy value $total_energy is outside the expected range [$min, $max]."
+              exit -1
+          fi
+
+      - name: Validate macOS energy values
+        if: ${{ !contains('macos', matrix.os) }}
+        run: |
+          min=30
+          max=40
+          total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
+          if [[ $total_energy -lt $min || $total_energy -gt $max ]]; then
+              echo "Energy value $total_energy is outside the expected range [$min, $max]."
+              exit -1
+          fi
