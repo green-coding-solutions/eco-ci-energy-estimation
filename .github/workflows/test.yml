@@ -151,10 +151,11 @@ jobs:
           set -e
           min=30
           max=40
-          total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
-          if [[ $total_energy -ge $min && $total_energy -le $max ]]; then
-              echo "Energy value $total_energy is outside the expected range [$min, $max]."
-              exit 1
+          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
+            echo "Energy value $total_energy is in the expected range [$min, $max]."
+          else
+            echo "Energy value $total_energy is outside the expected range [$min, $max]."
+            exit 1
           fi
 
       - name: Validate macOS energy values
@@ -165,7 +166,9 @@ jobs:
           min=30
           max=40
           total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
-          if [[ $total_energy -lt $min || $total_energy -gt $max ]]; then
-              echo "Energy value $total_energy is outside the expected range [$min, $max]."
-              exit 1
+          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
+            echo "Energy value $total_energy is in the expected range [$min, $max]."
+          else
+            echo "Energy value $total_energy is outside the expected range [$min, $max]."
+            exit 1
           fi
