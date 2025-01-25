@@ -146,6 +146,7 @@ jobs:
 
       - name: Validate macOS energy values
         if: ${{ contains(matrix.os, 'macos') }}
+        shell: bash
         run: |
           set -e
           min=30
@@ -158,6 +159,7 @@ jobs:
 
       - name: Validate macOS energy values
         if: ${{ !contains(matrix.os, 'macos') }}
+        shell: bash
         run: |
           set -e
           min=30
