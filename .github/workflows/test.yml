@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Install dependencies (macos only)
-        if: ${{ contains('macos', matrix.os) }}
+        if: ${{ contains(matrix.os, 'macos') }}
         run: |
           brew install coreutils
           echo "/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH" >> $GITHUB_PATH
@@ -145,7 +145,7 @@ jobs:
           pr-comment: true
 
       - name: Validate macOS energy values
-        if: ${{ contains('macos', matrix.os) }}
+        if: ${{ contains(matrix.os, 'macos') }}
         run: |
           min=30
           max=40
@@ -156,7 +156,7 @@ jobs:
           fi
 
       - name: Validate macOS energy values
-        if: ${{ !contains('macos', matrix.os) }}
+        if: ${{ !contains(matrix.os, 'macos') }}
         run: |
           min=30
           max=40
