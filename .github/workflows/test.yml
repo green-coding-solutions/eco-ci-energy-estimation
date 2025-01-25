@@ -133,6 +133,11 @@ jobs:
         run: |
           cat /tmp/eco-ci/energy-total.txt
 
+      - name: Dump running processes
+        run: |
+          ps -aux | grep scripts
+          ps -aux | grep iostat
+
       - name: Final
         uses: ./
         with:
