@@ -32,7 +32,10 @@ jobs:
         if: ${{ contains(matrix.os, 'macos') }}
         run: |
           brew install coreutils
+          # macos-14
           echo "/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH" >> $GITHUB_PATH
+          # macos-13
+          echo "/usr/local/opt/coreutils/libexec/gnubin:$PATH" >> $GITHUB_PATH
 
       - uses: actions/checkout@v4
         with:
