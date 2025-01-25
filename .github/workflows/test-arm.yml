@@ -1,0 +1,159 @@
+name: Test PR & Periodic
+
+on:
+  pull_request:
+    paths-ignore:
+     - 'README.md'
+     - 'LICENSE'
+     - '.gitlab-ci.yml.example'
+     - '.gitignore'
+#  schedule:
+#    # only run once a week to show the action is working and preserve as much energy as possible
+#    # Reason being that we pull our ML model and this could have changed in the meantime
+#    - cron: '22 4 * * 6'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  test-action:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: false
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [arm-test-24.04]
+
+      - uses: actions/checkout@v4
+        with:
+          path: .
+
+      - name: API Base Debug
+        run: |
+          echo "Current API Base is" ${{ github.api_url }}
+
+      - name: Initialize Energy Estimation (Linux)
+        uses: ./
+        with:
+          task: start-measurement
+          project: "Eco-CI"
+          machine: "ubuntu-latest"
+          tags: "CI/CD,Test PR & Periodic-Workflow"
+          gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
+          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+
+
+      - name: Sleep step
+        run: sleep 2
+
+      - name: Dump ECO-CI CPU Step before
+        run: |
+          cat /tmp/eco-ci/cpu-util-step.txt
+
+      - name: Dump ECO-CI CPU before
+        run: |
+          cat /tmp/eco-ci/cpu-util-total.txt
+
+
+      - name: Test measurement 1
+        uses: ./
+        with:
+          task: get-measurement
+          label: "echo Hellos; $SHELL; \""
+
+      - name: Dump ECO-CI CPU Step actual processed
+        run: |
+          cat /tmp/eco-ci/cpu-util-temp.txt
+
+      - name: Dump ECO-CI Energy Step actual processed
+        run: |
+          cat /tmp/eco-ci/energy-step.txt
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Test measurement 2
+        uses: ./
+        with:
+          task: get-measurement
+          label: "(Soo this is something); & ; echo $SHELL"
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Test measurement 3
+        uses: ./
+        with:
+          task: get-measurement
+          label: 'Environment setup (OS ${{ matrix.os }}, lint)'
+
+      # - name: Sleep 3
+      #   run: sleep 3
+
+      # There is currently no way of catching this IMHO
+      # - name: Test measurement 4
+      #   uses: ./
+      #   with:
+      #     task: get-measurement
+      #     label: without quotes'; echo
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Test measurement 5
+        uses: ./
+        with:
+          task: get-measurement
+          label: without quotes"; echo
+
+      # - name: Sleep 3
+      #   run: sleep 3
+
+      # There is currently no way of catching this IMHO
+      # - name: Test measurement 6
+      #   uses: ./
+      #   with:
+      #     task: get-measurement
+      #     label: 'without quotes'''
+
+      - name: Dump ECO-CI CPU
+        run: |
+          cat /tmp/eco-ci/cpu-util-total.txt
+
+      - name: Dump ECO-CI Energy
+        run: |
+          cat /tmp/eco-ci/energy-total.txt
+
+      - name: Dump running processes
+        run: |
+          ps -ax | grep scripts
+          ps -ax | grep iostat
+
+      - name: Final
+        uses: ./
+        with:
+          task: get-measurement
+
+      - name: Eco CI Energy Estimation
+        uses: ./
+        with:
+          task: display-results
+          pr-comment: true
+
+      - name: Validate linux energy values
+        if: ${{ !contains(matrix.os, 'macos') }}
+        shell: bash
+        run: |
+          set -e
+          min=20
+          max=40
+          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
+          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
+            echo "Energy value $total_energy is in the expected range [$min, $max]."
+          else # if total_energy is not int the check will fail silently. Thus else is our fallback
+            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
+            exit 1
+          fi
