@@ -154,6 +154,7 @@ jobs:
               echo "Energy value $total_energy is outside the expected range [$min, $max]."
               exit -1
           fi
+        continue-on-error: false
 
       - name: Validate macOS energy values
         if: ${{ !contains(matrix.os, 'macos') }}
@@ -165,3 +166,4 @@ jobs:
               echo "Energy value $total_energy is outside the expected range [$min, $max]."
               exit -1
           fi
+        continue-on-error: false
