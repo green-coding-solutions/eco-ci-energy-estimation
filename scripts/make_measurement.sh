@@ -23,6 +23,9 @@ function make_inference() {
 
         while read -r read_var_time read_var_util; do
             echo "Debug: $read_var_util"
+            echo "contents of file"
+            cat /tmp/eco-ci/cpu-util-temp.txt
+            echo "end"
             echo "${read_var_time} ${cloud_energy_hashmap[$read_var_util]}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-step.txt
         done < /tmp/eco-ci/cpu-util-temp.txt
     else
