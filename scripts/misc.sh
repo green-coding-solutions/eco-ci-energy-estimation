@@ -49,7 +49,7 @@ get_carbon_intensity() {
 
     co2_intensity=$(echo "$response" | jq '.carbonIntensity')
 
-    echo "Carbon Intesity from API is ${co2_intensity}"
+    echo "Carbon intensity from Electricitymaps is ${co2_intensity}"
     add_var 'ECO_CI_CO2I' "$co2_intensity"
 }
 

@@ -90,14 +90,24 @@ function lap_measurement {
     fi
 }
 
-function end_measurement {
-    if [[ $(uname) == "Darwin" ]]; then
-        pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization-macos.sh"  || true;
-    else
-        pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization-linux.sh"  || true;
-    fi
+function kill_tree() {
+    for parent_pid in "$@"; do
+        local child_pids=$(pgrep -P $parent_pid)
+        kill -SIGTERM $parent_pid 2>/dev/null || true;
+        for child_pid in $child_pids; do
+            kill_tree $child_pid
+        done
+    done
 }
 
+
+function end_measurement {
+    if [[ $(uname) == "Darwin" ]]; then
+        kill_tree $(pgrep -f "$(dirname "$0")/cpu-utilization-macos.sh" || true)
+    else
+        kill_tree $(pgrep -f "$(dirname "$0")/cpu-utilization-linux.sh" || true)
+    fi
+}
 
 option="$1"
 

@@ -30,6 +30,12 @@ function make_inference() {
             # The pattern contains a . and [ ] but this no problem as no other dot appears anywhere
 
             power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap\\\\[${read_var_util}\\\\]" ' $0 ~ pattern { print $2 }' "${power_data_file_path}")
+
+            if [[ -z $power_value ]]; then
+                echo "Could not match power value for utilization: '${read_var_util}'"
+                exit -1
+            fi
+
             echo "${read_var_time} ${power_value}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-step.txt
         done < /tmp/eco-ci/cpu-util-temp.txt
     fi

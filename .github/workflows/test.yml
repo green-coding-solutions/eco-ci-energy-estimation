@@ -25,9 +25,15 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04]
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-20.04, macos-13, macos-14]
 
     steps:
+      - name: Install dependencies (macos only)
+        if: ${{ contains(matrix.os, 'macos') }}
+        run: |
+          brew install coreutils
+          echo "/opt/homebrew/opt/coreutils/libexec/gnubin:/usr/local/opt/coreutils/libexec/gnubin:$PATH" >> $GITHUB_PATH
+
       - uses: actions/checkout@v4
         with:
           path: .
@@ -36,7 +42,8 @@ jobs:
         run: |
           echo "Current API Base is" ${{ github.api_url }}
 
-      - name: Initialize Energy Estimation
+      - name: Initialize Energy Estimation (Linux)
+        if: ${{ !contains(matrix.os, 'macos') }}
         uses: ./
         with:
           task: start-measurement
@@ -45,6 +52,31 @@ jobs:
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
           electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+
+      - name: Initialize Energy Estimation (macos-14)
+        if: ${{ contains(matrix.os, 'macos-14') }}
+        uses: ./
+        with:
+          task: start-measurement
+          project: "Eco-CI"
+          machine: "ubuntu-latest"
+          tags: "CI/CD,Test PR & Periodic-Workflow"
+          gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
+          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          machine-power-data: "macos-14-mac-mini-m1.sh"
+
+      - name: Initialize Energy Estimation (macos-13)
+        if: ${{ contains(matrix.os, 'macos-13') }}
+        uses: ./
+        with:
+          task: start-measurement
+          project: "Eco-CI"
+          machine: "ubuntu-latest"
+          tags: "CI/CD,Test PR & Periodic-Workflow"
+          gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
+          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          machine-power-data: "macos-13-mac-mini-intel.sh"
+
 
       - name: Sleep step
         run: sleep 2
@@ -127,6 +159,11 @@ jobs:
         run: |
           cat /tmp/eco-ci/energy-total.txt
 
+      - name: Dump running processes
+        run: |
+          ps -ax | grep scripts
+          ps -ax | grep iostat
+
       - name: Final
         uses: ./
         with:
@@ -137,3 +174,49 @@ jobs:
         with:
           task: display-results
           pr-comment: true
+
+      - name: Validate macOS energy values
+        if: ${{ contains(matrix.os, 'macos-14') }}
+        shell: bash
+        run: |
+          set -e
+          min=25
+          max=45
+          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
+          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
+            echo "Energy value $total_energy is in the expected range [$min, $max]."
+          else # if total_energy is not int the check will fail silently. Thus else is our fallback
+            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
+            exit 1
+          fi
+
+      - name: Validate macOS energy values
+        if: ${{ contains(matrix.os, 'macos-13') }}
+        shell: bash
+        run: |
+          set -e
+          min=140
+          max=195
+          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
+          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
+            echo "Energy value $total_energy is in the expected range [$min, $max]."
+          else # if total_energy is not int the check will fail silently. Thus else is our fallback
+            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
+            exit 1
+          fi
+
+
+      - name: Validate linux energy values
+        if: ${{ !contains(matrix.os, 'macos') }}
+        shell: bash
+        run: |
+          set -e
+          min=20
+          max=40
+          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
+          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
+            echo "Energy value $total_energy is in the expected range [$min, $max]."
+          else # if total_energy is not int the check will fail silently. Thus else is our fallback
+            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
+            exit 1
+          fi
