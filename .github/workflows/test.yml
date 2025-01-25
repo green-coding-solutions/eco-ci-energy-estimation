@@ -151,11 +151,11 @@ jobs:
           set -e
           min=30
           max=40
-          total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
+          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
           if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
             echo "Energy value $total_energy is in the expected range [$min, $max]."
-          else
-            echo "Energy value $total_energy is outside the expected range [$min, $max]."
+          else # if total_energy is not int the check will fail silently. Thus else is our fallback
+            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
             exit 1
           fi
 
@@ -166,10 +166,10 @@ jobs:
           set -e
           min=30
           max=40
-          total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
+          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
           if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
             echo "Energy value $total_energy is in the expected range [$min, $max]."
-          else
-            echo "Energy value $total_energy is outside the expected range [$min, $max]."
+          else # if total_energy is not int the check will fail silently. Thus else is our fallback
+            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
             exit 1
           fi
