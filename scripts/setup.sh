@@ -105,7 +105,7 @@ function end_measurement {
     if [[ $(uname) == "Darwin" ]]; then
         kill_tree $(pgrep -f "$(dirname "$0")/cpu-utilization-macos.sh" || true)
     else
-        kill_tree $(pgrep -f "$(dirname "$0")/cpu-utilization-linux.sh" || true)
+        pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization-linux.sh"  || true;
     fi
 }
 
