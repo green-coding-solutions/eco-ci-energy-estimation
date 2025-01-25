@@ -159,7 +159,7 @@ jobs:
             exit 1
           fi
 
-      - name: Validate macOS energy values
+      - name: Validate linux energy values
         if: ${{ !contains(matrix.os, 'macos') }}
         shell: bash
         run: |
