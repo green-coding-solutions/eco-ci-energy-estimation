@@ -327,12 +327,20 @@ Please look at [.gitlab-ci.yml.example](.gitlab-ci.yml.example)
 
 Install it with the package manager of your choice and then add its binary first in the `PATH` variable, so that it precedes the *BSD* `date`.
 
-Example for `homebrew`:
+Example for using in local CI with `homebrew`:
 ```bash
 brew install coreutils
 export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 # then you can run:
 bash local_ci.example.sh
+```
+
+Example for using in *GitHub Actions* with `homebrew`:
+```yml
+      - name: Install dependencies (macos only)
+        run: |
+          brew install coreutils
+          echo "/opt/homebrew/opt/coreutils/libexec/gnubin:/usr/local/opt/coreutils/libexec/gnubin:$PATH" >> $GITHUB_PATH
 ```
 
 ### Local CI / Running in docker
