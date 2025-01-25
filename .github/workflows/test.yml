@@ -135,8 +135,8 @@ jobs:
 
       - name: Dump running processes
         run: |
-          ps -aux | grep scripts
-          ps -aux | grep iostat
+          ps -ax | grep scripts
+          ps -ax | grep iostat
 
       - name: Final
         uses: ./
