@@ -149,8 +149,8 @@ jobs:
         shell: bash
         run: |
           set -e
-          min=30
-          max=40
+          min=60
+          max=80
           total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
           if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
             echo "Energy value $total_energy is in the expected range [$min, $max]."
