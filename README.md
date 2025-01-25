@@ -343,7 +343,7 @@ Install it with the package manager of your choice and then add its binary first
 Example for using in local CI with `homebrew`:
 ```bash
 brew install coreutils
-export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 # then you can run:
 bash local_ci.example.sh
 ```
