@@ -92,8 +92,8 @@ function lap_measurement {
 
 function kill_tree() {
     for parent_pid in "$@"; do
-        kill -SIGTERM $parent_pid 2>/dev/null || true;
         local child_pids=$(pgrep -P $parent_pid)
+        kill -SIGTERM $parent_pid 2>/dev/null || true;
         for child_pid in $child_pids; do
             kill_tree $child_pid
         done
