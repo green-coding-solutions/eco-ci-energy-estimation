@@ -66,6 +66,34 @@ function cpu_vars {
         add_var 'ECO_CI_SCI_M' 18339.0625;
         # we use 4 years - 1*60*60*24*365*4 =
         add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
+    # GitHub uses this one https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories (Q1/2025)
+    # https://www.green-coding.io/case-studies/cpu-utilization-usefulness/
+    elif [[ "$machine_power_data" == "macos-13-mac-mini-intel.sh" ]]; then
+        echo 'Using macos-13-mac-mini-intel.sh'
+        add_var 'ECO_CI_MODEL_NAME' 'Intel Core i3-8100'
+        # [GitHub specs](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories)
+        # [Source for hardware specs](https://en.wikipedia.org/wiki/Mac_Mini#Technical_specifications_3)
+        # [Source for CPU specs](https://www.intel.com/content/www/us/en/products/sku/126688/intel-core-i38100-processor-6m-cache-3-60-ghz/specifications.html)
+        # It seems GitHub is not sharing this machine for the runners and is just running some virtualization layer, as some memory is reserved ...?
+        # FROM official Apple LCA for MacMini October 208
+        # 270 kg
+        add_var 'ECO_CI_SCI_M' 270000.00;
+        # we use 4 years - 1*60*60*24*365*4 =
+        add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
+    # GitHub uses this one https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories (Q1/2025)
+    # https://www.green-coding.io/case-studies/cpu-utilization-usefulness/
+    elif [[ "$machine_power_data" == "macos-14-mac-mini-m1.sh" ]]; then
+        echo 'Using macos-14-mac-mini-m1.sh'
+        add_var 'ECO_CI_MODEL_NAME' 'Apple M1'
+        # [GitHub specs](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories)
+        # [Source for full Mac Mini power consumption](https://www.anandtech.com/show/16252/mac-mini-apple-m1-tested)
+        # [Source for Cores and RAM of total machine (assuming only efficiency cores used for hypervisor and performance for runners)](https://github.blog/news-insights/product-news/introducing-the-new-apple-silicon-powered-m1-macos-larger-runner-for-github-actions/) (We slightly tuned vhost-ratio to 0.3 instead of 0.4 to adapt to the measured power source from Source #1)
+        # FROM official Apple LCA for Mac mini (November 2020)
+        # 172 kg
+        # With a 0.3 splitting this is 51600.00 gCO2e
+        add_var 'ECO_CI_SCI_M' 51600.00;
+        # we use 4 years - 1*60*60*24*365*4 =
+        add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
     else
         echo "⚠️ Unknown model ${model_name} for estimation, will use default model ... This will likely produce very unaccurate results!"
         [ -n "$GITHUB_STEP_SUMMARY" ] && echo "⚠️ Unknown model ${model_name} for estimation, will use default model ... This will likely produce very unaccurate results!" >> $GITHUB_STEP_SUMMARY

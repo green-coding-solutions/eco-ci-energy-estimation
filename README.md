@@ -270,7 +270,20 @@ You can see how the machine specs must be supplied to [Cloud Energy](https://git
 Since GitHub for instance uses an `AMD EPYC 7763`, which only comes with 64 cores and 128 threads, and gives you **4 CPUs** the assumption is 
 that the splitting factor is `4/128 = 0.03125`. 
 
-An uncertainty is if Hyper-Threading / SMT is turned on or off, but we believe it is reasonable to assume that for Shared runners they will turn it on as it generally increases
+For macOS we used for the `macos-14` M1 shared runners:
+`python3 xgb.py --tdp 10 --cpu-threads=8 --cpu-cores=8 --release-year=2020 --ram 16 --cpu-freq=3200 --cpu-chips=1 --vhost-ratio=0.3 --dump-hashmap > macos-14-mac-mini-m1.sh`
+[Source for full Mac Mini power consumption](https://www.anandtech.com/show/16252/mac-mini-apple-m1-tested)
+[Source for Cores and RAM of total machine (assuming only efficiency cores used for hypervisor and performance for runners)](https://github.blog/news-insights/product-news/introducing-the-new-apple-silicon-powered-m1-macos-larger-runner-for-github-actions/) (We slightly tuned vhost-ratio to 0.3 instead of 0.4 to adapt to the measured power source from Source #1)
+
+And for the *Intel* `macos-14` shared runners:
+`python3 xgb.py --tdp 65 --cpu-threads=4 --cpu-cores=4 --release-year=2017 --ram 16 --cpu-freq=3600 --cpu-chips=1 --vhost-ratio=1 --dump-hashmap > macos-13-mac-mini-intel.sh`
+[GitHub specs](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories)
+[Source for hardware specs](https://en.wikipedia.org/wiki/Mac_Mini#Technical_specifications_3)
+[Source for CPU specs](https://www.intel.com/content/www/us/en/products/sku/126688/intel-core-i38100-processor-6m-cache-3-60-ghz/specifications.html)
+It seems GitHub is not sharing this machine for the runners and is just running some virtualization layer, as some memory is reserved ...?
+
+
+An uncertainty for all Intel runners is if Hyper-Threading / SMT is turned on or off, but we believe it is reasonable to assume that for Shared runners they will turn it on as it generally increases
 throughput and performance in shared environments.
 
 If you have trouble finding out the splitting factor for your system: [Open an issue!](https://github.com/green-coding-solutions/eco-ci-energy-estimation/issues) We are happy to help!!

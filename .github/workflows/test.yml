@@ -42,7 +42,8 @@ jobs:
         run: |
           echo "Current API Base is" ${{ github.api_url }}
 
-      - name: Initialize Energy Estimation
+      - name: Initialize Energy Estimation (Linux)
+        if: ${{ !contains(matrix.os, 'macos') }}
         uses: ./
         with:
           task: start-measurement
@@ -51,6 +52,31 @@ jobs:
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
           electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+
+      - name: Initialize Energy Estimation (macos-14)
+        if: ${{ !contains(matrix.os, 'macos-14') }}
+        uses: ./
+        with:
+          task: start-measurement
+          project: "Eco-CI"
+          machine: "ubuntu-latest"
+          tags: "CI/CD,Test PR & Periodic-Workflow"
+          gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
+          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          machine-power-data: "macos-14-mac-mini-m1.sh"
+
+      - name: Initialize Energy Estimation (macos-13)
+        if: ${{ !contains(matrix.os, 'macos-13') }}
+        uses: ./
+        with:
+          task: start-measurement
+          project: "Eco-CI"
+          machine: "ubuntu-latest"
+          tags: "CI/CD,Test PR & Periodic-Workflow"
+          gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
+          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          machine-power-data: "macos-13-mac-mini-intel.sh"
+
 
       - name: Sleep step
         run: sleep 2
