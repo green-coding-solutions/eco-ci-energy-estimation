@@ -92,11 +92,11 @@ function lap_measurement {
 
 function kill_tree() {
     for parent_pid in "$@"; do
+        kill -SIGTERM $parent_pid 2>/dev/null || true;
         local child_pids=$(pgrep -P $parent_pid)
         for child_pid in $child_pids; do
             kill_tree $child_pid
         done
-        kill -SIGTERM $parent_pid 2>/dev/null || true;
     done
 }
 
@@ -105,7 +105,7 @@ function end_measurement {
     if [[ $(uname) == "Darwin" ]]; then
         kill_tree $(pgrep -f "$(dirname "$0")/cpu-utilization-macos.sh" || true)
     else
-        pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization-linux.sh"  || true;
+        kill_tree $(pgrep -f "$(dirname "$0")/cpu-utilization-linux.sh" || true)
     fi
 }
 
