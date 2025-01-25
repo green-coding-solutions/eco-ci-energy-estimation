@@ -54,7 +54,7 @@ jobs:
           electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
 
       - name: Initialize Energy Estimation (macos-14)
-        if: ${{ !contains(matrix.os, 'macos-14') }}
+        if: ${{ contains(matrix.os, 'macos-14') }}
         uses: ./
         with:
           task: start-measurement
@@ -66,7 +66,7 @@ jobs:
           machine-power-data: "macos-14-mac-mini-m1.sh"
 
       - name: Initialize Energy Estimation (macos-13)
-        if: ${{ !contains(matrix.os, 'macos-13') }}
+        if: ${{ contains(matrix.os, 'macos-13') }}
         uses: ./
         with:
           task: start-measurement
