@@ -176,7 +176,7 @@ jobs:
           pr-comment: true
 
       - name: Validate macOS energy values
-        if: ${{ contains(matrix.os, 'macos-13') }}
+        if: ${{ contains(matrix.os, 'macos-14') }}
         shell: bash
         run: |
           set -e
@@ -195,8 +195,8 @@ jobs:
         shell: bash
         run: |
           set -e
-          min=42
-          max=58
+          min=170
+          max=230
           total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
           if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
             echo "Energy value $total_energy is in the expected range [$min, $max]."
