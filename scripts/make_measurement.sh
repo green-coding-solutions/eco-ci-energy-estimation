@@ -142,7 +142,7 @@ function make_measurement() {
             }"
         fi
 
-        if [[ 'true' == 'true' ]]; then
+        if [[ ${ECO_CI_JSON_OUTPUT} == 'true' ]]; then
             lap_data_file='/tmp/eco-ci/lap-data.json'
             echo 'show create-and-add-meta.sh output'
             source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${lap_data_file}"
