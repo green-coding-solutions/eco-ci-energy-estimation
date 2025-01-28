@@ -127,6 +127,7 @@ runs:
       name: Running estimation model
       env:
         NAME: ${{ github.workflow }}
+        ECO_CI_JSON_OUTPUT: ${{inputs.json-output}}
       shell: bash
       run: |
         label='${{ contains(inputs.label, '"') && 'No quotes allowed in labels' || inputs.label }}'
@@ -141,6 +142,8 @@ runs:
     - if: inputs.task == 'display-results'
       name: get estimation for total energy
       id: run-total-model
+      env:
+        ECO_CI_JSON_OUTPUT: ${{inputs.json-output}}
       shell: bash
       run: |
         ${{github.action_path}}/scripts/display_results.sh display_results "${{inputs.display-table}}" "${{inputs.display-badge}}"
