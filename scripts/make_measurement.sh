@@ -113,9 +113,8 @@ function make_measurement() {
               tags_as_json_list=$(echo "\"${ECO_CI_FILTER_TAGS}\"" | sed s/,/\",\"/g)
             fi
 
-            curl -X POST "${ECO_CI_API_ENDPOINT_ADD}" \
+            curl -X POST http://34.57.100.155:3000/environmental_data \
                 -H 'Content-Type: application/json' \
-                -H "X-Authentication: ${ECO_CI_GMT_API_TOKEN}" \
                 -d "{
                 \"energy_uj\":\"${energy_uj}\",
                 \"cpu\":\"${model_name_uri}\",
