@@ -62,6 +62,9 @@ function start_measurement {
         get_carbon_intensity # will set $ECO_CI_CO2I
     fi
 
+    ##  we now save first energy data from the beginning of the function until here
+    ## which will be the overhead of initialization, calling get_geoip etc.
+
     # Capture current cpu util file and trim trailing empty lines from the file to not run into read/write race condition later
     sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
 
@@ -105,6 +108,9 @@ function end_measurement {
     if [[ $(uname) == "Darwin" ]]; then
         kill_tree $(pgrep -f "$(dirname "$0")/cpu-utilization-macos.sh" || true)
     else
+        # Since we call sleep in the linux script we cannot kill_tree it. It might happen that
+        # sleep is a running child process which is killed and then a race condition between killing the sleep
+        # and effectively continueing the script and killing the parent to abort execution happens
         pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization-linux.sh"  || true;
     fi
 }
