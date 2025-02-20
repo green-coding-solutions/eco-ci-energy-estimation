@@ -53,6 +53,38 @@ get_carbon_intensity() {
     add_var 'ECO_CI_CO2I' "$co2_intensity"
 }
 
+get_minimum_carbon_intensity() {
+    #This gives the minimum carbon intensity in the last 24 hours. This is the best estimate we have access to 
+    #for finding how much carbon can be reduced in 24 hours
+    if [ -z "${ECO_CI_ELECTRICITYMAPS_API_TOKEN+x}" ]; then
+        export ECO_CI_ELECTRICITYMAPS_API_TOKEN='no_token'
+    fi
+
+    ECO_CI_GEO_LAT=${ECO_CI_GEO_LAT:-}
+    ECO_CI_GEO_LON=${ECO_CI_GEO_LON:-}
+
+    response=$(curl -s -H "auth-token: ${ECO_CI_ELECTRICITYMAPS_API_TOKEN}" "https://api.electricitymap.org/v3/carbon-intensity/history?lat=${ECO_CI_GEO_LAT}&lon=${ECO_CI_GEO_LON}" || true)
+
+    if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
+        echo 'Failed to retrieve data or received invalid JSON. Exiting' >&2
+        return
+    fi
+
+    # Gather all carbonIntensity values in history, then find the minimum
+    min_co2_intensity=$(echo "$response" | jq '[.history[].carbonIntensity] | min')
+
+    if [ -z "$min_co2_intensity" ] || [ "$min_co2_intensity" = "null" ]; then
+        echo "Failed to find a valid minimum carbon intensity.
+Response: ${response}
+Exiting" >&2
+        return
+    fi
+
+    echo "Minimum carbon intensity in last 24 hours from Electricitymaps is ${min_co2_intensity}"
+    add_var 'ECO_CI_CO2I_MIN' "$min_co2_intensity"
+}
+
+
 get_embodied_co2 (){
     time="$1"
 
