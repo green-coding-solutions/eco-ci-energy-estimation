@@ -136,7 +136,9 @@ function make_measurement() {
                 \"lon\":\"${ECO_CI_GEO_LON:-""}\",
                 \"city\":\"${ECO_CI_GEO_CITY:-""}\",
                 \"ip\":\"${ECO_CI_GEO_IP:-""}\",
+                \"start_time\":\"${START_TIME:-""}\",
                 \"carbon_intensity_g\":${ECO_CI_CO2I:-"null"},
+                \"min_carbon_intensity_g\":${ECO_CI_CO2I_MIN:-"null"},
                 \"carbon_ug\":${carbon_ug}
             }"
         fi
