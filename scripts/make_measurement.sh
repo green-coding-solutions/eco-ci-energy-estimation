@@ -139,6 +139,7 @@ function make_measurement() {
                 \"start_time\":\"${START_TIME:-""}\",
                 \"carbon_intensity_g\":${ECO_CI_CO2I:-"null"},
                 \"min_carbon_intensity_g\":${ECO_CI_CO2I_MIN:-"null"},
+                \"min_carbon_intensity_time\":${ECO_CI_CO2I_MIN_TIME:-"null"},
                 \"carbon_ug\":${carbon_ug}
             }"
         fi
