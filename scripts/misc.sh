@@ -20,11 +20,12 @@ get_geoip() {
     longitude=$(echo "$response" | jq '.longitude')
     city=$(echo "$response" | jq -r '.city')
     ip=$(echo "$response" | jq -r '.ip')
-
+    start_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     add_var 'ECO_CI_GEO_CITY' "$city"
     add_var 'ECO_CI_GEO_LAT' "$latitude"
     add_var 'ECO_CI_GEO_LON' "$longitude"
     add_var 'ECO_CI_GEO_IP' "$ip"
+    add_var 'START_TIME' "$start_time"
 }
 
 get_carbon_intensity() {
