@@ -20,11 +20,12 @@ get_geoip() {
     longitude=$(echo "$response" | jq '.longitude')
     city=$(echo "$response" | jq -r '.city')
     ip=$(echo "$response" | jq -r '.ip')
-
+    start_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     add_var 'ECO_CI_GEO_CITY' "$city"
     add_var 'ECO_CI_GEO_LAT' "$latitude"
     add_var 'ECO_CI_GEO_LON' "$longitude"
     add_var 'ECO_CI_GEO_IP' "$ip"
+    add_var 'START_TIME' "$start_time"
 }
 
 get_carbon_intensity() {
@@ -52,6 +53,55 @@ get_carbon_intensity() {
     echo "Carbon intensity from Electricitymaps is ${co2_intensity}"
     add_var 'ECO_CI_CO2I' "$co2_intensity"
 }
+
+get_minimum_carbon_intensity() {
+
+    if [ -z "${ECO_CI_ELECTRICITYMAPS_API_TOKEN+x}" ]; then
+        export ECO_CI_ELECTRICITYMAPS_API_TOKEN='no_token'
+    fi
+
+    ECO_CI_GEO_LAT=${ECO_CI_GEO_LAT:-}
+    ECO_CI_GEO_LON=${ECO_CI_GEO_LON:-}
+
+    START_TIME=$(date -u +%s)  # Capture when the script starts
+
+    response=$(curl -s -H "auth-token: ${ECO_CI_ELECTRICITYMAPS_API_TOKEN}" \
+        "https://api.electricitymap.org/v3/carbon-intensity/history?lat=${ECO_CI_GEO_LAT}&lon=${ECO_CI_GEO_LON}" || true)
+
+    if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
+        echo 'Failed to retrieve data or received invalid JSON. Exiting' >&2
+        return
+    fi
+
+    # Get the minimum carbon intensity value
+    min_co2_intensity=$(echo "$response" | jq '[.history[].carbonIntensity] | min')
+
+    # Get the timestamp when the minimum carbon intensity occurred
+    min_timestamp=$(echo "$response" | jq -r --argjson min_ci "$min_co2_intensity" \
+        '.history[] | select(.carbonIntensity == $min_ci) | .datetime' | head -n 1)
+
+    if [ -z "$min_co2_intensity" ] || [ "$min_co2_intensity" = "null" ]; then
+        echo "Failed to find a valid minimum carbon intensity.\nResponse: ${response}\nExiting" >&2
+        return
+    fi
+
+    # Convert min_timestamp to Unix time
+    min_timestamp_unix=$(date -d "$min_timestamp" +%s)
+
+    # Compute hours since minimum intensity
+    elapsed_hours=$(( (START_TIME - min_timestamp_unix) / 3600 ))
+
+    # Estimate when the next min will occur (assuming 24-hour cycle)
+    estimated_next_min=$(( 24 - elapsed_hours ))
+
+    echo "Minimum carbon intensity in last 24 hours from Electricitymaps is ${min_co2_intensity}."
+    echo "It occurred ${elapsed_hours} hours ago."
+    echo "Best estimate for next minimum: in approximately ${estimated_next_min} hours."
+
+    add_var 'ECO_CI_CO2I_MIN' "$min_co2_intensity"
+    add_var 'ECO_CI_CO2I_MIN_TIME' "$estimated_next_min"
+}
+
 
 get_embodied_co2 (){
     time="$1"
