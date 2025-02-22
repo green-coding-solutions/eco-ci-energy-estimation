@@ -115,6 +115,7 @@ function make_measurement() {
 
             curl -X POST "${ECO_CI_API_ENDPOINT_ADD}" \
                 -H 'Content-Type: application/json' \
+                -H "X-Authentication: ${ECO_CI_GMT_API_TOKEN}" \
                 -d "{
                 \"energy_uj\":\"${energy_uj}\",
                 \"cpu\":\"${model_name_uri}\",
