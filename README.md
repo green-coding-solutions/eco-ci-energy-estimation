@@ -169,11 +169,12 @@ jobs:
 
 #### Electricity Maps Token
 
-We use https://app.electricitymaps.com/ to get the grid intensity for a given location. This service currently works without specifying a token but we recommend to still get one under https://api-portal.electricitymaps.com/
+We use ElectricityMaps to get the grid intensity for a given location. 
+If you want carbon values to be displayed you must set this token. It is free for personal use. In case you need a commercial license it does not matter which zones you select, as we only use the real-time endpoint which is zone free.
+Get your key here: [https://api-portal.electricitymaps.com/](https://api-portal.electricitymaps.com/)
 
-You will need to set this token as a secret and pass it in the initalization. To learn how to create a secret see the GitHub documentation: https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
-
-You will then need to pass it in your workflow files in the initialization. See documentation above.
+After having obtained the token you must set it as secret and pass it in the initalization of the action (see documentation above). 
+To learn how to create a secret see the GitHub documentation: https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
 
 #### Continuing on Errors
 
