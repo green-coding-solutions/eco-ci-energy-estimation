@@ -36,7 +36,7 @@ get_carbon_intensity() {
     ECO_CI_GEO_LAT=${ECO_CI_GEO_LAT:-}
     ECO_CI_GEO_LON=${ECO_CI_GEO_LON:-}
 
-    response=$(curl -s -H "auth-token: ${ECO_CI_ELECTRICITYMAPS_API_TOKEN}" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=${ECO_CI_GEO_LAT}&lon=${ECO_CI_GEO_LON}" || true)
+    response=$(curl -s -H "auth-token: DwDd0FXCLfD8W57FToNf" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=${ECO_CI_GEO_LAT}&lon=${ECO_CI_GEO_LON}" || true)
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
         echo 'Failed to retrieve data or received invalid JSON. Exiting' >&2
@@ -65,7 +65,7 @@ get_minimum_carbon_intensity() {
 
     START_TIME=$(date -u +%s)  # Capture when the script starts
 
-    response=$(curl -s -H "auth-token: ${ECO_CI_ELECTRICITYMAPS_API_TOKEN}" \
+    response=$(curl -s -H "auth-token: DwDd0FXCLfD8W57FToNf" \
         "https://api.electricitymap.org/v3/carbon-intensity/history?lat=${ECO_CI_GEO_LAT}&lon=${ECO_CI_GEO_LON}" || true)
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
