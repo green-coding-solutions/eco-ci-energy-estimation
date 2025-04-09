@@ -346,7 +346,7 @@ Example for using in local CI with `homebrew`:
 brew install coreutils
 export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 # then you can run:
-bash local_ci.example.sh
+bash scripts/examples/local_ci.example.sh
 ```
 
 Example for using in *GitHub Actions* with `homebrew`:
