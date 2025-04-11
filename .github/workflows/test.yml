@@ -180,8 +180,8 @@ jobs:
         shell: bash
         run: |
           set -e
-          min=25
-          max=45
+          min=53
+          max=60
           total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
           if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
             echo "Energy value $total_energy is in the expected range [$min, $max]."
@@ -195,8 +195,8 @@ jobs:
         shell: bash
         run: |
           set -e
-          min=140
-          max=195
+          min=303 # assuming 2% and 12 data points
+          max=320 # assuming 25% and 12 data points
           total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
           if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
             echo "Energy value $total_energy is in the expected range [$min, $max]."
@@ -211,8 +211,8 @@ jobs:
         shell: bash
         run: |
           set -e
-          min=20
-          max=40
+          min=30 # assuming 2% and 12 data points
+          max=49 # assuming 25% and 12 data points
           total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
           if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
             echo "Energy value $total_energy is in the expected range [$min, $max]."
