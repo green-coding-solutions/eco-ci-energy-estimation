@@ -49,16 +49,32 @@ function make_measurement() {
     ECO_CI_MODEL_NAME=${ECO_CI_MODEL_NAME:-}
     ECO_CI_MEASUREMENT_COUNT=${ECO_CI_MEASUREMENT_COUNT:-}
     ECO_CI_WORKFLOW_ID=${ECO_CI_WORKFLOW_ID:-}
+    ECO_CI_STEP_NOTE=''
 
     # capture time - Note that we need 64 bit here!
     step_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-step.txt)))
-    step_time_s=$(echo "$step_time_us 1000000" | awk '{printf "%.2f", $1 / $2}')
 
     # Capture current cpu util file and trim trailing empty lines from the file to not run into read/write race condition later
     sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
 
     # check wc -l of cpu-util is greater than 0
-    if [[ $(wc -l < /tmp/eco-ci/cpu-util-temp.txt) -gt 0 ]]; then
+    captured_datapoints=$(wc -l < /tmp/eco-ci/cpu-util-temp.txt)
+    current_step_captured_duration=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/cpu-util-temp.txt)
+
+    # calculate step times now. not earlier. to make all calculations after all capturing
+    read step_time_s step_time_s_int step_time_difference <<<  $(echo "$step_time_us 1000000 $current_step_captured_duration" | awk '{printf "%.2f %d %.9f", $1 / $2, int($1 / $2), ($1 / $2) - $3}')
+
+    if [[ $captured_datapoints -gt 0 ]]; then
+        if [[ $captured_datapoints -lt $(($step_time_s_int - 1)) ]]; then # one datapoint might be missing due to the fact that we need to wait for one tick
+            ECO_CI_STEP_NOTE="Missing data points. Expected ${step_time_s_int} (-1) but got ${captured_datapoints}"
+            echo $ECO_CI_STEP_NOTE
+        fi
+
+        # now we are backfilling data. this happens in any case as due to the low sampling rate of 1 seconds we will have
+        # up to 0.99s of missing data. We backfill by replicating the last line of cpu-util-temp with the same value for the missing amount of time
+        read _ last_line_cpu_tmp_utilization <<< "$(tail -n 1 /tmp/eco-ci/cpu-util-temp.txt)"
+        echo "${step_time_difference} ${last_line_cpu_tmp_utilization}" >> /tmp/eco-ci/cpu-util-temp.txt
+
         make_inference # will populate /tmp/eco-ci/energy-step.txt
 
         if [[ -z $ECO_CI_MEASUREMENT_COUNT ]]; then
@@ -73,6 +89,7 @@ function make_measurement() {
             label="Measurement #${ECO_CI_MEASUREMENT_COUNT}"
         fi
 
+
         cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
         step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
         power_avg=$(echo "$step_energy $step_time_s" | awk '{printf "%.2f", $1 / $2}')
@@ -84,7 +101,6 @@ function make_measurement() {
         add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_TIME" "$step_time_s"
 
         echo $step_energy >> /tmp/eco-ci/energy-values.txt
-
 
         if [[ "$ECO_CI_SEND_DATA" == 'true' ]]; then
             echo "Sending data to ${ECO_CI_API_ENDPOINT_ADD}"
@@ -106,39 +122,41 @@ function make_measurement() {
 
             energy_uj=$(echo "${step_energy} 1000000" | awk '{printf "%d", $1 * $2}' | cut -d '.' -f 1)
 
-            model_name_uri=$(echo $ECO_CI_MODEL_NAME | jq -Rr @uri)
-
             tags_as_json_list=''
             if [[ "$ECO_CI_FILTER_TAGS" != '' ]]; then # prevent sending [""] array if empty
-              tags_as_json_list=$(echo "\"${ECO_CI_FILTER_TAGS}\"" | sed s/,/\",\"/g)
+              tags_as_json_list=$(echo  $ECO_CI_FILTER_TAGS | jq -Rr @json | sed 's/,/\",\"/g' )
             fi
 
+
+            # Important: The data is NOT escaped! Since we control all variables locally we must make sure that no crap values are in there
+            # like unescaped " for instance
             curl -X POST "${ECO_CI_API_ENDPOINT_ADD}" \
                 -H 'Content-Type: application/json' \
                 -H "X-Authentication: ${ECO_CI_GMT_API_TOKEN}" \
                 -d "{
                 \"energy_uj\":\"${energy_uj}\",
-                \"cpu\":\"${model_name_uri}\",
+                \"cpu\": $(echo $ECO_CI_MODEL_NAME | jq -Rr @json),
                 \"commit_hash\":\"${ECO_CI_COMMIT_HASH}\",
                 \"repo\":\"${ECO_CI_REPOSITORY}\",
                 \"branch\":\"${ECO_CI_BRANCH}\",
                 \"workflow\":\"${ECO_CI_WORKFLOW_ID}\",
                 \"run_id\":\"${ECO_CI_RUN_ID}\",
-                \"label\":\"${label}\",
+                \"label\": $(echo $label | jq -Rr @json),
                 \"source\":\"${ECO_CI_SOURCE}\",
                 \"cpu_util_avg\":\"${cpu_avg}\",
                 \"duration_us\":\"${step_time_us}\",
-                \"workflow_name\":\"${ECO_CI_WORKFLOW_NAME}\",
-                \"filter_type\":\"${ECO_CI_FILTER_TYPE}\",
-                \"filter_project\":\"${ECO_CI_FILTER_PROJECT}\",
-                \"filter_machine\":\"${ECO_CI_FILTER_MACHINE}\",
+                \"workflow_name\": $(echo $ECO_CI_WORKFLOW_NAME | jq -Rr @json),
+                \"filter_type\": $(echo $ECO_CI_FILTER_TYPE | jq -Rr @json),
+                \"filter_project\": $(echo $ECO_CI_FILTER_PROJECT | jq -Rr @json) ,
+                \"filter_machine\": $(echo $ECO_CI_FILTER_MACHINE | jq -Rr @json),
                 \"filter_tags\":[${tags_as_json_list}],
                 \"lat\":\"${ECO_CI_GEO_LAT:-""}\",
                 \"lon\":\"${ECO_CI_GEO_LON:-""}\",
                 \"city\":\"${ECO_CI_GEO_CITY:-""}\",
                 \"ip\":\"${ECO_CI_GEO_IP:-""}\",
                 \"carbon_intensity_g\":${ECO_CI_CO2I:-"null"},
-                \"carbon_ug\":${carbon_ug}
+                \"carbon_ug\":${carbon_ug},
+                \"note\":  $(echo $ECO_CI_STEP_NOTE | jq -Rr @json)
             }"
         fi
 
@@ -150,8 +168,23 @@ function make_measurement() {
         fi
 
         # merge all current data to the totals file. This means we will include the overhead since we do it AFTER this processing block
+        # this block may well take longer than one second, as we also have API requests in there and thus cpu-uti-step might have accumulated
+        # more rows than when we captured it earlier
         sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt >> /tmp/eco-ci/cpu-util-total.txt
         sed '/^[[:space:]]*$/d' /tmp/eco-ci/energy-step.txt >> /tmp/eco-ci/energy-total.txt
+
+        step_time_total_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
+        step_time_total_s=$(echo "$step_time_total_us 1000000" | awk '{printf "%.2f", $1 / $2}')
+        all_steps_captured_duration=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/cpu-util-total.txt)
+
+        # calculate step times now. not earlier. to make all calculations after all capturing
+        overhead_step_time_difference=$(echo "${step_time_total_s} ${all_steps_captured_duration}" | awk '{printf "%.2f", $1 - $2}')
+
+        read _ last_line_cpu_total_utilization <<< "$(tail -n 1 /tmp/eco-ci/cpu-util-total.txt)"
+        echo "${overhead_step_time_difference} ${last_line_cpu_total_utilization}" >> /tmp/eco-ci/cpu-util-total.txt
+
+        read _ last_line_energy_total <<< "$(tail -n 1 /tmp/eco-ci/energy-total.txt)"
+        echo "${overhead_step_time_difference} ${last_line_energy_total}" >> /tmp/eco-ci/energy-total.txt
 
         # Reset the step timers, so we do not capture the overhead per step
         # we want to only caputure the overhead in the totals
