@@ -68,7 +68,6 @@ function make_measurement() {
     if [[ $captured_datapoints -gt 0 ]]; then
         if [[ $captured_datapoints -lt $(($step_time_s_int - 1)) ]]; then # one datapoint might be missing due to the fact that we need to wait for one tick
             ECO_CI_STEP_NOTE="Missing data points. Expected ${step_time_s_int} (-1) but got ${captured_datapoints}"
-            echo "Error! - Could not send data to GMT API: $curl_response" >&2
             echo "Error! - " $ECO_CI_STEP_NOTE  >&2
             [ -n "$GITHUB_STEP_SUMMARY" ] && echo "❌ Error! - $ECO_CI_STEP_NOTE" >> $GITHUB_STEP_SUMMARY
         fi
