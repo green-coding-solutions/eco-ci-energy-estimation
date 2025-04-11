@@ -23,7 +23,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     continue-on-error: false
     strategy:
-      fail-fast: true
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, ubuntu-24.04-arm, macos-13, macos-14]
 
