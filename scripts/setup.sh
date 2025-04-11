@@ -74,10 +74,6 @@ function start_measurement {
         make_inference # will populate /tmp/eco-ci/energy-step.txt
     fi
 
-    # save the values for the overhead
-    sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt >> /tmp/eco-ci/cpu-util-total.txt
-    sed '/^[[:space:]]*$/d' /tmp/eco-ci/energy-step.txt >> /tmp/eco-ci/energy-total.txt
-
 }
 
 function lap_measurement {
