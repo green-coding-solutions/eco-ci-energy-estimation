@@ -9,7 +9,7 @@ function add_var() {
     if [ ! -f $var_file ]; then
         touch $var_file
     fi
-    echo "${1}=\"${2}\"" >> /tmp/eco-ci/vars.sh
+    echo "${1}='${2}'" >> /tmp/eco-ci/vars.sh
 }
 
 function read_vars() {
