@@ -33,7 +33,7 @@ function make_inference() {
             power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap\\\\[${read_var_util}\\\\]" ' $0 ~ pattern { print $2 }' "${power_data_file_path}")
 
             if [[ -z $power_value ]]; then
-                echo "Could not match power value for utilization: '${read_var_util}'"
+                echo "Could not match power value for utilization: '${read_var_util}'" >&2
                 exit -1
             fi
 

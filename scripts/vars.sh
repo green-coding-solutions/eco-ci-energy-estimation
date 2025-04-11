@@ -35,7 +35,7 @@ function cpu_vars {
         echo 'Full CPU Info'
         cat /proc/cpuinfo
     else
-      echo '/proc/cpuinfo is not accessible ... cannot dump CPU model info'
+      echo '/proc/cpuinfo is not accessible ... cannot dump CPU model info' >&2
       model_name='UNKNOWN'
     fi
 
@@ -43,7 +43,7 @@ function cpu_vars {
         echo 'Full memory info'
         cat /proc/meminfo
     else
-        echo '/proc/meminfo does not exist. Cannot dump memory info'
+        echo '/proc/meminfo does not exist. Cannot dump memory info' >&2
     fi
 
 
@@ -99,7 +99,7 @@ function cpu_vars {
         # we use 4 years - 1*60*60*24*365*4 =
         add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
     else
-        echo "⚠️ Unknown model ${model_name} for estimation, will use default model ... This will likely produce very unaccurate results!"
+        echo "⚠️ Unknown model ${model_name} for estimation, will use default model ... This will likely produce very unaccurate results!" >&2
         [ -n "$GITHUB_STEP_SUMMARY" ] && echo "⚠️ Unknown model ${model_name} for estimation, will use default model ... This will likely produce very unaccurate results!" >> $GITHUB_STEP_SUMMARY
         # we use a default configuration here from https://datavizta.boavizta.org/serversimpact
 
