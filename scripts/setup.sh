@@ -63,6 +63,7 @@ function start_measurement {
         get_geoip # will set $ECO_CI_GEO_CITY, $ECO_CI_GEO_LAT, $ECO_CI_GEO_LONG and $ECO_CI_GEO_IP
         read_vars # reload set vars
         get_carbon_intensity # will set $ECO_CI_CO2I
+        get_minimum_carbon_intensity # will set $ECO_CI_CO2I_MIN
     fi
 
     ##  we now save first energy data from the beginning of the function until here

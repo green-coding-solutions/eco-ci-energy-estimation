@@ -115,7 +115,6 @@ function make_measurement() {
 
             curl -X POST "${ECO_CI_API_ENDPOINT_ADD}" \
                 -H 'Content-Type: application/json' \
-                -H "X-Authentication: ${ECO_CI_GMT_API_TOKEN}" \
                 -d "{
                 \"energy_uj\":\"${energy_uj}\",
                 \"cpu\":\"${model_name_uri}\",
@@ -137,7 +136,10 @@ function make_measurement() {
                 \"lon\":\"${ECO_CI_GEO_LON:-""}\",
                 \"city\":\"${ECO_CI_GEO_CITY:-""}\",
                 \"ip\":\"${ECO_CI_GEO_IP:-""}\",
+                \"start_time\":\"${START_TIME:-""}\",
                 \"carbon_intensity_g\":${ECO_CI_CO2I:-"null"},
+                \"min_carbon_intensity_g\":${ECO_CI_CO2I_MIN:-"null"},
+                \"min_carbon_intensity_time\":${ECO_CI_CO2I_MIN_TIME:-"null"},
                 \"carbon_ug\":${carbon_ug}
             }"
         fi
