@@ -9,6 +9,7 @@ function make_inference() {
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
     BASH_VERSION=${BASH_VERSION:-}
+    GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
     # clear energy file for step because we fill it later anew
     echo > /tmp/eco-ci/energy-step.txt
@@ -130,7 +131,7 @@ function make_measurement() {
 
             # Important: The data is NOT escaped! Since we control all variables locally we must make sure that no crap values are in there
             # like unescaped " for instance
-            curl -X POST "${ECO_CI_API_ENDPOINT_ADD}" \
+            curl_response=$(curl -w "%{http_code}" -X POST "${ECO_CI_API_ENDPOINT_ADD}" \
                 -H 'Content-Type: application/json' \
                 -H "X-Authentication: ${ECO_CI_GMT_API_TOKEN}" \
                 -d "{
@@ -157,7 +158,15 @@ function make_measurement() {
                 \"carbon_intensity_g\":${ECO_CI_CO2I:-"null"},
                 \"carbon_ug\":${carbon_ug},
                 \"note\":  $(echo $ECO_CI_STEP_NOTE | jq -Rr @json)
-            }"
+            }" 2>&1 || true)
+
+            http_code=$(echo "$curl_response" | tail -n 1)
+
+            if [[ "$http_code" != "204" ]]; then
+                echo "Error! - Could not send data to GMT API: $curl_response" >&2
+                [ -n "$GITHUB_STEP_SUMMARY" ] && echo "❌ Error! - Could not send data to GMT API: $curl_response" >> $GITHUB_STEP_SUMMARY
+            fi
+
         fi
 
         if [[ ${ECO_CI_JSON_OUTPUT} == 'true' ]]; then
