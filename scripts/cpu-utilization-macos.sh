@@ -24,7 +24,7 @@ NR > 3 { # skips first 3 rows, which contain header data and first average-only 
     }
 
     # Print the time and CPU usage
-    printf "%.10f %.2f\n", (time_diff_ns / 1000000000), usage
+    printf "%.9f %.2f\n", (time_diff_ns / 1000000000), usage
 
     # Store the current time as the last time for the next iteration
     last_time_ns = current_time_ns
