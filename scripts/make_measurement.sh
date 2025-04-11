@@ -194,7 +194,7 @@ function make_measurement() {
         echo "${overhead_step_time_difference} ${last_line_cpu_total_utilization}" >> /tmp/eco-ci/cpu-util-total.txt
 
         read last_line_energy_total <<< "$(tail -n 1 /tmp/eco-ci/energy-total.txt)"
-        echo "${overhead_step_time_difference} ${last_line_energy_total}" | awk '{printf "%.9f", $1 * $2}') >> /tmp/eco-ci/energy-total.txt
+        echo "${overhead_step_time_difference} ${last_line_energy_total}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-total.txt
 
         # Reset the step timers, so we do not capture the overhead per step
         # we want to only caputure the overhead in the totals
