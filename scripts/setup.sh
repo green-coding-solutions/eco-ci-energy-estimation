@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Call the function to read and set the variables
+# Import vars funtions.
+# Other than in the other files we do NOT read the vars, bc we do not read them in this file
+# Rather we must initialize them
 source "$(dirname "$0")/vars.sh"
-read_vars
 
 # takes argument machine_power_data = $1
 function start_measurement {
@@ -11,6 +12,8 @@ function start_measurement {
       rm -rf /tmp/eco-ci
     fi
     mkdir -p "/tmp/eco-ci"
+
+    initialize_vars
 
     # check if date returns a timestamp accurate to microseconds (16 digits)
     # if not probably coreutils are missing (that's the case with alpine)

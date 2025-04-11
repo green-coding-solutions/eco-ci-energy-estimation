@@ -18,6 +18,10 @@ function read_vars() {
     fi
 }
 
+function initialize_vars() {
+    echo > /tmp/eco-ci/vars.sh
+}
+
 function cpu_vars {
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
