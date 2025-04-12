@@ -28,7 +28,7 @@ function display_results {
 
     local total_energy=0
     local total_time_s=0
-    local total_cpu_utilization=0
+    local total_cpu_avg_weighted=0
 
     if [[ "${display_table}" == 'true' ]]; then
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
@@ -53,12 +53,13 @@ function display_results {
 
             total_energy=$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY $total_energy | awk '{printf "%.2f", $1 + $2}')
             total_time_s=$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME $total_time_s | awk '{printf "%.2f", $1 + $2}')
-            total_cpu_utilization=$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG $total_cpu_utilization | awk '{printf "%.2f", $1 + $2}')
+            total_cpu_avg_weighted=$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG $total_time_s $total_cpu_avg_weighted | awk '{printf "%.2f", ($1 * $2) + $3}')
 
         done
 
-        local power_avg=$(echo "${total_energy} ${total_time_s}" | awk '{printf "%.2f", $1 / $2}')
-        local cpu_avg=$(echo "${total_cpu_utilization} ${ECO_CI_MEASUREMENT_COUNT}" | awk '{printf "%.2f", $1 / $2}')
+        local total_power_avg=$(echo "${total_energy} ${total_time_s}" | awk '{printf "%.2f", $1 / $2}')
+        local cpu_avg_weighted=$(echo "${total_cpu_avg_weighted} ${total_time_s}" | awk '{printf "%.2f", $1 / $2}')
+
         local eco_ci_total_energy_overhead=$(echo "${total_energy_with_overhead} ${total_energy}" | awk '{printf "%.2f", $1 - $2}')
         local eco_ci_total_time_s_overhead=$(echo "${total_time_s_with_overhead} ${total_time_s}" | awk '{printf "%.2f", $1 - $2}')
         local eco_ci_total_power_overhead=$(echo "${eco_ci_total_energy_overhead} ${eco_ci_total_time_s_overhead}" | awk '{printf "%.2f", $1 / $2}')
@@ -66,8 +67,8 @@ function display_results {
         if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
             # CI_JOB_NAME is a set variable by GitLab
             echo "\"${CI_JOB_NAME}: Energy [Joules]:\" ${total_energy}" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Avg. CPU Utilization (approx.):\" $cpu_avg" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" ${power_avg}" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Avg. CPU Utilization:\" $cpu_avg_weighted" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" ${total_power_avg}" | tee -a $output metrics.txt
             echo "\"${CI_JOB_NAME}: Duration [seconds]:\" ${total_time_s}" | tee -a $output metrics.txt
             echo "----------------" >> $output
             echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Energy [Joules]:\" ${eco_ci_total_energy_overhead}" | tee -a $output metrics.txt
@@ -76,7 +77,7 @@ function display_results {
 
         else
             echo "|---|---|---|---|---|" | tee -a $output $output_pr
-            echo "|Total Run|${cpu_avg} (approx.)|${total_energy}|${power_avg}|${total_time_s}|" | tee -a $output $output_pr
+            echo "|Total Run|${cpu_avg_weighted}|${total_energy}|${total_power_avg}|${total_time_s}|" | tee -a $output $output_pr
             echo "|---|---|---|---|---|" | tee -a $output $output_pr
             echo "|Additional overhead from Eco CI|N/A|${eco_ci_total_energy_overhead}|${eco_ci_total_power_overhead}|${eco_ci_total_time_s_overhead}|" | tee -a $output $output_pr
             echo '' | tee -a $output $output_pr
@@ -127,13 +128,6 @@ function display_results {
 
     if [[ "${ECO_CI_SEND_DATA}" == 'true' && "${display_badge}" == 'true' ]]; then
         echo "\nBadges for your README.md - See: [GMT CI Dashboard](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
-    fi
-
-    if [[ ${ECO_CI_JSON_OUTPUT} == 'true' ]]; then
-        total_data_file="/tmp/eco-ci/total-data.json"
-        echo 'show create-and-add-meta.sh output'
-        source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${total_data_file}"
-        source "$(dirname "$0")/add-data.sh" create_json_file "${total_data_file}" 'TOTAL' "${cpu_avg}" "${total_energy}" "${power_avg}" "${total_time_s}"
     fi
 }
 

@@ -101,7 +101,6 @@ $shell "$(dirname "$0")/../display_results.sh" display_results $ECO_CI_DISPLAY_T
 if [[ "$ECO_CI_JSON_OUTPUT" == 'true' ]]; then
     echo "JSON Dump:"
    cat /tmp/eco-ci/lap-data.json
-   cat /tmp/eco-ci/total-data.json
 fi
 
 echo -e "\n"

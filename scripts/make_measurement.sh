@@ -117,7 +117,7 @@ function make_measurement() {
         fi
 
 
-        local cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
+        local cpu_avg=$(awk '{ weighted_total += ($1 * $2); total_time += $1 } END { print weighted_total/total_time }' /tmp/eco-ci/cpu-util-temp.txt)
         local step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
         local power_avg=$(echo "$step_energy $step_time_s" | awk '{printf "%.2f", $1 / $2}')
 
@@ -197,9 +197,12 @@ function make_measurement() {
 
         if [[ ${ECO_CI_JSON_OUTPUT} == 'true' ]]; then
             local lap_data_file='/tmp/eco-ci/lap-data.json'
-            echo 'show create-and-add-meta.sh output'
-            source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${lap_data_file}"
-            source "$(dirname "$0")/add-data.sh" create_json_file "${lap_data_file}" "${label}" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time_s}"
+            echo 'Create JSON lap-data.json file'
+            source "$(dirname "$0")/json.sh"
+            if [[ ! -f "${lap_data_file}" ]]; then
+                create_json_file "${lap_data_file}"
+            fi
+            add_to_json_file "${lap_data_file}" "${label}" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time_s}"
         fi
 
         # merge all current data to the totals file. This means we will include the overhead since we do it AFTER this processing block
