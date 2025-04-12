@@ -119,7 +119,7 @@ function make_measurement() {
 
         local cpu_avg=$(awk '{ weighted_total += ($1 * $2); total_time += $1 } END { print weighted_total/total_time }' /tmp/eco-ci/cpu-util-temp.txt)
         local step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
-        local power_avg=$(echo "$step_energy $step_time_s" | awk '{printf "%.2f", $1 / $2}')
+        local power_avg=$(echo "$step_energy $step_time_s" | awk '{printf "%.2f", ($2 > 0 ? $1 / $2 : 0) }')
 
         add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_LABEL" "$label"
         add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"

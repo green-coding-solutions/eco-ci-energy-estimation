@@ -58,7 +58,7 @@ get_embodied_co2 (){
 
     ECO_CI_SCI_M=${ECO_CI_SCI_M:-}
     if [ -n "$ECO_CI_SCI_M" ]; then
-        co2_value=$(echo "${ECO_CI_SCI_M} ${time} ${ECO_CI_SCI_USAGE_DURATION}" | awk '{ printf "%.9f", $1 * ( $2 / $3 ) }')
+        co2_value=$(echo "${ECO_CI_SCI_M} ${time} ${ECO_CI_SCI_USAGE_DURATION}" | awk '{ printf "%.9f", ($3 > 0 ? ($1 * ( $2 / $3 )) : 0)  }')
         export ECO_CI_CO2EQ_EMBODIED="$co2_value"
     else
         echo 'ECO_CI_SCI_M was not set' >&2

@@ -57,8 +57,8 @@ function display_results {
 
         done
 
-        local total_power_avg=$(echo "${total_energy} ${total_time_s}" | awk '{printf "%.2f", $1 / $2}')
-        local cpu_avg_weighted=$(echo "${total_cpu_avg_weighted} ${total_time_s}" | awk '{printf "%.2f", $1 / $2}')
+        local total_power_avg=$(echo "${total_energy} ${total_time_s}" | awk '{printf "%.2f", ($2 > 0 ? $1 / $2 : 0) }')
+        local cpu_avg_weighted=$(echo "${total_cpu_avg_weighted} ${total_time_s}" | awk '{printf "%.2f", ($2 > 0 ? $1 / $2 : 0) }')
 
         local eco_ci_total_energy_overhead=$(echo "${total_energy_with_overhead} ${total_energy}" | awk '{printf "%.2f", $1 - $2}')
         local eco_ci_total_time_s_overhead=$(echo "${total_time_s_with_overhead} ${total_time_s}" | awk '{printf "%.2f", $1 - $2}')
