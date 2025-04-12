@@ -14,7 +14,7 @@ ECO_CI_WORKFLOW_ID='YOUR_WORKFLOW_ID'
 ECO_CI_FILTER_TYPE='machine.ci'
 ECO_CI_FILTER_PROJECT='CI/CD'
 ECO_CI_FILTER_MACHINE='local-runner'
-ECO_CI_FILTER_TAGS='' # Tags must be comma separated. Tags cannot have commas itself or contain quotes
+ECO_CI_FILTER_TAGS='32131",asd' # Tags must be comma separated. Tags cannot have commas itself or contain quotes
 
 ECO_CI_CALCULATE_CO2='true'
 ECO_CI_JSON_OUTPUT='true'
@@ -28,7 +28,36 @@ ECO_CI_API_BADGE_GET='http://api.green-coding.internal:9142/v1/ci/badge/get'
 ECO_CI_DASHBOARD_URL='http://metrics.green-coding.internal:9142'
 
 # Use a generated power curve from Cloud Energy here
-ECO_CI_MACHINE_POWER_DATA="default.sh"
+ECO_CI_MACHINE_POWER_DATA="macos-14-mac-mini-m1.sh"
+
+function dump_raw_measurement_data() {
+    wc -l /tmp/eco-ci/cpu-util-temp.txt
+    echo /tmp/eco-ci/cpu-util-temp.txt
+    cat /tmp/eco-ci/cpu-util-temp.txt
+
+    echo "---------------------"
+    wc -l /tmp/eco-ci/cpu-util-step.txt
+    echo /tmp/eco-ci/cpu-util-step.txt
+    cat /tmp/eco-ci/cpu-util-step.txt
+
+    echo "---------------------"
+    wc -l /tmp/eco-ci/energy-step.txt
+    echo /tmp/eco-ci/energy-step.txt
+    cat /tmp/eco-ci/energy-step.txt
+
+    echo "---------------------"
+    wc -l /tmp/eco-ci/cpu-util-total.txt
+    echo /tmp/eco-ci/cpu-util-total.txt
+    cat /tmp/eco-ci/cpu-util-total.txt
+
+    echo "---------------------"
+    wc -l /tmp/eco-ci/energy-total.txt
+    echo /tmp/eco-ci/energy-total.txt
+    cat /tmp/eco-ci/energy-total.txt
+}
+
+
+# START OF WORKFLOW
 
 # Initialize
 echo "Initialize"
@@ -41,9 +70,10 @@ echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 echo "Sleeping"
 sleep 2s
 echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
-
+dump_raw_measurement_data
 
 $shell "$(dirname "$0")/../make_measurement.sh" make_measurement "My_label"
+dump_raw_measurement_data
 
 # Do some other work
 echo "ls -alhR"
@@ -55,7 +85,8 @@ sleep 1
 echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
 $shell "$(dirname "$0")/../make_measurement.sh" make_measurement "other label"
-#"My other label"
+echo "Dump raw measurement data"
+dump_raw_measurement_data
 
 echo "Display Results"
 echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
@@ -63,12 +94,6 @@ echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 # Display results
 ECO_CI_FORMAT_CLR="\e[44m"
 ECO_CI_TXT_CLEAR="\e[0m"
-
-echo "Dump files"
-cat /tmp/eco-ci/energy-step.txt
-cat /tmp/eco-ci/cpu-util-step.txt
-cat /tmp/eco-ci/energy-total.txt
-cat /tmp/eco-ci/cpu-util-total.txt
 
 $shell "$(dirname "$0")/../display_results.sh" display_results $ECO_CI_DISPLAY_TABLE $ECO_CI_DISPLAY_BADGE
 
@@ -83,4 +108,3 @@ echo -e "$ECO_CI_FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$ECO_CI_TXT_CLEAR"
 echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
 $shell "$(dirname "$0")/../setup.sh" end_measurement
-
