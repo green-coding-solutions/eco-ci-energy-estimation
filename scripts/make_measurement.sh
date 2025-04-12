@@ -185,11 +185,11 @@ function make_measurement() {
         sed '/^[[:space:]]*$/d' /tmp/eco-ci/energy-step.txt >> /tmp/eco-ci/energy-total.txt # energy-step is also already backfilled, so overhead is now only our code
 
         step_time_total_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
-        step_time_total_s=$(echo "$step_time_total_us 1000000" | awk '{printf "%.2f", $1 / $2}')
+        step_time_total_s=$(echo "$step_time_total_us 1000000" | awk '{printf "%.9f", $1 / $2}')
         all_steps_captured_duration=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/cpu-util-total.txt)
 
         # calculate step times now. not earlier. to make all calculations after all capturing
-        overhead_step_time_difference=$(echo "${step_time_total_s} ${all_steps_captured_duration}" | awk '{printf "%.2f", $1 - $2}')
+        overhead_step_time_difference=$(echo "${step_time_total_s} ${all_steps_captured_duration}" | awk '{printf "%.9f", $1 - $2}')
 
         read _ last_line_cpu_total_utilization <<< "$(tail -n 1 /tmp/eco-ci/cpu-util-total.txt)"
         echo "${overhead_step_time_difference} ${last_line_cpu_total_utilization}" >> /tmp/eco-ci/cpu-util-total.txt
