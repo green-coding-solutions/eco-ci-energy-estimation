@@ -8,6 +8,7 @@ ECO_CI_DISPLAY_BADGE='true'
 ECO_CI_DISPLAY_TABLE='true'
 
 ECO_CI_WORKFLOW_ID='YOUR_WORKFLOW_ID'
+ECO_CI_SOURCE='local'
 
 # If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set data for drill-down later
 # The values given are just some default recommendations
@@ -62,7 +63,7 @@ function dump_raw_measurement_data() {
 # Initialize
 echo "Initialize"
 
-$shell "$(dirname "$0")/../setup.sh" start_measurement "$ECO_CI_MACHINE_POWER_DATA" "MY_RUN_ID" "NO_BRANCH" "LOCAL_TEST_REPO" "$ECO_CI_WORKFLOW_ID" "MY WORKFLOW NAME" "NO SHA" "local" "$ECO_CI_SEND_DATA" "$ECO_CI_FILTER_TYPE" "$ECO_CI_FILTER_PROJECT" "$ECO_CI_FILTER_MACHINE" "$ECO_CI_FILTER_TAGS" "$ECO_CI_CALCULATE_CO2" "$ECO_CI_GMT_API_TOKEN" "$ECO_CI_ELECTRICITYMAPS_API_TOKEN" "$ECO_CI_JSON_OUTPUT" "$ECO_CI_API_ENDPOINT_ADD" "$ECO_CI_API_BADGE_GET" "$ECO_CI_DASHBOARD_URL"
+$shell "$(dirname "$0")/../setup.sh" start_measurement "$ECO_CI_MACHINE_POWER_DATA" "MY_RUN_ID" "NO_BRANCH" "LOCAL_TEST_REPO" "$ECO_CI_WORKFLOW_ID" "MY WORKFLOW NAME" "NO SHA" $ECO_CI_SOURCE "$ECO_CI_SEND_DATA" "$ECO_CI_FILTER_TYPE" "$ECO_CI_FILTER_PROJECT" "$ECO_CI_FILTER_MACHINE" "$ECO_CI_FILTER_TAGS" "$ECO_CI_CALCULATE_CO2" "$ECO_CI_GMT_API_TOKEN" "$ECO_CI_ELECTRICITYMAPS_API_TOKEN" "$ECO_CI_JSON_OUTPUT" "$ECO_CI_API_ENDPOINT_ADD" "$ECO_CI_API_BADGE_GET" "$ECO_CI_DASHBOARD_URL"
 
 echo "Duration: "$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt))) "us"
 
