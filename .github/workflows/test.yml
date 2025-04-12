@@ -198,48 +198,42 @@ jobs:
           task: display-results
           pr-comment: true
 
-      - name: Validate macOS energy values
-        if: ${{ contains(matrix.os, 'macos-14') }}
+      - name: Validate energy values
         shell: bash
         run: |
           set -e
-          min=53
-          max=60
-          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
-          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
-            echo "Energy value $total_energy is in the expected range [$min, $max]."
-          else # if total_energy is not int the check will fail silently. Thus else is our fallback
-            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
-            exit 1
+          if [[ "${{ matrix.os }}" == *macos-14* ]]; then
+            min=4.44
+            max=5.44
+          elif [[ "${{ matrix.os }}" == *macos-13* ]]; then
+            min=25.26
+            max=28.90
+          else
+            min=1.06
+            max=2.14
           fi
 
-      - name: Validate macOS energy values
-        if: ${{ contains(matrix.os, 'macos-13') }}
-        shell: bash
-        run: |
-          set -e
-          min=303 # assuming 2% and 12 data points
-          max=320 # assuming 25% and 12 data points
-          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
-          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
-            echo "Energy value $total_energy is in the expected range [$min, $max]."
-          else # if total_energy is not int the check will fail silently. Thus else is our fallback
-            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
-            exit 1
-          fi
+          total_power=$(grep "|Total Run|" /tmp/eco-ci/output.txt | awk -F'|' '{print $4}')
 
+          awk -v p="$total_power" -v min="$min" -v max="$max" '
+          BEGIN {
+            if (p ~ /^[0-9.]+$/) {
+              printf "Total power: %.2f\n", p
+              if (p > min && p < max) {
+                exit 0
+              } else {
+                exit 1
+              }
+            } else {
+              print "Invalid power value"
+              exit 1
+            }
+          }'
 
-      - name: Validate linux energy values
-        if: ${{ !contains(matrix.os, 'macos') }}
-        shell: bash
-        run: |
-          set -e
-          min=30 # assuming 2% and 12 data points
-          max=49 # assuming 25% and 12 data points
-          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
-          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
-            echo "Energy value $total_energy is in the expected range [$min, $max]."
-          else # if total_energy is not int the check will fail silently. Thus else is our fallback
-            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
-            exit 1
-          fi
+            status=$?
+            if [[ $status -eq 0 ]]; then
+              echo "Energy value is in the expected range [$min, $max]."
+            else
+              echo "Energy value is outside the expected range [$min, $max]."
+            fi
+
