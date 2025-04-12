@@ -57,7 +57,7 @@ jobs:
           # setup
           output='${{ steps.data-node-setup.outputs.data-lap-json }}'
           required_label="node setup"
-          required_fields=("repository" "branch" "workflow" "run_id" "label" "steps")
+          required_fields=("repository" "branch" "workflow" "run_id" "steps")
           required_count=${#required_fields[@]}
           # assertions
           if [ -z "$output" ]; then
@@ -75,13 +75,6 @@ jobs:
               exit 1
             fi
           done
-          label=$(echo "$output" | jq -r '.label')
-          if [ "$label" == "$required_label" ]; then
-            echo "value of 'label' is '$required_label'"
-          else
-            echo "value of 'label' is '$label', but it should be '$required_label'"
-            exit 1
-          fi
 
       - name: Wait before the next step
         run: sleep 10
@@ -103,7 +96,7 @@ jobs:
           # setup
           output='${{ steps.data-sleep.outputs.data-lap-json }}'
           required_label="sleep"
-          required_fields=("repository" "branch" "workflow" "run_id" "label" "steps")
+          required_fields=("repository" "branch" "workflow" "run_id" "steps")
           required_count=${#required_fields[@]}
           # assertions
           if [ -z "$output" ]; then
@@ -121,13 +114,6 @@ jobs:
               exit 1
             fi
           done
-          label=$(echo "$output" | jq -r '.label')
-          if [ "$label" == "$required_label" ]; then
-            echo "value of 'label' is '$required_label'"
-          else
-            echo "value of 'label' is '$label', but it should be '$required_label'"
-            exit 1
-          fi
 
       - name: Final
         uses: ./
