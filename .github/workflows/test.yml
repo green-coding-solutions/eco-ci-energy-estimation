@@ -80,31 +80,9 @@ jobs:
       - name: Sleep step (2s)
         run: sleep 2
 
-      - name: Dump data
-        run: |
-          wc -l /tmp/eco-ci/cpu-util-temp.txt
-          echo /tmp/eco-ci/cpu-util-temp.txt
-          cat /tmp/eco-ci/cpu-util-temp.txt
 
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-step.txt
-          echo /tmp/eco-ci/cpu-util-step.txt
-          cat /tmp/eco-ci/cpu-util-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-total.txt
-          echo /tmp/eco-ci/cpu-util-total.txt
-          cat /tmp/eco-ci/cpu-util-total.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-step.txt
-          echo /tmp/eco-ci/energy-step.txt
-          cat /tmp/eco-ci/energy-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-total.txt
-          echo /tmp/eco-ci/energy-total.txt
-          cat /tmp/eco-ci/energy-total.txt
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/gmt-pytest
 
       - name: Eco CI Measurement - echo Hellos; Shell
         uses: ./
@@ -112,60 +90,15 @@ jobs:
           task: get-measurement
           label: "echo Hellos; $SHELL; \""
 
-      - name: Dump ECO-CI
-        run: |
-          wc -l /tmp/eco-ci/cpu-util-temp.txt
-          echo /tmp/eco-ci/cpu-util-temp.txt
-          cat /tmp/eco-ci/cpu-util-temp.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-step.txt
-          echo /tmp/eco-ci/cpu-util-step.txt
-          cat /tmp/eco-ci/cpu-util-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-total.txt
-          echo /tmp/eco-ci/cpu-util-total.txt
-          cat /tmp/eco-ci/cpu-util-total.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-step.txt
-          echo /tmp/eco-ci/energy-step.txt
-          cat /tmp/eco-ci/energy-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-total.txt
-          echo /tmp/eco-ci/energy-total.txt
-          cat /tmp/eco-ci/energy-total.txt
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/gmt-pytest
 
       - name: Sleep 3
         run: sleep 3
 
-      - name: Dump ECO-CI
-        run: |
-          wc -l /tmp/eco-ci/cpu-util-temp.txt
-          echo /tmp/eco-ci/cpu-util-temp.txt
-          cat /tmp/eco-ci/cpu-util-temp.txt
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/gmt-pytest
 
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-step.txt
-          echo /tmp/eco-ci/cpu-util-step.txt
-          cat /tmp/eco-ci/cpu-util-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-total.txt
-          echo /tmp/eco-ci/cpu-util-total.txt
-          cat /tmp/eco-ci/cpu-util-total.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-step.txt
-          echo /tmp/eco-ci/energy-step.txt
-          cat /tmp/eco-ci/energy-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-total.txt
-          echo /tmp/eco-ci/energy-total.txt
-          cat /tmp/eco-ci/energy-total.txt
 
       - name: Eco CI Measurement - (Soo this is something)
         uses: ./
@@ -176,31 +109,9 @@ jobs:
       - name: Sleep 3
         run: sleep 3
 
-      - name: Dump ECO-CI
-        run: |
-          wc -l /tmp/eco-ci/cpu-util-temp.txt
-          echo /tmp/eco-ci/cpu-util-temp.txt
-          cat /tmp/eco-ci/cpu-util-temp.txt
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/gmt-pytest
 
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-step.txt
-          echo /tmp/eco-ci/cpu-util-step.txt
-          cat /tmp/eco-ci/cpu-util-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-total.txt
-          echo /tmp/eco-ci/cpu-util-total.txt
-          cat /tmp/eco-ci/cpu-util-total.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-step.txt
-          echo /tmp/eco-ci/energy-step.txt
-          cat /tmp/eco-ci/energy-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-total.txt
-          echo /tmp/eco-ci/energy-total.txt
-          cat /tmp/eco-ci/energy-total.txt
 
       - name: Eco CI Measurement - Environment setup (OS ...
         uses: ./
@@ -237,31 +148,9 @@ jobs:
       #     task: get-measurement
       #     label: 'without quotes'''
 
-      - name: Dump ECO-CI
-        run: |
-          wc -l /tmp/eco-ci/cpu-util-temp.txt
-          echo /tmp/eco-ci/cpu-util-temp.txt
-          cat /tmp/eco-ci/cpu-util-temp.txt
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/gmt-pytest
 
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-step.txt
-          echo /tmp/eco-ci/cpu-util-step.txt
-          cat /tmp/eco-ci/cpu-util-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-total.txt
-          echo /tmp/eco-ci/cpu-util-total.txt
-          cat /tmp/eco-ci/cpu-util-total.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-step.txt
-          echo /tmp/eco-ci/energy-step.txt
-          cat /tmp/eco-ci/energy-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-total.txt
-          echo /tmp/eco-ci/energy-total.txt
-          cat /tmp/eco-ci/energy-total.txt
 
       - name: Dump running processes scripts
         run: |
@@ -298,31 +187,9 @@ jobs:
         with:
           task: get-measurement
 
-      - name: Dump ECO-CI
-        run: |
-          wc -l /tmp/eco-ci/cpu-util-temp.txt
-          echo /tmp/eco-ci/cpu-util-temp.txt
-          cat /tmp/eco-ci/cpu-util-temp.txt
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/gmt-pytest
 
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-step.txt
-          echo /tmp/eco-ci/cpu-util-step.txt
-          cat /tmp/eco-ci/cpu-util-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/cpu-util-total.txt
-          echo /tmp/eco-ci/cpu-util-total.txt
-          cat /tmp/eco-ci/cpu-util-total.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-step.txt
-          echo /tmp/eco-ci/energy-step.txt
-          cat /tmp/eco-ci/energy-step.txt
-
-          echo "---------------------"
-          wc -l /tmp/eco-ci/energy-total.txt
-          echo /tmp/eco-ci/energy-total.txt
-          cat /tmp/eco-ci/energy-total.txt
 
       - name: Eco CI Energy Estimation
         uses: ./

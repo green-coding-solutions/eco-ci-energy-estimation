@@ -1,0 +1,33 @@
+name: 'Dump Raw Measurement Data'
+description:  'Dump raw measurement data from Eco CI'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Dump data
+      shell: bash
+      working-directory: /tmp
+      run: |
+        wc -l /tmp/eco-ci/cpu-util-temp.txt
+        echo /tmp/eco-ci/cpu-util-temp.txt
+        cat /tmp/eco-ci/cpu-util-temp.txt
+
+        echo "---------------------"
+        wc -l /tmp/eco-ci/cpu-util-step.txt
+        echo /tmp/eco-ci/cpu-util-step.txt
+        cat /tmp/eco-ci/cpu-util-step.txt
+
+        echo "---------------------"
+        wc -l /tmp/eco-ci/energy-step.txt
+        echo /tmp/eco-ci/energy-step.txt
+        cat /tmp/eco-ci/energy-step.txt
+
+        echo "---------------------"
+        wc -l /tmp/eco-ci/cpu-util-total.txt
+        echo /tmp/eco-ci/cpu-util-total.txt
+        cat /tmp/eco-ci/cpu-util-total.txt
+
+        echo "---------------------"
+        wc -l /tmp/eco-ci/energy-total.txt
+        echo /tmp/eco-ci/energy-total.txt
+        cat /tmp/eco-ci/energy-total.txt
