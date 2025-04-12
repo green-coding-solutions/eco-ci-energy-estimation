@@ -22,43 +22,63 @@ function display_results {
         return 1
     fi
 
-    local cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
-    local total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
-    local total_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
-    local total_time_s=$(echo "${total_time_us} 1000000" | awk '{printf "%.2f", $1 / $2}')
-    local power_avg=$(echo "${total_energy} ${total_time_s}" | awk '{printf "%.2f", $1 / $2}')
+    local total_energy_with_overhead=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
+    local total_time_us_with_overhead=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
+    local total_time_s_with_overhead=$(echo "${total_time_us_with_overhead} 1000000" | awk '{printf "%.2f", $1 / $2}')
 
-
+    local total_energy=0
+    local total_time_s=0
+    local total_cpu_utilization=0
 
     if [[ "${display_table}" == 'true' ]]; then
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
 
-        ## Gitlab Specific Output
+        if [[ "$ECO_CI_SOURCE" != 'gitlab' ]]; then
+                echo "Eco CI Output: " >> $output_pr
+                echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
+                echo "|---|---|---|---|---|" | tee -a $output $output_pr
+        fi
+
+        for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ )); do
+            if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
+                    # CI_JOB_NAME is a set variable by GitLab
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)" | tee -a $output metrics.txt
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)" | tee -a $output metrics.txt
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)" | tee -a $output metrics.txt
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)" | tee -a $output metrics.txt
+                    echo "----------------" >> $output
+            else
+                echo "|$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
+            fi
+
+            total_energy=$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY $total_energy | awk '{printf "%.2f", $1 + $2}')
+            total_time_s=$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME $total_time_s | awk '{printf "%.2f", $1 + $2}')
+            total_cpu_utilization=$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG $total_cpu_utilization | awk '{printf "%.2f", $1 + $2}')
+
+        done
+
+        local power_avg=$(echo "${total_energy} ${total_time_s}" | awk '{printf "%.2f", $1 / $2}')
+        local cpu_avg=$(echo "${total_cpu_utilization} ${ECO_CI_MEASUREMENT_COUNT}" | awk '{printf "%.2f", $1 / $2}')
+        local eco_ci_total_energy_overhead=$(echo "${total_energy_with_overhead} ${total_energy}" | awk '{printf "%.2f", $1 - $2}')
+        local eco_ci_total_time_s_overhead=$(echo "${total_time_s_with_overhead} ${total_time_s}" | awk '{printf "%.2f", $1 - $2}')
+        local eco_ci_total_power_overhead=$(echo "${eco_ci_total_energy_overhead} ${eco_ci_total_time_s_overhead}" | awk '{printf "%.2f", $1 / $2}')
+
         if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
             # CI_JOB_NAME is a set variable by GitLab
-            echo "\"${CI_JOB_NAME}: Energy [Joules]:\" $total_energy" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Avg. CPU Utilization:\" $cpu_avg" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" $power_avg" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Duration [seconds]:\" $total_time_s" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Energy [Joules]:\" ${total_energy}" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Avg. CPU Utilization (approx.):\" $cpu_avg" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" ${power_avg}" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Duration [seconds]:\" ${total_time_s}" | tee -a $output metrics.txt
             echo "----------------" >> $output
+            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Energy [Joules]:\" ${eco_ci_total_energy_overhead}" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Avg. Power [Watts]:\" ${eco_ci_total_power_overhead}" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Duration [seconds]:\" ${eco_ci_total_time_s_overhead}" | tee -a $output metrics.txt
 
-            for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ )); do
-                echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)" | tee -a $output metrics.txt
-                echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)" | tee -a $output metrics.txt
-                echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)" | tee -a $output metrics.txt
-                echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)" | tee -a $output metrics.txt
-                echo "----------------" >> $output
-            done
         else
-            echo "Eco-CI Output: " >> $output_pr
-            echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
             echo "|---|---|---|---|---|" | tee -a $output $output_pr
-            echo "|Total Run (incl. overhead)|$cpu_avg|$total_energy|$power_avg|$total_time_s|" | tee -a $output $output_pr
-            #display measurument lines in table summary
-            for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ ))
-            do
-                echo "|$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
-            done
+            echo "|Total Run|${cpu_avg} (approx.)|${total_energy}|${power_avg}|${total_time_s}|" | tee -a $output $output_pr
+            echo "|---|---|---|---|---|" | tee -a $output $output_pr
+            echo "|Additional overhead from Eco CI|N/A|${eco_ci_total_energy_overhead}|${eco_ci_total_power_overhead}|${eco_ci_total_time_s_overhead}|" | tee -a $output $output_pr
             echo '' | tee -a $output $output_pr
         fi
     fi
