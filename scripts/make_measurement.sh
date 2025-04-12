@@ -76,6 +76,7 @@ function make_measurement() {
         # up to 0.99s of missing data. We backfill by replicating the last line of cpu-util-temp with the same value for the missing amount of time
         read _ last_line_cpu_tmp_utilization <<< "$(tail -n 1 /tmp/eco-ci/cpu-util-temp.txt)"
         echo "${step_time_difference} ${last_line_cpu_tmp_utilization}" >> /tmp/eco-ci/cpu-util-temp.txt
+        echo 'Backfilling ' $step_time_difference 's in step with ' $last_line_cpu_tmp_utilization
 
         make_inference # will populate /tmp/eco-ci/energy-step.txt
 
@@ -180,8 +181,8 @@ function make_measurement() {
         # merge all current data to the totals file. This means we will include the overhead since we do it AFTER this processing block
         # this block may well take longer than one second, as we also have API requests in there and thus cpu-uti-step might have accumulated
         # more rows than when we captured it earlier
-        sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt >> /tmp/eco-ci/cpu-util-total.txt
-        sed '/^[[:space:]]*$/d' /tmp/eco-ci/energy-step.txt >> /tmp/eco-ci/energy-total.txt
+        sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-temp.txt >> /tmp/eco-ci/cpu-util-total.txt # we must take util-tmp here, as this is already backfilled
+        sed '/^[[:space:]]*$/d' /tmp/eco-ci/energy-step.txt >> /tmp/eco-ci/energy-total.txt # energy-step is also already backfilled, so overhead is now only our code
 
         step_time_total_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
         step_time_total_s=$(echo "$step_time_total_us 1000000" | awk '{printf "%.2f", $1 / $2}')
@@ -192,9 +193,11 @@ function make_measurement() {
 
         read _ last_line_cpu_total_utilization <<< "$(tail -n 1 /tmp/eco-ci/cpu-util-total.txt)"
         echo "${overhead_step_time_difference} ${last_line_cpu_total_utilization}" >> /tmp/eco-ci/cpu-util-total.txt
+        echo 'Backfilling ' $overhead_step_time_difference 's in cpu-util-total with ' $last_line_cpu_total_utilization
 
         read last_line_energy_total <<< "$(tail -n 1 /tmp/eco-ci/energy-total.txt)"
         echo "${overhead_step_time_difference} ${last_line_energy_total}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-total.txt
+        echo 'Backfilling ' $overhead_step_time_difference 's in energy-total with ' $last_line_energy_total ' * ' $overhead_step_time_difference
 
         # Reset the step timers, so we do not capture the overhead per step
         # we want to only caputure the overhead in the totals
