@@ -77,36 +77,97 @@ jobs:
           machine-power-data: "macos-13-mac-mini-intel.sh"
 
 
-      - name: Sleep step
+      - name: Sleep step (2s)
         run: sleep 2
 
-      - name: Dump ECO-CI CPU Step before
+      - name: Dump data
         run: |
+          wc -l /tmp/eco-ci/cpu-util-temp.txt
+          echo /tmp/eco-ci/cpu-util-temp.txt
+          cat /tmp/eco-ci/cpu-util-temp.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-step.txt
+          echo /tmp/eco-ci/cpu-util-step.txt
           cat /tmp/eco-ci/cpu-util-step.txt
 
-      - name: Dump ECO-CI CPU before
-        run: |
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-total.txt
+          echo /tmp/eco-ci/cpu-util-total.txt
           cat /tmp/eco-ci/cpu-util-total.txt
 
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-step.txt
+          echo /tmp/eco-ci/energy-step.txt
+          cat /tmp/eco-ci/energy-step.txt
 
-      - name: Test measurement 1
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-total.txt
+          echo /tmp/eco-ci/energy-total.txt
+          cat /tmp/eco-ci/energy-total.txt
+
+      - name: Eco CI Measurement - echo Hellos; Shell
         uses: ./
         with:
           task: get-measurement
           label: "echo Hellos; $SHELL; \""
 
-      - name: Dump ECO-CI CPU Step actual processed
+      - name: Dump ECO-CI
         run: |
+          wc -l /tmp/eco-ci/cpu-util-temp.txt
+          echo /tmp/eco-ci/cpu-util-temp.txt
           cat /tmp/eco-ci/cpu-util-temp.txt
 
-      - name: Dump ECO-CI Energy Step actual processed
-        run: |
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-step.txt
+          echo /tmp/eco-ci/cpu-util-step.txt
+          cat /tmp/eco-ci/cpu-util-step.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-total.txt
+          echo /tmp/eco-ci/cpu-util-total.txt
+          cat /tmp/eco-ci/cpu-util-total.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-step.txt
+          echo /tmp/eco-ci/energy-step.txt
           cat /tmp/eco-ci/energy-step.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-total.txt
+          echo /tmp/eco-ci/energy-total.txt
+          cat /tmp/eco-ci/energy-total.txt
 
       - name: Sleep 3
         run: sleep 3
 
-      - name: Test measurement 2
+      - name: Dump ECO-CI
+        run: |
+          wc -l /tmp/eco-ci/cpu-util-temp.txt
+          echo /tmp/eco-ci/cpu-util-temp.txt
+          cat /tmp/eco-ci/cpu-util-temp.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-step.txt
+          echo /tmp/eco-ci/cpu-util-step.txt
+          cat /tmp/eco-ci/cpu-util-step.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-total.txt
+          echo /tmp/eco-ci/cpu-util-total.txt
+          cat /tmp/eco-ci/cpu-util-total.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-step.txt
+          echo /tmp/eco-ci/energy-step.txt
+          cat /tmp/eco-ci/energy-step.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-total.txt
+          echo /tmp/eco-ci/energy-total.txt
+          cat /tmp/eco-ci/energy-total.txt
+
+      - name: Eco CI Measurement - (Soo this is something)
         uses: ./
         with:
           task: get-measurement
@@ -115,7 +176,33 @@ jobs:
       - name: Sleep 3
         run: sleep 3
 
-      - name: Test measurement 3
+      - name: Dump ECO-CI
+        run: |
+          wc -l /tmp/eco-ci/cpu-util-temp.txt
+          echo /tmp/eco-ci/cpu-util-temp.txt
+          cat /tmp/eco-ci/cpu-util-temp.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-step.txt
+          echo /tmp/eco-ci/cpu-util-step.txt
+          cat /tmp/eco-ci/cpu-util-step.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-total.txt
+          echo /tmp/eco-ci/cpu-util-total.txt
+          cat /tmp/eco-ci/cpu-util-total.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-step.txt
+          echo /tmp/eco-ci/energy-step.txt
+          cat /tmp/eco-ci/energy-step.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-total.txt
+          echo /tmp/eco-ci/energy-total.txt
+          cat /tmp/eco-ci/energy-total.txt
+
+      - name: Eco CI Measurement - Environment setup (OS ...
         uses: ./
         with:
           task: get-measurement
@@ -134,7 +221,7 @@ jobs:
       - name: Sleep 3
         run: sleep 3
 
-      - name: Test measurement 5
+      - name: Eco CI Measurement - without quotes ...
         uses: ./
         with:
           task: get-measurement
@@ -150,12 +237,30 @@ jobs:
       #     task: get-measurement
       #     label: 'without quotes'''
 
-      - name: Dump ECO-CI CPU
+      - name: Dump ECO-CI
         run: |
+          wc -l /tmp/eco-ci/cpu-util-temp.txt
+          echo /tmp/eco-ci/cpu-util-temp.txt
+          cat /tmp/eco-ci/cpu-util-temp.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-step.txt
+          echo /tmp/eco-ci/cpu-util-step.txt
+          cat /tmp/eco-ci/cpu-util-step.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-total.txt
+          echo /tmp/eco-ci/cpu-util-total.txt
           cat /tmp/eco-ci/cpu-util-total.txt
 
-      - name: Dump ECO-CI Energy
-        run: |
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-step.txt
+          echo /tmp/eco-ci/energy-step.txt
+          cat /tmp/eco-ci/energy-step.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-total.txt
+          echo /tmp/eco-ci/energy-total.txt
           cat /tmp/eco-ci/energy-total.txt
 
       - name: Dump running processes
@@ -163,10 +268,36 @@ jobs:
           ps -ax | grep scripts
           ps -ax | grep iostat
 
-      - name: Final
+      - name: Final Measurement no label
         uses: ./
         with:
           task: get-measurement
+
+      - name: Dump ECO-CI
+        run: |
+          wc -l /tmp/eco-ci/cpu-util-temp.txt
+          echo /tmp/eco-ci/cpu-util-temp.txt
+          cat /tmp/eco-ci/cpu-util-temp.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-step.txt
+          echo /tmp/eco-ci/cpu-util-step.txt
+          cat /tmp/eco-ci/cpu-util-step.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/cpu-util-total.txt
+          echo /tmp/eco-ci/cpu-util-total.txt
+          cat /tmp/eco-ci/cpu-util-total.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-step.txt
+          echo /tmp/eco-ci/energy-step.txt
+          cat /tmp/eco-ci/energy-step.txt
+
+          echo "---------------------"
+          wc -l /tmp/eco-ci/energy-total.txt
+          echo /tmp/eco-ci/energy-total.txt
+          cat /tmp/eco-ci/energy-total.txt
 
       - name: Eco CI Energy Estimation
         uses: ./
