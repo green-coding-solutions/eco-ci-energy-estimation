@@ -62,7 +62,7 @@ function display_results {
 
         local eco_ci_total_energy_overhead=$(echo "${total_energy_with_overhead} ${total_energy}" | awk '{printf "%.2f", $1 - $2}')
         local eco_ci_total_time_s_overhead=$(echo "${total_time_s_with_overhead} ${total_time_s}" | awk '{printf "%.2f", $1 - $2}')
-        local eco_ci_total_power_overhead=$(echo "${eco_ci_total_energy_overhead} ${eco_ci_total_time_s_overhead}" | awk '{printf "%.2f", $1 / $2}')
+        local eco_ci_total_power_overhead=$(echo "${eco_ci_total_energy_overhead} ${eco_ci_total_time_s_overhead}" | awk '{printf "%.2f", ($2 > 0 ? $1 / $2 : 0)}')
 
         if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
             # CI_JOB_NAME is a set variable by GitLab
