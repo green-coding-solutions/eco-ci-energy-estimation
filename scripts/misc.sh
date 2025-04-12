@@ -4,7 +4,7 @@ set -euo pipefail
 source "$(dirname "$0")/vars.sh"
 
 get_geoip() {
-    response=$(curl -s https://ipapi.co/json || true)
+    local response=$(curl -s https://ipapi.co/json || true)
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
         echo "Failed to retrieve data or received invalid JSON. Exiting" >&2
@@ -16,10 +16,10 @@ get_geoip() {
         return
     fi
 
-    latitude=$(echo "$response" | jq '.latitude')
-    longitude=$(echo "$response" | jq '.longitude')
-    city=$(echo "$response" | jq -r '.city')
-    ip=$(echo "$response" | jq -r '.ip')
+    local latitude=$(echo "$response" | jq '.latitude')
+    local longitude=$(echo "$response" | jq '.longitude')
+    local city=$(echo "$response" | jq -r '.city')
+    local ip=$(echo "$response" | jq -r '.ip')
 
     add_var 'ECO_CI_GEO_CITY' "$city"
     add_var 'ECO_CI_GEO_LAT' "$latitude"
@@ -35,7 +35,7 @@ get_carbon_intensity() {
     ECO_CI_GEO_LAT=${ECO_CI_GEO_LAT:-}
     ECO_CI_GEO_LON=${ECO_CI_GEO_LON:-}
 
-    response=$(curl -s -H "auth-token: ${ECO_CI_ELECTRICITYMAPS_API_TOKEN}" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=${ECO_CI_GEO_LAT}&lon=${ECO_CI_GEO_LON}" || true)
+    local response=$(curl -s -H "auth-token: ${ECO_CI_ELECTRICITYMAPS_API_TOKEN}" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=${ECO_CI_GEO_LAT}&lon=${ECO_CI_GEO_LON}" || true)
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
         echo 'Failed to retrieve data or received invalid JSON. Exiting' >&2
@@ -47,14 +47,14 @@ get_carbon_intensity() {
         return
     fi
 
-    co2_intensity=$(echo "$response" | jq '.carbonIntensity')
+    local co2_intensity=$(echo "$response" | jq '.carbonIntensity')
 
     echo "Carbon intensity from Electricitymaps is ${co2_intensity}"
     add_var 'ECO_CI_CO2I' "$co2_intensity"
 }
 
 get_embodied_co2 (){
-    time="$1"
+    local time="$1"
 
     ECO_CI_SCI_M=${ECO_CI_SCI_M:-}
     if [ -n "$ECO_CI_SCI_M" ]; then
@@ -67,15 +67,15 @@ get_embodied_co2 (){
 }
 
 get_energy_co2 (){
-    total_energy="$1"
+    local total_energy="$1"
 
     ECO_CI_CO2I=${ECO_CI_CO2I:-}
 
     if [[ -n "$ECO_CI_CO2I" ]]; then
 
-        value_mJ=$(echo "${total_energy} 1000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
-        value_kWh=$(echo "${value_mJ} 1e-9" | awk '{printf "%.9f", $1 * $2}')
-        co2_value=$(echo "${value_kWh} ${ECO_CI_CO2I}" | awk '{printf "%.9f", $1 * $2}')
+        local value_mJ=$(echo "${total_energy} 1000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
+        local value_kWh=$(echo "${value_mJ} 1e-9" | awk '{printf "%.9f", $1 * $2}')
+        local co2_value=$(echo "${value_kWh} ${ECO_CI_CO2I}" | awk '{printf "%.9f", $1 * $2}')
 
         add_var 'ECO_CI_CO2EQ_ENERGY' "$co2_value"
 

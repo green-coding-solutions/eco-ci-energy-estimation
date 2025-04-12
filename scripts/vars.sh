@@ -4,8 +4,8 @@ set -euo pipefail
 var_file="/tmp/eco-ci/vars.sh"
 
 function add_var() {
-    key="$1"
-    value="$2"
+    local key="$1"
+    local value="$2"
     if [ ! -f $var_file ]; then
         touch $var_file
     fi
@@ -25,25 +25,25 @@ function initialize_vars() {
 function cpu_vars {
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
-    machine_power_data="$1"
+    local machine_power_data="$1"
 
     if [[ -f '/proc/cpuinfo' ]]; then
-        model_name=$(cat /proc/cpuinfo  | grep 'model name' || true)
+        local model_name=$(cat /proc/cpuinfo  | grep 'model name' || true)
 
         echo "Machine has following CPU Model ${model_name}"
 
         echo 'Full CPU Info'
         cat /proc/cpuinfo
     else
-      echo '/proc/cpuinfo is not accessible ... cannot dump CPU model info'
-      model_name='UNKNOWN'
+      echo '/proc/cpuinfo is not accessible ... cannot dump CPU model info' >&2
+      local model_name='UNKNOWN'
     fi
 
     if [[ -f '/proc/meminfo' ]]; then
         echo 'Full memory info'
         cat /proc/meminfo
     else
-        echo '/proc/meminfo does not exist. Cannot dump memory info'
+        echo '/proc/meminfo does not exist. Cannot dump memory info' >&2
     fi
 
 
@@ -99,7 +99,7 @@ function cpu_vars {
         # we use 4 years - 1*60*60*24*365*4 =
         add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
     else
-        echo "⚠️ Unknown model ${model_name} for estimation, will use default model ... This will likely produce very unaccurate results!"
+        echo "⚠️ Unknown model ${model_name} for estimation, will use default model ... This will likely produce very unaccurate results!" >&2
         [ -n "$GITHUB_STEP_SUMMARY" ] && echo "⚠️ Unknown model ${model_name} for estimation, will use default model ... This will likely produce very unaccurate results!" >> $GITHUB_STEP_SUMMARY
         # we use a default configuration here from https://datavizta.boavizta.org/serversimpact
 

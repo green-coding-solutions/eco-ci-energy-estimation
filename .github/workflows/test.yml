@@ -23,7 +23,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     continue-on-error: false
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, ubuntu-24.04-arm, macos-13, macos-14]
 
@@ -78,36 +78,31 @@ jobs:
           machine-power-data: "macos-13-mac-mini-intel.sh"
 
 
-      - name: Sleep step
-        run: sleep 2
-
-      - name: Dump ECO-CI CPU Step before
+      - name: working step
+        continue-on-error: true
         run: |
-          cat /tmp/eco-ci/cpu-util-step.txt
+          timeout 2s ls -alhR / || true
 
-      - name: Dump ECO-CI CPU before
-        run: |
-          cat /tmp/eco-ci/cpu-util-total.txt
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
 
-
-      - name: Test measurement 1
+      - name: Eco CI Measurement - echo Hellos; Shell
         uses: ./
         with:
           task: get-measurement
           label: "echo Hellos; $SHELL; \""
 
-      - name: Dump ECO-CI CPU Step actual processed
-        run: |
-          cat /tmp/eco-ci/cpu-util-temp.txt
-
-      - name: Dump ECO-CI Energy Step actual processed
-        run: |
-          cat /tmp/eco-ci/energy-step.txt
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
 
       - name: Sleep 3
         run: sleep 3
 
-      - name: Test measurement 2
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
+
+
+      - name: Eco CI Measurement - (Soo this is something)
         uses: ./
         with:
           task: get-measurement
@@ -116,7 +111,11 @@ jobs:
       - name: Sleep 3
         run: sleep 3
 
-      - name: Test measurement 3
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
+
+
+      - name: Eco CI Measurement - Environment setup (OS ...
         uses: ./
         with:
           task: get-measurement
@@ -135,7 +134,7 @@ jobs:
       - name: Sleep 3
         run: sleep 3
 
-      - name: Test measurement 5
+      - name: Eco CI Measurement - without quotes ...
         uses: ./
         with:
           task: get-measurement
@@ -151,23 +150,48 @@ jobs:
       #     task: get-measurement
       #     label: 'without quotes'''
 
-      - name: Dump ECO-CI CPU
-        run: |
-          cat /tmp/eco-ci/cpu-util-total.txt
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
 
-      - name: Dump ECO-CI Energy
-        run: |
-          cat /tmp/eco-ci/energy-total.txt
 
-      - name: Dump running processes
+      - name: Dump running processes scripts
         run: |
           ps -ax | grep scripts
-          ps -ax | grep iostat
+          amount_of_lines=$(ps -ax | grep scripts | wc -l)
+          if [[ $amount_of_lines != 2 ]]; then # script process itself and the grep call
+            echo 'Unexpected amount of processes for "scripts"'
+            exit 1
+          fi
 
-      - name: Final
+      - name: Dump running processes iostat
+        if: ${{ contains(matrix.os, 'macos') }}
+        run: |
+          ps -ax | grep iostat
+          amount_of_lines=$(ps -ax | grep iostat | wc -l)
+          if [[ $amount_of_lines != 2 ]]; then # iostat process itself and the grep call
+            echo 'Unexpected amount of processes for "iostat"'
+            exit 1
+          fi
+
+
+      - name: Dump running processes iostat
+        if: ${{ !contains(matrix.os, 'macos') }}
+        run: |
+          ps -ax | grep iostat
+          amount_of_lines=$(ps -ax | grep iostat | wc -l)
+          if [[ $amount_of_lines != 1 ]]; then # the grep call
+            echo 'Unexpected amount of processes for "iostat"'
+            exit 1
+          fi
+
+      - name: Final Measurement no label
         uses: ./
         with:
           task: get-measurement
+
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
+
 
       - name: Eco CI Energy Estimation
         uses: ./
@@ -175,48 +199,43 @@ jobs:
           task: display-results
           pr-comment: true
 
-      - name: Validate macOS energy values
-        if: ${{ contains(matrix.os, 'macos-14') }}
+      - name: Validate power values
         shell: bash
         run: |
           set -e
-          min=25
-          max=45
-          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
-          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
-            echo "Energy value $total_energy is in the expected range [$min, $max]."
-          else # if total_energy is not int the check will fail silently. Thus else is our fallback
-            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
-            exit 1
+          if [[ "${{ matrix.os }}" == *macos-14* ]]; then
+            min=4.44
+            max=5.44
+          elif [[ "${{ matrix.os }}" == *macos-13* ]]; then
+            min=25.26
+            max=28.90
+          else
+            min=1.75
+            max=4.00
           fi
 
-      - name: Validate macOS energy values
-        if: ${{ contains(matrix.os, 'macos-13') }}
-        shell: bash
-        run: |
-          set -e
-          min=140
-          max=195
-          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
-          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
-            echo "Energy value $total_energy is in the expected range [$min, $max]."
-          else # if total_energy is not int the check will fail silently. Thus else is our fallback
-            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
-            exit 1
-          fi
+          total_power=$(grep "|Total Run|" /tmp/eco-ci/output.txt | awk -F'|' '{print $5}')
 
+          awk -v p="$total_power" -v min="$min" -v max="$max" '
+          BEGIN {
+            if (p ~ /^[0-9.]+$/) {
+              printf "Total power: %.2f\n", p
+              if (p > min && p < max) {
+                exit 0
+              } else {
+                exit 1
+              }
+            } else {
+              print "Invalid power value"
+              exit 1
+            }
+          }'
 
-      - name: Validate linux energy values
-        if: ${{ !contains(matrix.os, 'macos') }}
-        shell: bash
-        run: |
-          set -e
-          min=20
-          max=40
-          total_energy=$(awk '{sum+=$1} END {print int(sum+0.5)}' /tmp/eco-ci/energy-total.txt)
-          if [[ $total_energy -gt $min && $total_energy -lt $max ]]; then
-            echo "Energy value $total_energy is in the expected range [$min, $max]."
-          else # if total_energy is not int the check will fail silently. Thus else is our fallback
-            echo "Energy value $total_energy is outside the expected range or not an integer [$min, $max]."
-            exit 1
-          fi
+            status=$?
+            if [[ $status -eq 0 ]]; then
+              echo "Power value is in the expected range [$min, $max]."
+            else
+              echo "Power value is outside the expected range [$min, $max]."
+              exit 1
+            fi
+
