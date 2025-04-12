@@ -5,12 +5,12 @@ source "$(dirname "$0")/vars.sh"
 read_vars
 
 function create_json_file() {
-    file="$1"
+    local file="$1"
 
-    run_id_enc=$( echo ${ECO_CI_RUN_ID} | jq -Rr @uri)
-    workflow_id_enc=$( echo ${ECO_CI_WORKFLOW_ID} | jq -Rr @uri)
-    branch_enc=$( echo ${ECO_CI_BRANCH} | jq -Rr @uri)
-    repo_enc=$( echo ${ECO_CI_REPOSITORY} | jq -Rr @uri)
+    local run_id_enc=$( echo ${ECO_CI_RUN_ID} | jq -Rr @uri)
+    local workflow_id_enc=$( echo ${ECO_CI_WORKFLOW_ID} | jq -Rr @uri)
+    local branch_enc=$( echo ${ECO_CI_BRANCH} | jq -Rr @uri)
+    local repo_enc=$( echo ${ECO_CI_REPOSITORY} | jq -Rr @uri)
 
     cat > "$file" << EOF
     {

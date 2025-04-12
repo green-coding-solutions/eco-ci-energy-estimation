@@ -4,8 +4,8 @@ set -euo pipefail
 var_file="/tmp/eco-ci/vars.sh"
 
 function add_var() {
-    key="$1"
-    value="$2"
+    local key="$1"
+    local value="$2"
     if [ ! -f $var_file ]; then
         touch $var_file
     fi
@@ -25,10 +25,10 @@ function initialize_vars() {
 function cpu_vars {
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
-    machine_power_data="$1"
+    local machine_power_data="$1"
 
     if [[ -f '/proc/cpuinfo' ]]; then
-        model_name=$(cat /proc/cpuinfo  | grep 'model name' || true)
+        local model_name=$(cat /proc/cpuinfo  | grep 'model name' || true)
 
         echo "Machine has following CPU Model ${model_name}"
 
@@ -36,7 +36,7 @@ function cpu_vars {
         cat /proc/cpuinfo
     else
       echo '/proc/cpuinfo is not accessible ... cannot dump CPU model info' >&2
-      model_name='UNKNOWN'
+      local model_name='UNKNOWN'
     fi
 
     if [[ -f '/proc/meminfo' ]]; then

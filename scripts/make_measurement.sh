@@ -5,6 +5,27 @@ set -euo pipefail
 source "$(dirname "$0")/vars.sh"
 read_vars
 
+function make_inference_single() {
+    local utilization=$1
+    local power_data_file_path="$(dirname "$0")/../machine-power-data/${ECO_CI_MACHINE_POWER_DATA}"
+        source "${power_data_file_path}" # will set cloud_energy_hashmap
+
+    if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} >= 4 )); then
+        echo ${cloud_energy_hashmap[$utilization]} # will be return
+    else
+        echo 'Using legacy mode inference'
+        # The pattern contains a . and [ ] but this no problem as no other dot appears anywhere
+        local power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap\\\\[${read_var_util}\\\\]" ' $0 ~ pattern { print $2 }' "${power_data_file_path}")
+
+        if [[ -z $power_value ]]; then
+            echo "Could not match power value for utilization: '${read_var_util}'" >&2
+            exit -1
+        fi
+        echo $power_value # will be return
+    fi
+
+}
+
 function make_inference() {
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
@@ -14,7 +35,9 @@ function make_inference() {
     # clear energy file for step because we fill it later anew
     echo > /tmp/eco-ci/energy-step.txt
 
-    power_data_file_path="$(dirname "$0")/../machine-power-data/${ECO_CI_MACHINE_POWER_DATA}"
+    local power_data_file_path="$(dirname "$0")/../machine-power-data/${ECO_CI_MACHINE_POWER_DATA}"
+    local read_var_time
+    local read_var_util
 
     # bash mode inference is slower in initi<al reading
     # but 100x faster in reading. The net gain is after ~ 5 measurements
@@ -27,6 +50,7 @@ function make_inference() {
         done < /tmp/eco-ci/cpu-util-temp.txt
     else
         echo 'Using legacy mode inference'
+        local power_value
         while read -r read_var_time read_var_util; do
             # The pattern contains a . and [ ] but this no problem as no other dot appears anywhere
 
@@ -43,7 +67,7 @@ function make_inference() {
 }
 
 function make_measurement() {
-    label="$1"
+    local label="$1"
 
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
@@ -53,14 +77,14 @@ function make_measurement() {
     ECO_CI_STEP_NOTE=''
 
     # capture time - Note that we need 64 bit here!
-    step_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-step.txt)))
+    local step_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-step.txt)))
 
     # Capture current cpu util file and trim trailing empty lines from the file to not run into read/write race condition later
     sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-step.txt > /tmp/eco-ci/cpu-util-temp.txt
 
     # check wc -l of cpu-util is greater than 0
-    captured_datapoints=$(wc -l < /tmp/eco-ci/cpu-util-temp.txt)
-    current_step_captured_duration=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/cpu-util-temp.txt)
+    local captured_datapoints=$(wc -l < /tmp/eco-ci/cpu-util-temp.txt)
+    local current_step_captured_duration=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/cpu-util-temp.txt)
 
     # calculate step times now. not earlier. to make all calculations after all capturing
     read step_time_s step_time_s_int step_time_difference <<<  $(echo "$step_time_us 1000000 $current_step_captured_duration" | awk '{printf "%.2f %d %.9f", $1 / $2, int($1 / $2), ($1 / $2) - $3}')
@@ -93,9 +117,9 @@ function make_measurement() {
         fi
 
 
-        cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
-        step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
-        power_avg=$(echo "$step_energy $step_time_s" | awk '{printf "%.2f", $1 / $2}')
+        local cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-temp.txt)
+        local step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
+        local power_avg=$(echo "$step_energy $step_time_s" | awk '{printf "%.2f", $1 / $2}')
 
         add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_LABEL" "$label"
         add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"
@@ -118,14 +142,14 @@ function make_measurement() {
             ECO_CI_CO2EQ_ENERGY=${ECO_CI_CO2EQ_ENERGY:-}      # Default to an empty string if unset
 
             if [ -n "$ECO_CI_CO2EQ_EMBODIED" ] && [ -n "$ECO_CI_CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
-                carbon_ug=$(echo "${ECO_CI_CO2EQ_EMBODIED} ${ECO_CI_CO2EQ_ENERGY} 1000000" | awk '{printf "%d", ($1 + $2) * $3 }')
+                local carbon_ug=$(echo "${ECO_CI_CO2EQ_EMBODIED} ${ECO_CI_CO2EQ_ENERGY} 1000000" | awk '{printf "%d", ($1 + $2) * $3 }')
             else
-                carbon_ug='null'
+                local carbon_ug='null'
             fi
 
-            energy_uj=$(echo "${step_energy} 1000000" | awk '{printf "%d", $1 * $2}' | cut -d '.' -f 1)
+            local energy_uj=$(echo "${step_energy} 1000000" | awk '{printf "%d", $1 * $2}' | cut -d '.' -f 1)
 
-            tags_as_json_list=''
+            local tags_as_json_list=''
             if [[ "$ECO_CI_FILTER_TAGS" != '' ]]; then # prevent sending [""] array if empty
               tags_as_json_list=$(echo  $ECO_CI_FILTER_TAGS | jq -Rr @json | sed 's/,/\",\"/g' )
             fi
@@ -133,7 +157,7 @@ function make_measurement() {
 
             # Important: The data is NOT escaped! Since we control all variables locally we must make sure that no crap values are in there
             # like unescaped " for instance
-            curl_response=$(curl -w "%{http_code}" -X POST "${ECO_CI_API_ENDPOINT_ADD}" \
+            local curl_response=$(curl -w "%{http_code}" -X POST "${ECO_CI_API_ENDPOINT_ADD}" \
                 -H 'Content-Type: application/json' \
                 -H "X-Authentication: ${ECO_CI_GMT_API_TOKEN}" \
                 -d "{
@@ -162,7 +186,7 @@ function make_measurement() {
                 \"note\":  $(echo $ECO_CI_STEP_NOTE | jq -Rr @json)
             }" 2>&1 || true)
 
-            http_code=$(echo "$curl_response" | tail -n 1)
+            local http_code=$(echo "$curl_response" | tail -n 1)
 
             if [[ "$http_code" != "204" ]]; then
                 echo "Error! - Could not send data to GMT API: $curl_response" >&2
@@ -172,7 +196,7 @@ function make_measurement() {
         fi
 
         if [[ ${ECO_CI_JSON_OUTPUT} == 'true' ]]; then
-            lap_data_file='/tmp/eco-ci/lap-data.json'
+            local lap_data_file='/tmp/eco-ci/lap-data.json'
             echo 'show create-and-add-meta.sh output'
             source "$(dirname "$0")/create-and-add-meta.sh" create_json_file "${lap_data_file}"
             source "$(dirname "$0")/add-data.sh" create_json_file "${lap_data_file}" "${label}" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time_s}"
@@ -184,20 +208,21 @@ function make_measurement() {
         sed '/^[[:space:]]*$/d' /tmp/eco-ci/cpu-util-temp.txt >> /tmp/eco-ci/cpu-util-total.txt # we must take util-tmp here, as this is already backfilled
         sed '/^[[:space:]]*$/d' /tmp/eco-ci/energy-step.txt >> /tmp/eco-ci/energy-total.txt # energy-step is also already backfilled, so overhead is now only our code
 
-        step_time_total_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
-        step_time_total_s=$(echo "$step_time_total_us 1000000" | awk '{printf "%.9f", $1 / $2}')
-        all_steps_captured_duration=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/cpu-util-total.txt)
+        local step_time_total_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
+        local step_time_total_s=$(echo "$step_time_total_us 1000000" | awk '{printf "%.9f", $1 / $2}')
+        local all_steps_captured_duration=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/cpu-util-total.txt)
 
         # calculate step times now. not earlier. to make all calculations after all capturing
-        overhead_step_time_difference=$(echo "${step_time_total_s} ${all_steps_captured_duration}" | awk '{printf "%.9f", $1 - $2}')
+        local overhead_step_time_difference=$(echo "${step_time_total_s} ${all_steps_captured_duration}" | awk '{printf "%.9f", $1 - $2}')
 
+        local last_line_cpu_total_utilization
         read _ last_line_cpu_total_utilization <<< "$(tail -n 1 /tmp/eco-ci/cpu-util-total.txt)"
         echo "${overhead_step_time_difference} ${last_line_cpu_total_utilization}" >> /tmp/eco-ci/cpu-util-total.txt
         echo 'Backfilling ' $overhead_step_time_difference 's in cpu-util-total with ' $last_line_cpu_total_utilization
 
-        read last_line_energy_total <<< "$(tail -n 1 /tmp/eco-ci/energy-total.txt)"
-        echo "${overhead_step_time_difference} ${last_line_energy_total}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-total.txt
-        echo 'Backfilling ' $overhead_step_time_difference 's in energy-total with ' $last_line_energy_total ' * ' $overhead_step_time_difference
+        local extrapolated_energy_total=$(make_inference_single $last_line_cpu_total_utilization)
+        echo "${overhead_step_time_difference} ${extrapolated_energy_total}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-total.txt
+        echo 'Backfilling ' $overhead_step_time_difference 's in energy-total with ' $extrapolated_energy_total
 
         # Reset the step timers, so we do not capture the overhead per step
         # we want to only caputure the overhead in the totals

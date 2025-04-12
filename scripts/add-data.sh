@@ -2,12 +2,12 @@
 set -euo pipefail
 
 function create_json_file() {
-    file="$1"
-    label="$2"
-    cpu="$3"
-    energy="$4"
-    power="$5"
-    time="$6"
+    local file="$1"
+    local label="$2"
+    local cpu="$3"
+    local energy="$4"
+    local power="$5"
+    local time="$6"
 
     # Check if the JSON file exists, and create it if not
     if [ ! -f "$file" ]; then
@@ -15,7 +15,7 @@ function create_json_file() {
     fi
 
     # Define the data point to add to the JSON file
-    NEW_STEP=$(cat <<EOM
+    local NEW_STEP=$(cat <<EOM
     {
         "label": "${label}",
         "cpu_avg_percent": "${cpu}",

@@ -6,15 +6,15 @@ source "$(dirname "$0")/vars.sh"
 read_vars
 
 function display_results {
-    display_table="$1"
-    display_badge="$2"
+    local display_table="$1"
+    local display_badge="$2"
 
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
-    output='/tmp/eco-ci/output.txt'
-    output_pr='/tmp/eco-ci/output-pr.txt'
+    local output='/tmp/eco-ci/output.txt'
+    local output_pr='/tmp/eco-ci/output-pr.txt'
 
     if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -eq 0 ]]; then
         echo 'Could not display table as no measurement data was present!' >&2
@@ -22,11 +22,11 @@ function display_results {
         return 1
     fi
 
-    cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
-    total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
-    total_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
-    total_time_s=$(echo "${total_time_us} 1000000" | awk '{printf "%.2f", $1 / $2}')
-    power_avg=$(echo "${total_energy} ${total_time_s}" | awk '{printf "%.2f", $1 / $2}')
+    local cpu_avg=$(awk '{ total += $2; count++ } END { print total/count }' /tmp/eco-ci/cpu-util-total.txt)
+    local total_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-total.txt)
+    local total_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
+    local total_time_s=$(echo "${total_time_us} 1000000" | awk '{printf "%.2f", $1 / $2}')
+    local power_avg=$(echo "${total_energy} ${total_time_s}" | awk '{printf "%.2f", $1 / $2}')
 
 
 
@@ -63,8 +63,8 @@ function display_results {
         fi
     fi
 
-    repo_enc=$( echo "${ECO_CI_REPOSITORY}" | jq -Rr @uri)
-    branch_enc=$( echo "${ECO_CI_BRANCH}" | jq -Rr @uri)
+    local repo_enc=$( echo "${ECO_CI_REPOSITORY}" | jq -Rr @uri)
+    local branch_enc=$( echo "${ECO_CI_BRANCH}" | jq -Rr @uri)
 
     if [[ ${ECO_CI_CALCULATE_CO2} == 'true' ]]; then
         source "$(dirname "$0")/misc.sh"
@@ -92,7 +92,7 @@ function display_results {
             printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" "${ECO_CI_CO2EQ}" | tee -a $output $output_pr
 
             if [[ "${display_badge}" == 'true' ]]; then
-                random_number=$((RANDOM % 1000000000 + 1))
+                local random_number=$((RANDOM % 1000000000 + 1))
                 echo "<hr>" | tee -a $output $output_pr
                 echo "Total cost of whole PR so far: <br><br>" | tee -a $output $output_pr
                 echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=energy#${random_number}'></a>" | tee -a $output $output_pr
