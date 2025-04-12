@@ -83,7 +83,7 @@ jobs:
 
 
       - name: 'Dump Raw Measurement Data'
-        uses: ./.github/actions/gmt-pytest
+        uses: ./.github/actions/dump-raw-measurement-data
 
       - name: Eco CI Measurement - echo Hellos; Shell
         uses: ./
@@ -92,13 +92,13 @@ jobs:
           label: "echo Hellos; $SHELL; \""
 
       - name: 'Dump Raw Measurement Data'
-        uses: ./.github/actions/gmt-pytest
+        uses: ./.github/actions/dump-raw-measurement-data
 
       - name: Sleep 3
         run: sleep 3
 
       - name: 'Dump Raw Measurement Data'
-        uses: ./.github/actions/gmt-pytest
+        uses: ./.github/actions/dump-raw-measurement-data
 
 
       - name: Eco CI Measurement - (Soo this is something)
@@ -111,7 +111,7 @@ jobs:
         run: sleep 3
 
       - name: 'Dump Raw Measurement Data'
-        uses: ./.github/actions/gmt-pytest
+        uses: ./.github/actions/dump-raw-measurement-data
 
 
       - name: Eco CI Measurement - Environment setup (OS ...
@@ -150,7 +150,7 @@ jobs:
       #     label: 'without quotes'''
 
       - name: 'Dump Raw Measurement Data'
-        uses: ./.github/actions/gmt-pytest
+        uses: ./.github/actions/dump-raw-measurement-data
 
 
       - name: Dump running processes scripts
@@ -189,7 +189,7 @@ jobs:
           task: get-measurement
 
       - name: 'Dump Raw Measurement Data'
-        uses: ./.github/actions/gmt-pytest
+        uses: ./.github/actions/dump-raw-measurement-data
 
 
       - name: Eco CI Energy Estimation
