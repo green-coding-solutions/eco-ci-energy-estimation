@@ -263,10 +263,35 @@ jobs:
           echo /tmp/eco-ci/energy-total.txt
           cat /tmp/eco-ci/energy-total.txt
 
-      - name: Dump running processes
+      - name: Dump running processes scripts
         run: |
           ps -ax | grep scripts
+          amount_of_lines=$(ps -ax | grep scripts | wc -l)
+          if [[ $amount_of_lines != 2 ]]; then # script process itself and the grep call
+            echo 'Unexpected amount of processes for "scripts"'
+            exit 1
+          fi
+
+      - name: Dump running processes iostat
+        if: ${{ contains(matrix.os, 'macos') }}
+        run: |
           ps -ax | grep iostat
+          amount_of_lines=$(ps -ax | grep iostat | wc -l)
+          if [[ $amount_of_lines != 2 ]]; then # iostat process itself and the grep call
+            echo 'Unexpected amount of processes for "iostat"'
+            exit 1
+          fi
+
+
+      - name: Dump running processes iostat
+        if: ${{ !contains(matrix.os, 'macos') }}
+        run: |
+          ps -ax | grep iostat
+          amount_of_lines=$(ps -ax | grep iostat | wc -l)
+          if [[ $amount_of_lines != 1 ]]; then # the grep call
+            echo 'Unexpected amount of processes for "iostat"'
+            exit 1
+          fi
 
       - name: Final Measurement no label
         uses: ./
