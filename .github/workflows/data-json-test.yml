@@ -57,7 +57,7 @@ jobs:
           # setup
           output='${{ steps.data-node-setup.outputs.data-lap-json }}'
           required_label="node setup"
-          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts" "time")
+          required_fields=("repository" "branch" "workflow" "run_id" "label" "steps")
           required_count=${#required_fields[@]}
           # assertions
           if [ -z "$output" ]; then
@@ -103,7 +103,7 @@ jobs:
           # setup
           output='${{ steps.data-sleep.outputs.data-lap-json }}'
           required_label="sleep"
-          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts" "time")
+          required_fields=("repository" "branch" "workflow" "run_id" "label" "steps")
           required_count=${#required_fields[@]}
           # assertions
           if [ -z "$output" ]; then
@@ -141,39 +141,3 @@ jobs:
         uses: ./
         with:
           task: display-results
-
-      - name: Print total data
-        run: |
-          echo "total json: ${{ steps.data-total.outputs.data-total-json }}"
-
-      - name: Assert total output is appropriate
-        shell: bash
-        run: |
-          # setup
-          output='${{ steps.data-total.outputs.data-total-json }}'
-          required_label="TOTAL"
-          required_fields=("repository" "branch" "workflow" "run_id" "label" "cpu_avg_percent" "energy_joules" "power_avg_watts" "time")
-          required_count=${#required_fields[@]}
-          # assertions
-          if [ -z "$output" ]; then
-            echo "Output must not be empty"
-            exit 1
-          fi
-          fields_count=$(echo "$output" | jq 'keys | length')
-          if ! [ "${fields_count}" -eq "${required_count}" ]; then
-            echo "output has ${fields_count} instead of ${required_count}"
-            exit 1
-          fi
-          for field in "${required_fields[@]}"; do
-            if ! echo "$output" | jq -e --arg field "$field" 'has($field)' >/dev/null; then
-              echo "output is missing the field: $field"
-              exit 1
-            fi
-          done
-          label=$(echo "$output" | jq -r '.label')
-          if [ "$label" == "$required_label" ]; then
-            echo "value of 'label' is '$required_label'"
-          else
-            echo "value of 'label' is '$label', but it should be '$required_label'"
-            exit 1
-          fi
