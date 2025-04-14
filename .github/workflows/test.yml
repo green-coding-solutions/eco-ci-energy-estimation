@@ -47,7 +47,7 @@ jobs:
         uses: ./
         with:
           task: start-measurement
-          project: "Eco-CI"
+          project: "Eco CI"
           machine: "ubuntu-latest"
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
@@ -58,7 +58,7 @@ jobs:
         uses: ./
         with:
           task: start-measurement
-          project: "Eco-CI"
+          project: "Eco CI"
           machine: "ubuntu-latest"
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
@@ -70,7 +70,7 @@ jobs:
         uses: ./
         with:
           task: start-measurement
-          project: "Eco-CI"
+          project: "Eco CI"
           machine: "ubuntu-latest"
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}

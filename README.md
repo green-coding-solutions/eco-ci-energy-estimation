@@ -1,6 +1,6 @@
-# Eco-CI
+# Eco CI
 
-Eco-CI is a project aimed at estimating energy consumption in continuous integration (CI) environments. It provides functionality to calculate the energy consumption of CI jobs based on the power consumption characteristics of the underlying hardware.
+Eco CI is a project aimed at estimating energy consumption in continuous integration (CI) environments. It provides functionality to calculate the energy consumption of CI jobs based on the power consumption characteristics of the underlying hardware.
 
 
 ## Table of Contents
@@ -35,17 +35,17 @@ Following packages are expected:
 - `git` only if you use GitLab
 
 ## How does it work?
-- The Eco-CI at its core makes its energy estimations based on pre-calculated power curves from [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy)
-- When you initialize the Eco-CI, starts a small bash script to track the cpu utilization over a period of time. This tracking begins when you call the start-measurement function. Then, each time you call get-measurement, it will take the cpu-utilization data collected (either from the start, or since the last get-measurement call) and make an energy estimation based on the detected hardware and CPU utilization.
+- The Eco CI at its core makes its energy estimations based on pre-calculated power curves from [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy)
+- When you initialize the Eco CI, starts a small bash script to track the cpu utilization over a period of time. This tracking begins when you call the start-measurement function. Then, each time you call get-measurement, it will take the cpu-utilization data collected (either from the start, or since the last get-measurement call) and make an energy estimation based on the detected hardware and CPU utilization.
 
 ## Usage
 
-Eco-CI supports both GitHub and GitLab as CI platforms. When you integrate it into your pipeline, you must call the start-measurement script to begin collecting power consumption data, then call the get-measurement script each time you wish to make a spot measurement. When you call get-measurment, you can also assign a label to it to more easily identify the measurement. At the end, call the display-results to see all the measurement results, overall total usage, and export the data.
+Eco CI supports both GitHub and GitLab as CI platforms. When you integrate it into your pipeline, you must call the start-measurement script to begin collecting power consumption data, then call the get-measurement script each time you wish to make a spot measurement. When you call get-measurment, you can also assign a label to it to more easily identify the measurement. At the end, call the display-results to see all the measurement results, overall total usage, and export the data.
 
-Follow the instructions below to integrate Eco-CI into your CI pipeline.
+Follow the instructions below to integrate Eco CI into your CI pipeline.
 
 ### GitHub:
-To use Eco-CI in your GitHub workflow, call it with the relevant task name (start-measurement, get-measurement, or display-results). Here is a sample workflow that runs some python tests with eco-ci integrated.
+To use Eco CI in your GitHub workflow, call it with the relevant task name (start-measurement, get-measurement, or display-results). Here is a sample workflow that runs some python tests with eco-ci integrated.
 
 ```yaml
 name: Daily Tests with Energy Measurement
@@ -134,7 +134,7 @@ jobs:
           - Get the CO2 grid intensity for the location from https://www.electricitymaps.com/
           - Estimates the amount of carbon the measurement has produced
         - `gh-api-base`: (optional) (default: 'api.github.com')
-            - Eco-CI uses the github api to post/edit PR comments and get the workflow id
+            - Eco CI uses the github api to post/edit PR comments and get the workflow id
             - set to github's default api, but can be changed if you are using github enterprise
         - `type`: (optional)
             - If you want filter data in the GMT Dashboard or in CarbonDB you can here manually set a type for drill-down later. Defaults to "machine.ci". Cannot be empty.[CarbonDB](https://www.green-coding.io/projects/carbondb/)
@@ -157,7 +157,7 @@ jobs:
 
 - `display-results`: Outputs the energy results to the`$GITHUB_STEP_SUMMARY`. Creates a table that shows the energy results of all the `get-measurements`, and then a final row for the entire run. Displays the average cpu utilization, the total Joules used, and average wattage for each measurement+total run. This badge will always be updated to display the total energy of the most recent run of the workflow that generated this badge. The total measurement of this task is provided as output `data-total-json` in json format (see example below).
     - `pr-comment`: (optional) (default: false)
-        - if on, will post a comment on the PR issue with the Eco-CI results. only occurs if the triggering event is a pull_request
+        - if on, will post a comment on the PR issue with the Eco CI results. only occurs if the triggering event is a pull_request
         - remember to set `pull-requests: write` to true in your workflow file
     - `display-table`: (optional) (default: true)
     - `display-badge`: (optional) (default: true)
@@ -178,7 +178,7 @@ To learn how to create a secret see the GitHub documentation: https://docs.githu
 
 #### Continuing on Errors
 
-Once you have initially set up Eco-CI and have given it a test spin we recommend running our action 
+Once you have initially set up Eco CI and have given it a test spin we recommend running our action
 with `continue-on-error:true`, as energy and CO2 metrics is not critical to the success of your workflow, but rather a nice feature to have.
 
 ```yaml
@@ -253,7 +253,7 @@ All the values for supported machines are found in the [power-data](https://gith
 
 The heavy work to get this values is done by [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy) (See below for details).
 
-If you want to support a custom machine you need to create one of these files and load it into Eco-CI.
+If you want to support a custom machine you need to create one of these files and load it into Eco CI.
 
 Here is an exemplary command to create the power data for the basic **4 CPU** GitHub Shared Runner (at the time of writing 13. June 2024).
 
@@ -293,7 +293,7 @@ Once you have the file ready we are happy to merge it in through a PR! In future
 ingest a file from your repository without having to upstream it with us. But since this is a community open source plugin upstream is preferred, right :)
 
 ### GitLab
-To use Eco-CI in your GitLab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
+To use Eco CI in your GitLab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
 ```
 include:
   remote: 'https://raw.githubusercontent.com/green-coding-solutions/eco-ci-energy-estimation/main/eco-ci-gitlab.yml'
@@ -359,7 +359,7 @@ Example for using in *GitHub Actions* with `homebrew`:
 
 ### Local CI / Running in docker
 
-Although initially designed for use in *GitHub Actions* and *GitLab Pipelines* the Eco-CI tool works everywhere where `bash` works.
+Although initially designed for use in *GitHub Actions* and *GitLab Pipelines* the Eco CI tool works everywhere where `bash` works.
 
 This means you can just use it locally by following it's general 3-step interface:
 - Start
@@ -370,7 +370,7 @@ As an example we have set up a full example pipeline in the form of a `bash` fil
 
 In this file you find the needed calls along with some fake activity like calls to `sleep` and `ls` etc.
 
-You just need to slice the file to you needs and bring the code that you want to encapsulate with Eco-CI into the positions where currently the `sleep` and `ls` calls are.
+You just need to slice the file to you needs and bring the code that you want to encapsulate with Eco CI into the positions where currently the `sleep` and `ls` calls are.
 
 
 
@@ -393,9 +393,9 @@ docker run --rm -it -v ./:/tmp/data:ro invent-registry.kde.org/sysadmin/ci-image
 
 ### Jenkins
 
-For *Jenkins* Eco-CI can be easily used in combination with the *Execute Shell* plugin.
+For *Jenkins* Eco CI can be easily used in combination with the *Execute Shell* plugin.
 
-By following Eco-CI's general 3-step you need to create 3 steps in your workflow that:
+By following Eco CI's general 3-step you need to create 3 steps in your workflow that:
 - Start
 - Measure (optionally repeat if you want to lap multiple steps)
 - End & Display
@@ -430,13 +430,13 @@ bash __PATH_WHERE_YOU_HAVE_THE_REPO__/scripts/examples/jenkins_end_and_display.s
 
 See a full example of a freestyle pipeline with the codeblocks here: ![Screenshot Jenkins Freestyle pipeline](/screenshots/jenkins_eco_ci_integration_freestyle_pipeline.png)
 
-The data will then show up in the text log. See an example how this looks here: ![Screenshot Jenkins Eco-CI Output](/screenshots/jenkins_eco_ci_output.png)
+The data will then show up in the text log. See an example how this looks here: ![Screenshot Jenkins Eco CI Output](/screenshots/jenkins_eco_ci_output.png)
 
 #### Jenkins on macOS
 
 If you use *Jenkins* on *macOS* you must have `coretuils` installed and `gdate` must replace the normal `date` function.
 
-Append this to every step where you call Eco-CI precede the linux `date` tool before the *macOS* native one:
+Append this to every step where you call Eco CI precede the linux `date` tool before the *macOS* native one:
 ```bash
 set +x # if macOS to reduce noise
 export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH" # if macOS
@@ -475,7 +475,7 @@ export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH" # if macOS
 
 - If you use Alpine, you must install coreutils so that time logging with date is possible with an accuracy of microseconds (`apk add coreutils`)
 
-- If you have your pipelines split over multiple VM's (often the case with many jobs) ,you have to treat each VM as a seperate machine for the purposes of measuring and setting up Eco-CI.
+- If you have your pipelines split over multiple VM's (often the case with many jobs) ,you have to treat each VM as a seperate machine for the purposes of measuring and setting up Eco CI.
 
 - The underlying [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy) model requires the CPU to have a fixed frequency setting. This is typical for cloud testing and is the case for instance on GitHub, but not always the case in different CIs.
 

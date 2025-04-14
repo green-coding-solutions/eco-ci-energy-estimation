@@ -8,7 +8,7 @@ stages:
 
 before_script:
   - apt-get update
-  - apt-get install git jq curl -y # git, jq and curl are dependencies for Eco-CI
+  - apt-get install git jq curl -y # git, jq and curl are dependencies for Eco CI
 
 test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.

@@ -26,7 +26,7 @@ jobs:
         with:
           task: start-measurement
           json-output: true
-          project: "Eco-CI"
+          project: "Eco CI"
           machine: "ubuntu-latest"
           tags: "CI/CD,JSON-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}

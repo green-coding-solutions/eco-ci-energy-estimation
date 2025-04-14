@@ -101,8 +101,8 @@ runs:
       if: inputs.task != 'start-measurement' && inputs.task != 'get-measurement' && inputs.task != 'display-results'
       shell: bash
       run: |
-          echo 'Please call the Eco-CI Energy Estimation with a valid task name: start-measurement, get-measurement, or display-results' >> $GITHUB_STEP_SUMMARY
-          echo "Eco-CI task was called with ${{inputs.task}} instead" >> $GITHUB_STEP_SUMMARY
+          echo 'Please call the Eco CI Energy Estimation with a valid task name: start-measurement, get-measurement, or display-results' >> $GITHUB_STEP_SUMMARY
+          echo "Eco CI task was called with ${{inputs.task}} instead" >> $GITHUB_STEP_SUMMARY
           fail('Invalid task name specified')
 
     - id: start-measurement
@@ -164,7 +164,7 @@ runs:
         echo 'Running PR-Comment task'
         COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "${{ inputs.gh-api-base }}/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
 
-        echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username and (.body | index("Eco-CI") // false))' | while read -r comment; do
+        echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username and (.body | index("Eco CI") // false))' | while read -r comment; do
             COMMENT_ID=$(echo "$comment" | jq -r '.id')
             COMMENT_BODY=$(echo "$comment" | jq -r '.body')
             INNER_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')
