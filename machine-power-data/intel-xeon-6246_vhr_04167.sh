@@ -1,4 +1,19 @@
 #!/usr/bin/env bash
+
+# Power data for Intel(R) Xeon(R) Gold 6246 CPU @ 3.30GHz
+# Generated followng the cloud-energy documentation and using these parameters:
+    # CPU_CHIPS=2
+    # CPU_FREQ=330000
+    # CPU_THREADS=48
+    # CPU_CORES=24
+    # RELEASE_YEAR=2019
+    # TDP=165
+    # RAM=384
+    # ARCHITECTURE="cascadelake"
+    # CPU_MAKE="intel"
+    # VHOST_RATIO=0.04167 # based on threads
+
+# cloud energy hashmap
 set -eu
 declare -A cloud_energy_hashmap
 cloud_energy_hashmap[0.00]=3.8583052624511716
