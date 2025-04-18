@@ -14,6 +14,7 @@ function display_results {
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
     local output='/tmp/eco-ci/output.txt'
+	local gitlab_metrics_file="${CI_PROJECT_DIR}/metrics.txt"
     local output_pr='/tmp/eco-ci/output-pr.txt'
 
     if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -eq 0 ]]; then
@@ -42,10 +43,10 @@ function display_results {
         for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ )); do
             if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
                     # CI_JOB_NAME is a set variable by GitLab
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)" | tee -a $output metrics.txt
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)" | tee -a $output metrics.txt
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)" | tee -a $output metrics.txt
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)" | tee -a $output metrics.txt
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)" | tee -a $output gitlab_metrics_file
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)" | tee -a $output gitlab_metrics_file
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)" | tee -a $output gitlab_metrics_file
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)" | tee -a $output gitlab_metrics_file
                     echo "----------------" >> $output
             else
                 echo "|$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
@@ -66,14 +67,14 @@ function display_results {
 
         if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
             # CI_JOB_NAME is a set variable by GitLab
-            echo "\"${CI_JOB_NAME}: Energy [Joules]:\" ${total_energy}" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Avg. CPU Utilization:\" $cpu_avg_weighted" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" ${total_power_avg}" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Duration [seconds]:\" ${total_time_s}" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Energy [Joules]:\" ${total_energy}" | tee -a $output gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Avg. CPU Utilization:\" $cpu_avg_weighted" | tee -a $output gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" ${total_power_avg}" | tee -a $output gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Duration [seconds]:\" ${total_time_s}" | tee -a $output gitlab_metrics_file
             echo "----------------" >> $output
-            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Energy [Joules]:\" ${eco_ci_total_energy_overhead}" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Avg. Power [Watts]:\" ${eco_ci_total_power_overhead}" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Duration [seconds]:\" ${eco_ci_total_time_s_overhead}" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Energy [Joules]:\" ${eco_ci_total_energy_overhead}" | tee -a $output gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Avg. Power [Watts]:\" ${eco_ci_total_power_overhead}" | tee -a $output gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Duration [seconds]:\" ${eco_ci_total_time_s_overhead}" | tee -a $output gitlab_metrics_file
 
         else
             echo "|---|---|---|---|---|" | tee -a $output $output_pr
