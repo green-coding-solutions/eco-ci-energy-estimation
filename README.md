@@ -165,7 +165,7 @@ jobs:
         - Shows the badge for the ci run during display-results step
         - automatically false if `send-data is also false
     - `json-output`: (optional) (default: false)
-        - will output data to JSON to `/tmp/eco-ci/lap-data.json` and `/tmp/eco-ci/total-data.json`
+        - will output data to JSON to `/tmp/eco-ci/lap-data.json`
 
 #### Electricity Maps Token
 
@@ -325,7 +325,6 @@ For each job you can export the artifacts. We currently export the pipeline data
 artifacts:
     paths:
       - eco-ci-output.txt
-      - eco-ci-total-data.json
     reports:
       metrics: metrics.txt
 ```
