@@ -179,8 +179,7 @@ runs:
               echo 'Skipping already collapsed Eco CI comment'
               continue
             fi
-
-            if [[ "$COMMENT_BODY" == *"Eco CI Output [RUN-ID: $RUN-ID]:"* ]]; then
+            if [[ "$COMMENT_BODY" == *"Eco CI Output [RUN-ID: ${RUN_ID}]:"* ]]; then
               echo 'Skipping Eco CI comment from same RUN-ID'
               continue
             fi
