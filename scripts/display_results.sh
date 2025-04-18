@@ -14,8 +14,9 @@ function display_results {
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
     local output='/tmp/eco-ci/output.txt'
-	local gitlab_metrics_file="${CI_PROJECT_DIR}/metrics.txt"
     local output_pr='/tmp/eco-ci/output-pr.txt'
+    # Set the GitLab metrics file path, defaulting to "./metrics.txt" if GITLAB_METRICS_DIR is not set.
+    local gitlab_metrics_file="${ECO_CI_GITLAB_METRICS_DIR:-.}/metrics.txt"
 
     if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -eq 0 ]]; then
         echo 'Could not display table as no measurement data was present!' >&2
