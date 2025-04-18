@@ -160,19 +160,34 @@ runs:
       shell: bash
       env:
         PR_NUMBER: ${{ github.event.pull_request.number }}
+        RUN_ID: ${{ github.run_id }}
       run: |
         echo 'Running PR-Comment task'
         COMMENTS=$(curl -s -H  "Authorization: Bearer ${{github.token}}" "${{ inputs.gh-api-base }}/repos/${{ github.repository }}/issues/$PR_NUMBER/comments")
 
-        echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username and (.body | index("Eco CI") // false))' | while read -r comment; do
+        echo "$COMMENTS" | jq -c --arg username "github-actions[bot]" '.[] | select(.user.login == $username)' | while read -r comment; do
+
             COMMENT_ID=$(echo "$comment" | jq -r '.id')
             COMMENT_BODY=$(echo "$comment" | jq -r '.body')
-            INNER_BODY=$(echo "$COMMENT_BODY" | sed 's/<details><summary>Old Energy Estimation<\/summary>//g' | sed 's/<\/details>//g')
+
+            if [[ "$COMMENT_BODY" != *"Eco CI Output [RUN-ID:"* ]]; then
+              echo 'Skipping non Eco CI comment'
+              continue
+            fi
+
+            if [[ "$COMMENT_BODY" == *"Eco CI Output - Old Energy Estimation"* ]]; then
+              echo 'Skipping already collapsed Eco CI comment'
+              continue
+            fi
+            if [[ "$COMMENT_BODY" == *"Eco CI Output [RUN-ID: ${RUN_ID}]:"* ]]; then
+              echo 'Skipping Eco CI comment from same RUN-ID'
+              continue
+            fi
 
             ## indentation here is important, otherwise newlines are not properly sent/processed
-            PAYLOAD=$(jq --null-input --arg body "<details><summary>Old Energy Estimation</summary>
+            PAYLOAD=$(jq --null-input --arg body "<details><summary>Eco CI Output - Old Energy Estimation</summary>
 
-        $INNER_BODY
+        $COMMENT_BODY
 
         </details>" '{"body": $body}')
             curl -s -H "Authorization: Bearer ${{github.token}}" -X PATCH -d "$PAYLOAD" "${{ inputs.gh-api-base }}/repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
