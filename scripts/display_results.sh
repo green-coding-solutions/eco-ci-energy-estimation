@@ -13,11 +13,11 @@ function display_results {
     # this will set them to an empty string if they are missing entirely
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
-# Output files
-    local tmp_dir='/tmp/eco-ci'
+	# Output files
+	local tmp_dir='/tmp/eco-ci'
 	local output="${tmp_dir}/output.txt"
-    local output_pr="${tmp_dir}/output-pr.txt" if ECO_CI_GITLAB_METRICS_DIR is not set.
-    local gitlab_metrics_file="~/metrics.txt"
+    local output_pr="${tmp_dir}/output-pr.txt"
+    local gitlab_metrics_file="${tmp_dir}/metrics.txt" # only available in gitlab instances
 
     if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -eq 0 ]]; then
         echo 'Could not display table as no measurement data was present!' >&2
