@@ -16,7 +16,7 @@ function display_results {
     local output='/tmp/eco-ci/output.txt'
     local output_pr='/tmp/eco-ci/output-pr.txt'
     # Set the GitLab metrics file path, defaulting to "./metrics.txt" if ECO_CI_GITLAB_METRICS_DIR is not set.
-    local gitlab_metrics_file="${ECO_CI_GITLAB_METRICS_DIR:-.}/metrics.txt"
+    local gitlab_metrics_file="~/metrics.txt"
 
     if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -eq 0 ]]; then
         echo 'Could not display table as no measurement data was present!' >&2
