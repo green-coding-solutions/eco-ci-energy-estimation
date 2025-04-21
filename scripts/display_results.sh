@@ -13,9 +13,10 @@ function display_results {
     # this will set them to an empty string if they are missing entirely
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
-    local output='/tmp/eco-ci/output.txt'
-    local output_pr='/tmp/eco-ci/output-pr.txt'
-    # Set the GitLab metrics file path, defaulting to "./metrics.txt" if ECO_CI_GITLAB_METRICS_DIR is not set.
+# Output files
+    local tmp_dir='/tmp/eco-ci'
+	local output="${tmp_dir}/output.txt"
+    local output_pr="${tmp_dir}/output-pr.txt" if ECO_CI_GITLAB_METRICS_DIR is not set.
     local gitlab_metrics_file="~/metrics.txt"
 
     if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -eq 0 ]]; then
