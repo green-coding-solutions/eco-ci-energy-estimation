@@ -276,7 +276,7 @@ For macOS we used for the `macos-14` M1 shared runners:
 [Source for full Mac Mini power consumption](https://www.anandtech.com/show/16252/mac-mini-apple-m1-tested)
 [Source for Cores and RAM of total machine (assuming only efficiency cores used for hypervisor and performance for runners)](https://github.blog/news-insights/product-news/introducing-the-new-apple-silicon-powered-m1-macos-larger-runner-for-github-actions/) (We slightly tuned vhost-ratio to 0.3 instead of 0.4 to adapt to the measured power source from Source #1)
 
-And for the *Intel* `macos-14` shared runners:
+And for the *Intel* `macos-13` shared runners:
 `python3 xgb.py --tdp 65 --cpu-threads=4 --cpu-cores=4 --release-year=2017 --ram 16 --cpu-freq=3600 --cpu-chips=1 --vhost-ratio=1 --dump-hashmap > macos-13-mac-mini-intel.sh`
 [GitHub specs](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories)
 [Source for hardware specs](https://en.wikipedia.org/wiki/Mac_Mini#Technical_specifications_3)
