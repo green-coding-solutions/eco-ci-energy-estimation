@@ -42,3 +42,4 @@ variables:
             /tmp/eco-ci-repo/scripts/display_results.sh display_results "${ECO_CI_DISPLAY_TABLE}" "${ECO_CI_DISPLAY_BADGE}"
             echo -e "$FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$TXT_CLEAR"
             cp /tmp/eco-ci/output.txt ./eco-ci-output.txt
+            cp /tmp/eco-ci/metrics.txt "${CI_PROJECT_DIR}/metrics.txt"
