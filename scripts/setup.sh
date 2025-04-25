@@ -89,7 +89,11 @@ function lap_measurement {
         bash "$(dirname "$0")/cpu-utilization-macos.sh" > /tmp/eco-ci/cpu-util-step.txt 2> /dev/null < /dev/null &
     else
         bash "$(dirname "$0")/cpu-utilization-linux.sh" > /tmp/eco-ci/cpu-util-step.txt 2> /dev/null < /dev/null &
+        "./$(dirname "$0")/static-binary-linux-amd64" >> /tmp/eco-ci/cpu-util-extra.txt 2> /dev/null < /dev/null &
     fi
+
+    echo 'Content for cpu-util-extra'
+    cat /tmp/eco-ci/cpu-util-extra.txt
 }
 
 function kill_tree() {
@@ -111,6 +115,7 @@ function end_measurement {
         # sleep is a running child process which is killed and then a race condition between killing the sleep
         # and effectively continueing the script and killing the parent to abort execution happens
         pkill -SIGTERM -f "$(dirname "$0")/cpu-utilization-linux.sh"  || true;
+        pkill -SIGTERM -f "./$(dirname "$0")/static-binary-linux-amd64"  || true;
     fi
 }
 
