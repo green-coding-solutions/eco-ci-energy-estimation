@@ -329,6 +329,8 @@ artifacts:
       metrics: metrics.txt
 ```
 
+By default, metrics.txt is copied into [`$CI_PROJECT_DIR`](https://docs.gitlab.com/ci/variables/predefined_variables/#predefined-variables). If necessary, the target location of all artifacts can be adjusted in [`eco-ci-gitlab.yml`](https://github.com/green-coding-solutions/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml) using appropriate copy commands.
+
 #### Gitlab sample file
 
 Please look at [.gitlab-ci.yml.example](.gitlab-ci.yml.example)
