@@ -93,7 +93,9 @@ function lap_measurement {
     fi
 
     echo 'Content for cpu-util-extra'
-    cat /tmp/eco-ci/cpu-util-extra.txt
+    if [[ -f "/tmp/eco-ci/cpu-util-extra.txt" ]]; then
+        cat /tmp/eco-ci/cpu-util-extra.txt
+    fi
 }
 
 function kill_tree() {
