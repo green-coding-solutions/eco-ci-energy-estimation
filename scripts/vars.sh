@@ -102,8 +102,10 @@ function cpu_vars {
         echo 'Using intel-xeon-6246_vhr_04167.sh'
         add_var 'ECO_CI_MODEL_NAME' 'Intel_Xeon_6246'
 		
-		# use default values for SCI
-		add_var 'ECO_CI_SCI_M' 800.3;
+		# 1x SSD (960 GB)
+		# 12x RAM (32 GB)
+		# 2x CPU (24 cores, 165 TDP)
+		add_var 'ECO_CI_SCI_M' 932.8;
         # we use 4 years - 1*60*60*24*365*4 =
         add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
     else
