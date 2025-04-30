@@ -292,6 +292,20 @@ If you have trouble finding out the splitting factor for your system: [Open an i
 Once you have the file ready we are happy to merge it in through a PR! In future versions we also plan to include a loading mechanism, where you can just
 ingest a file from your repository without having to upstream it with us. But since this is a community open source plugin upstream is preferred, right :)
 
+##### user contributed example machines
+Community contributions to the `machine-power-data` directory help extend support for custom hardware setups. Below is an example of a contributed machine configuration:
+- `intel-xeon-6246_vhr_04167.sh`
+
+    > For additional context and clarification around the process of creating this file, please refer to the discussion in the associated [PR #123](https://github.com/green-coding-solutions/eco-ci-energy-estimation/pull/123).
+
+  This power data file corresponds to a virtual machine running on two Intel(R) Xeon(R) Gold 6246 CPU @ 3.30GHz processors. The virtual machine is allocated 2 out of the available 48 threads. Based on this, a virtual host ratio (`--vhost-ratio`) of $0.04167$ is used.
+
+  All parameters used to generate this file with Cloud Energy are documented within the data file itself. However, for reproducibility, the exact command used is included below:
+
+  `python xgb.py --cpu-chips 2 --cpu-freq 3300 --cpu-threads 48 --cpu-cores 24 --release-year 2019 --tdp 165 --ram 384 --architecture cascadelake --cpu-make intel --vhost-ratio 0.04167 --dump-hashmap > intel-xeon-6246_vhr_04167.sh`
+
+
+
 ### GitLab
 To use Eco CI in your GitLab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
 ```

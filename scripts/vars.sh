@@ -98,6 +98,16 @@ function cpu_vars {
         add_var 'ECO_CI_SCI_M' 51600.00;
         # we use 4 years - 1*60*60*24*365*4 =
         add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
+	elif [[ "$machine_power_data" == "intel-xeon-6246_vhr_04167.sh" ]]; then
+        echo 'Using intel-xeon-6246_vhr_04167.sh'
+        add_var 'ECO_CI_MODEL_NAME' 'Intel_Xeon_6246'
+		
+		# 1x SSD (960 GB)
+		# 12x RAM (32 GB)
+		# 2x CPU (24 cores, 165 TDP)
+		add_var 'ECO_CI_SCI_M' 932.8;
+        # we use 4 years - 1*60*60*24*365*4 =
+        add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
     else
         echo "⚠️ Unknown model ${model_name} for estimation, will use default model ... This will likely produce very unaccurate results!" >&2
         [ -n "$GITHUB_STEP_SUMMARY" ] && echo "⚠️ Unknown model ${model_name} for estimation, will use default model ... This will likely produce very unaccurate results!" >> $GITHUB_STEP_SUMMARY
