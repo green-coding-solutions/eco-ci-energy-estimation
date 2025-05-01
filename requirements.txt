@@ -1,0 +1,10 @@
+# Python dependencies required by the eco-ci shell scripts
+psutil
+requests
+pandas
+numpy
+# argparse is standard library
+py-cpuinfo
+PyYAML
+python-dotenv
+codecarbon

@@ -2,6 +2,7 @@
 
 Eco CI is a project aimed at estimating energy consumption in continuous integration (CI) environments. It provides functionality to calculate the energy consumption of CI jobs based on the power consumption characteristics of the underlying hardware.
 
+> **Note:** This project provides a set of **shell scripts** and configurations primarily designed for integration into **CI/CD pipelines** (GitHub Actions, GitLab CI, Jenkins). While it uses Python libraries internally, it is not typically installed or used as a standard Python package/library directly from this source repository (it lacks `setup.py` or `pyproject.toml`). Installation via `pip install eco-ci-energy-estimation` refers to the package published separately on PyPI.
 
 ## Table of Contents
 - [Requirements / Dependencies](#requirements--dependencies)
@@ -25,14 +26,50 @@ Eco CI is a project aimed at estimating energy consumption in continuous integra
 - [Note on the integration / Auto-Updates](#note-on-the-integration-auto-updates)
 - [Limitations / Compatibility](#limitations--compatibility)
 
-## Requirements / Dependencies
-Following packages are expected:
-- `curl`
-- `jq`
-- `awk`
-- `date` with microsecond support. On *alpine* and *macOS* this means installing `coreutils`
-- `bash` > 4.0
-- `git` only if you use GitLab
+## Dependencies
+
+Running the toolset requires:
+
+*   **Shell Environment:** `bash` (version > 4.0 recommended) and standard Unix utilities like `awk`, `grep`, `bc`, `curl`.
+*   **`date` Command:** Must support microsecond precision (`%N`). On *Alpine Linux* and *macOS*, this typically requires installing `coreutils`.
+*   **`jq`:** Often needed for processing JSON output (check specific script usage). Install via your system package manager (e.g., `apt-get install jq`, `brew install jq`).
+*   **`git`:** Required only if using the GitLab integration features that might need to interact with the repo.
+*   **Python:** Version 3.x recommended (e.g., 3.8+).
+*   **Python Libraries:** These are used internally by the scripts. Install using the provided requirements file (after cloning the repo and setting up a Python environment):
+    ```bash
+    pip install -r requirements.txt
+    ```
+    *(See `requirements.txt` for the list: `psutil`, `requests`, `pandas`, `numpy`, `py-cpuinfo`, `PyYAML`, `python-dotenv`, `codecarbon`)*
+*   **API Tokens/Env Vars:** Depending on the context (CI provider, local execution), you will likely need API tokens (e.g., `GITHUB_TOKEN` for GitHub API access) and specific environment variables set (e.g., `GITHUB_RUN_ID`, `CI_PROJECT_DIR`). See Usage sections and script logic (`scripts/vars.sh`) for details.
+
+## Installation / Setup
+
+This project is primarily used by running its shell scripts directly within a CI environment or locally after cloning. It is **not installed** as a Python package using `pip install .` from this source code.
+
+**Basic Setup Steps:**
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/KaranSinghDev/eco-ci-energy-estimation.git
+    cd eco-ci-energy-estimation
+    ```
+2.  **(Recommended)** Create and activate a Python virtual environment:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    ```
+3.  **Install Python Dependencies:** Install the required Python libraries used by the scripts (ensure prerequisites like Python and pip are met):
+    ```bash
+    pip install -r requirements.txt
+    ```
+4.  **Ensure Shell Dependencies:** Verify that required shell tools (like `bash`, `coreutils` on macOS/Alpine, `jq`, etc. mentioned in Dependencies) are installed in your environment.
+
+**Using the PyPI Package (`eco-ci` CLI)**
+
+The `eco-ci` command-line tool discussed in some examples is available *only* by installing the published package **from PyPI**:
+```bash
+pip install eco-ci-energy-estimation
+```
 
 ## How does it work?
 - The Eco CI at its core makes its energy estimations based on pre-calculated power curves from [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy)
@@ -358,39 +395,57 @@ Example for using in *GitHub Actions* with `homebrew`:
           echo "/opt/homebrew/opt/coreutils/libexec/gnubin:/usr/local/opt/coreutils/libexec/gnubin:$PATH" >> $GITHUB_PATH
 ```
 
-### Local CI / Running in docker
+### Local Execution (Testing / Development)
 
-Although initially designed for use in *GitHub Actions* and *GitLab Pipelines* the Eco CI tool works everywhere where `bash` works.
+You can execute the core shell scripts locally, primarily for testing or script development. However, **be aware that results may differ significantly** from actual CI environments due to hardware variations, execution context, and available environment variables. Accurate energy estimation relies heavily on running within the target CI environment with correct hardware detection.
 
-This means you can just use it locally by following it's general 3-step interface:
-- Start
-- Measure (optionally repeat if you want to lap multiple steps)
-- End & Display
+**Prerequisites for Local Run:**
 
-As an example we have set up a full example pipeline in the form of a `bash` file under `local_ci.example.sh`.
+*   Repository cloned and Python/Shell dependencies installed (see Dependencies & Setup sections).
+*   Essential **environment variables MUST be set manually** in your shell session before running the scripts. These variables mimic the CI environment. Examples might include:
+    *   `GITHUB_TOKEN`: Required for scripts interacting with the GitHub API.
+    *   `GITHUB_REPOSITORY` (e.g., `owner/repo`)
+    *   `GITHUB_RUN_ID` (e.g., a unique number)
+    *   `GITHUB_REF_NAME` (e.g., `main` or `my-branch`)
+    *   Equivalent variables for GitLab (`CI_PROJECT_DIR`, `CI_PIPELINE_ID`, etc.) if testing GitLab logic.
+    *   Refer to `scripts/vars.sh` and individual script logic to identify all required variables for your use case.
+*   A local configuration file (e.g., `config.yml` based on `config.example.yml`) might be needed depending on the script's requirements.
+*   A local `.env` file might be used by `python-dotenv` if scripts load it.
 
-In this file you find the needed calls along with some fake activity like calls to `sleep` and `ls` etc.
+**Example Script Execution (Conceptual):**
 
-You just need to slice the file to you needs and bring the code that you want to encapsulate with Eco CI into the positions where currently the `sleep` and `ls` calls are.
+The core scripts typically require **command-line arguments**. You MUST inspect the specific script (e.g., `scripts/make_measurement.sh`, `scripts/display_results.sh`) or its callers (like `action.yml`) to determine the exact arguments needed.
 
+*   **Measurement:** The `make_measurement.sh` script likely needs an output directory/file path.
+    ```bash
+    # 1. SET REQUIRED ENVIRONMENT VARIABLES FIRST!
+    export GITHUB_TOKEN="your_gh_token_here"
+    export GITHUB_REPOSITORY="your/repo"
+    export GITHUB_RUN_ID="12345"
+    # ... etc ...
 
+    # 2. Define output location
+    OUTPUT_DIR="./local-eco-ci-output"
+    mkdir -p "$OUTPUT_DIR"
 
-#### Trying out with Docker and Circle-CI image
+    # 3. Run the script (replace <...> with actual required args)
+    echo "Starting measurement..."
+    bash scripts/make_measurement.sh "$OUTPUT_DIR" # Argument(s) depend on script!
 
-For local testing you can just run in the docker container of your choice, directly from the root of the repository.
+    # 4. Simulate work
+    echo "Simulating work..."
+    sleep 10
 
-Here is an example with the Circle-CI base image:
-```bash
-docker run --network host --rm -it -v ./:/tmp/data:ro cimg/base:current bash /tmp/data/local_ci.example.sh
-```
+    # 5. (Optional) Intermediate measurement
+    # bash scripts/get_measurement.sh "$OUTPUT_DIR" <label> # Check script for args
 
-In case you are testing with a local installation of the GMT append `--network host` to access `api.green-coding.internal`
+    # 6. Display results
+    echo "Displaying results..."
+    bash scripts/display_results.sh "$OUTPUT_DIR" # Argument(s) depend on script!
+    ```
+    *(Note: The exact arguments needed for `$OUTPUT_DIR` or labels must be verified by checking the script source code.)*
 
-
-#### Trying out with Docker and KDE pipelines
-```bash
-docker run --rm -it -v ./:/tmp/data:ro invent-registry.kde.org/sysadmin/ci-images/suse-qt67:latest bash /tmp/data/local_ci.example.sh
-```
+**Disclaimer:** Local execution is complex to set up correctly due to the reliance on environment variables and specific arguments. Use it cautiously for development/testing, not for production energy reporting. The provided `scripts/examples/local_ci.example.sh` might offer further insights but also requires careful adaptation.
 
 ### Jenkins
 
