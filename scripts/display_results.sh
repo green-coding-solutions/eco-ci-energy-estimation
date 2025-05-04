@@ -38,8 +38,8 @@ function display_results {
 
         if [[ "$ECO_CI_SOURCE" != 'gitlab' ]]; then
                 echo "Eco CI Output [RUN-ID: ${ECO_CI_RUN_ID}]: " >> $output_pr
-                echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
-                echo "|---|---|---|---|---|" | tee -a $output $output_pr
+                echo '<table><tr><th>Label</th><th>🖥 avg. CPU utilization [%]</th><th>🔋 Total Energy [Joules]</th><th>🔌 avg. Power [Watts]</th><th>Duration [Seconds]</th></tr>' | tee -a $output $output_pr
+                echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
         fi
 
         for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ )); do
@@ -51,7 +51,7 @@ function display_results {
                     echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)" | tee -a $output $gitlab_metrics_file
                     echo "----------------" >> $output
             else
-                echo "|$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
+                echo "<tr><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)</td></tr>" | tee -a $output $output_pr
             fi
 
             total_energy=$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY $total_energy | awk '{printf "%.2f", $1 + $2}')
@@ -79,10 +79,10 @@ function display_results {
             echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Duration [seconds]:\" ${eco_ci_total_time_s_overhead}" | tee -a $output $gitlab_metrics_file
 
         else
-            echo "|---|---|---|---|---|" | tee -a $output $output_pr
-            echo "|Total Run|${cpu_avg_weighted}|${total_energy}|${total_power_avg}|${total_time_s}|" | tee -a $output $output_pr
-            echo "|---|---|---|---|---|" | tee -a $output $output_pr
-            echo "|Additional overhead from Eco CI|N/A|${eco_ci_total_energy_overhead}|${eco_ci_total_power_overhead}|${eco_ci_total_time_s_overhead}|" | tee -a $output $output_pr
+            echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
+            echo "<tr><td>Total Run</td><td>${cpu_avg_weighted}</td><td>${total_energy}</td><td>${total_power_avg}</td><td>${total_time_s}</td></tr>" | tee -a $output $output_pr
+            echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
+            echo "<tr><td>Additional overhead from Eco CI</td><td>N/A</td><td>${eco_ci_total_energy_overhead}</td><td>${eco_ci_total_power_overhead}</td><td>${eco_ci_total_time_s_overhead}</td></tr>" | tee -a $output $output_pr
             echo '' | tee -a $output $output_pr
         fi
     fi
@@ -130,7 +130,7 @@ function display_results {
     fi
 
     if [[ "${ECO_CI_SEND_DATA}" == 'true' && "${display_badge}" == 'true' ]]; then
-        echo "\nBadges for your README.md - See: [GMT CI Dashboard](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
+        echo -e "\nBadges for your README.md - See: [GMT CI Dashboard](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
     fi
 }
 
