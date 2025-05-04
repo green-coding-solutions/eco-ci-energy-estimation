@@ -165,7 +165,7 @@ jobs:
         - Shows the badge for the ci run during display-results step
         - automatically false if `send-data is also false
     - `json-output`: (optional) (default: false)
-        - will output data to JSON to `/tmp/eco-ci/lap-data.json` and `/tmp/eco-ci/total-data.json`
+        - will output data to JSON to `/tmp/eco-ci/lap-data.json`
 
 #### Electricity Maps Token
 
@@ -276,7 +276,7 @@ For macOS we used for the `macos-14` M1 shared runners:
 [Source for full Mac Mini power consumption](https://www.anandtech.com/show/16252/mac-mini-apple-m1-tested)
 [Source for Cores and RAM of total machine (assuming only efficiency cores used for hypervisor and performance for runners)](https://github.blog/news-insights/product-news/introducing-the-new-apple-silicon-powered-m1-macos-larger-runner-for-github-actions/) (We slightly tuned vhost-ratio to 0.3 instead of 0.4 to adapt to the measured power source from Source #1)
 
-And for the *Intel* `macos-14` shared runners:
+And for the *Intel* `macos-13` shared runners:
 `python3 xgb.py --tdp 65 --cpu-threads=4 --cpu-cores=4 --release-year=2017 --ram 16 --cpu-freq=3600 --cpu-chips=1 --vhost-ratio=1 --dump-hashmap > macos-13-mac-mini-intel.sh`
 [GitHub specs](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories)
 [Source for hardware specs](https://en.wikipedia.org/wiki/Mac_Mini#Technical_specifications_3)
@@ -291,6 +291,20 @@ If you have trouble finding out the splitting factor for your system: [Open an i
 
 Once you have the file ready we are happy to merge it in through a PR! In future versions we also plan to include a loading mechanism, where you can just
 ingest a file from your repository without having to upstream it with us. But since this is a community open source plugin upstream is preferred, right :)
+
+##### user contributed example machines
+Community contributions to the `machine-power-data` directory help extend support for custom hardware setups. Below is an example of a contributed machine configuration:
+- `intel-xeon-6246_vhr_04167.sh`
+
+    > For additional context and clarification around the process of creating this file, please refer to the discussion in the associated [PR #123](https://github.com/green-coding-solutions/eco-ci-energy-estimation/pull/123).
+
+  This power data file corresponds to a virtual machine running on two Intel(R) Xeon(R) Gold 6246 CPU @ 3.30GHz processors. The virtual machine is allocated 2 out of the available 48 threads. Based on this, a virtual host ratio (`--vhost-ratio`) of $0.04167$ is used.
+
+  All parameters used to generate this file with Cloud Energy are documented within the data file itself. However, for reproducibility, the exact command used is included below:
+
+  `python xgb.py --cpu-chips 2 --cpu-freq 3300 --cpu-threads 48 --cpu-cores 24 --release-year 2019 --tdp 165 --ram 384 --architecture cascadelake --cpu-make intel --vhost-ratio 0.04167 --dump-hashmap > intel-xeon-6246_vhr_04167.sh`
+
+
 
 ### GitLab
 To use Eco CI in your GitLab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
@@ -325,10 +339,11 @@ For each job you can export the artifacts. We currently export the pipeline data
 artifacts:
     paths:
       - eco-ci-output.txt
-      - eco-ci-total-data.json
     reports:
       metrics: metrics.txt
 ```
+
+By default, metrics.txt is copied into [`$CI_PROJECT_DIR`](https://docs.gitlab.com/ci/variables/predefined_variables/#predefined-variables). If necessary, the target location of all artifacts can be adjusted in [`eco-ci-gitlab.yml`](https://github.com/green-coding-solutions/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml) using appropriate copy commands.
 
 #### Gitlab sample file
 
