@@ -34,7 +34,7 @@ function display_results {
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
 
         if [[ "$ECO_CI_SOURCE" != 'gitlab' ]]; then
-                echo 'Eco CI Output: ' >> $output_pr
+                echo "Eco CI Output [RUN-ID: ${ECO_CI_RUN_ID}]: " >> $output_pr
                 echo '<table><tr><th>Label</th><th>🖥 avg. CPU utilization [%]</th><th>🔋 Total Energy [Joules]</th><th>🔌 avg. Power [Watts]</th><th>Duration [Seconds]</th></tr>' | tee -a $output $output_pr
                 echo '<tr><td colspan="5" style="text-align:center">---------------------</td></tr>' | tee -a $output $output_pr
         fi
