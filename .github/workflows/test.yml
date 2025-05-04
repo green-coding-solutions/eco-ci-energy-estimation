@@ -214,7 +214,7 @@ jobs:
             max=4.00
           fi
 
-          total_power=$(grep "|Total Run|" /tmp/eco-ci/output.txt | awk -F'|' '{print $5}')
+          total_power=$(grep "<td>Total Run</td>" /tmp/eco-ci/output.txt | awk -F'</td><td>' '{print $4}')
 
           awk -v p="$total_power" -v min="$min" -v max="$max" '
           BEGIN {
