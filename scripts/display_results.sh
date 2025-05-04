@@ -79,9 +79,9 @@ function display_results {
             echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Duration [seconds]:\" ${eco_ci_total_time_s_overhead}" | tee -a $output $gitlab_metrics_file
 
         else
-            echo '<tr><td colspan="5" style="text-align:center">---------------------</td></tr>' | tee -a $output $output_pr
+            echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
             echo "<tr><td>Total Run</td><td>${cpu_avg_weighted}</td><td>${total_energy}</td><td>${total_power_avg}</td><td>${total_time_s}</td></tr>" | tee -a $output $output_pr
-                echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
+            echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
             echo "<tr><td>Additional overhead from Eco CI</td><td>N/A</td><td>${eco_ci_total_energy_overhead}</td><td>${eco_ci_total_power_overhead}</td><td>${eco_ci_total_time_s_overhead}</td></tr>" | tee -a $output $output_pr
             echo '' | tee -a $output $output_pr
         fi
