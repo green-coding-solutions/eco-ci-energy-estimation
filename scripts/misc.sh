@@ -28,14 +28,14 @@ get_geoip() {
 }
 
 get_carbon_intensity() {
-    if [ -z "${ECO_CI_ELECTRICITYMAPS_API_TOKEN+x}" ]; then
-        export ECO_CI_ELECTRICITYMAPS_API_TOKEN='no_token'
+    if [ -z "${ECO_CI_CO2_GRID_INTENSITY_API_TOKEN+x}" ]; then
+        export ECO_CI_CO2_GRID_INTENSITY_API_TOKEN='no_token'
     fi
 
     ECO_CI_GEO_LAT=${ECO_CI_GEO_LAT:-}
     ECO_CI_GEO_LON=${ECO_CI_GEO_LON:-}
 
-    local response=$(curl -s -H "auth-token: ${ECO_CI_ELECTRICITYMAPS_API_TOKEN}" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=${ECO_CI_GEO_LAT}&lon=${ECO_CI_GEO_LON}" || true)
+    local response=$(curl -s -H "auth-token: ${ECO_CI_CO2_GRID_INTENSITY_API_TOKEN}" "https://api.electricitymap.org/v3/carbon-intensity/latest?lat=${ECO_CI_GEO_LAT}&lon=${ECO_CI_GEO_LON}" || true)
 
     if [[ -z "$response" ]] || ! echo "$response" | jq empty; then
         echo 'Failed to retrieve data or received invalid JSON. Exiting' >&2
