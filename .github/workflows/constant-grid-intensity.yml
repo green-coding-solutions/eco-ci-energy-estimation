@@ -89,7 +89,7 @@ jobs:
       - name: Validate grid intensity
         shell: bash
         run: |
-          if ! grep -q "334 gCO₂eq/kWh" /tmp/eco-ci/output.txt; then
-            echo "Carbon intensity 334 gCO₂eq/kWh not found in /tmp/eco-ci/output.txt"
+          if ! grep -q "472 gCO₂eq/kWh" /tmp/eco-ci/output.txt; then
+            echo "Carbon intensity 472 gCO₂eq/kWh not found in /tmp/eco-ci/output.txt"
             exit 1
           fi
