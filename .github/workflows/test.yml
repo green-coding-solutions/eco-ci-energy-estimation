@@ -51,7 +51,8 @@ jobs:
           machine: "ubuntu-latest"
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
-          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          co2-calculation-method: "location-based"
+          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
 
       - name: Initialize Energy Estimation (macos-14)
         if: ${{ contains(matrix.os, 'macos-14') }}
@@ -62,7 +63,8 @@ jobs:
           machine: "ubuntu-latest"
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
-          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          co2-calculation-method: "location-based"
+          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
           machine-power-data: "macos-14-mac-mini-m1.sh"
 
       - name: Initialize Energy Estimation (macos-13)
@@ -74,7 +76,8 @@ jobs:
           machine: "ubuntu-latest"
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
-          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          co2-calculation-method: "location-based"
+          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
           machine-power-data: "macos-13-mac-mini-intel.sh"
 
 
