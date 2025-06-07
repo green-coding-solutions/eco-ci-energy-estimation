@@ -9,7 +9,7 @@ Eco CI is a project aimed at estimating energy consumption in continuous integra
 - [Usage](#usage)
   - [GitHub](#github)
     - [GitHub Action Mandatory and Optional Variables](#github-action-mandatory-and-optional-variables)
-    - [Electricity Maps Token](#electricity-maps-token)
+    - [Grid Intensity API Token](#grid-intensity-api-token)
     - [Continuing on Errors](#continuing-on-errors)
     - [Consuming the Measurements as JSON](#consuming-the-measurements-as-json)
     - [Note on Private Repos](#note-on-private-repos)
@@ -22,6 +22,7 @@ Eco CI is a project aimed at estimating energy consumption in continuous integra
     - [Trying out with Docker and Circle-CI image](#trying-out-with-docker-and-circle-ci-image)
     - [Trying out with Docker and KDE pipelines](#trying-out-with-docker-and-kde-pipelines)
   - [Jenkins](#jenkins)
+  - [Restricted Enterprise Environments](#restricted-environments)
 - [Note on the integration / Auto-Updates](#note-on-the-integration-auto-updates)
 - [Limitations / Compatibility](#limitations--compatibility)
 
@@ -123,16 +124,21 @@ jobs:
 
 - `task`: (required) (options are `start-measurement`, `get-measurement`, `display-results`)
     + `start-measurement`: Initialize the action and starts the measurement. This must be called, and only *once* per job. If called again data will be reset.
+        - `co2-calculation-method`: (optional) (default: true)
+            - Can have the options `constant` or `location-based`
+            - If you use `constant` you must also set `co2-grid-intensity-constant`
+            - if you use `location-based` you must also set `co2-grid-intensity-api-token`
+        - `co2-grid-intensity-constant`: (optional) (default: 472)
+            - Constant value to be used to calculate the CO2 from the estimated energy.
+            - We use the wordwide average value from Ember compiled by The Green Web Foundation from https://github.com/thegreenwebfoundation/co2.js/blob/main/data/output/average-intensities.json#L1314 as default and update it annually.
+        - `co2-grid-intensity-api-token`: (optional)
+            - API token for the API of your choice regarding the grid intensity. See details below under [Grid Intensity API Token](#grid-intensity-api-token) which APIs are currently supported.
+            - Note that when using an API Eco CI also needs to resolve the location of the IP. Currently implemented via https://ipapi.co/
         - `branch`: (optional) (default: ${{ github.ref_name }})
           - Used to correctly identify this CI run for the Badge. Especially in PRs this will be very cryptic like `merge/72` and you might want to set this to something nicer
         - `label`: (optional) (default: 'measurement ##')
         - `send-data`: (optional) (default: true)
           - Send metrics data to metrics.green-coding.io to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data. The data we send are: the energy value and duration of measurement; cpu model; repository name/branch/workflow_id/run_id; commit_hash; source (GitHub or GitLab). We use this data to display in our green-metrics-tool front-end here: https://metrics.green-coding.io/ci-index.html
-        - `calculate-co2`: (optional) (default: true)
-          - You might typically always want this value to be shown unless you are in a restricted network and cannot make outbound requests 
-          - Gets the location using https://ipapi.co/
-          - Get the CO2 grid intensity for the location from https://www.electricitymaps.com/
-          - Estimates the amount of carbon the measurement has produced
         - `gh-api-base`: (optional) (default: 'api.github.com')
             - Eco CI uses the github api to post/edit PR comments and get the workflow id
             - set to github's default api, but can be changed if you are using github enterprise
@@ -150,8 +156,6 @@ jobs:
             - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v2/ci/measurement/add"
         - `api-endpoint-badge-get`: (optional)
             - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io//v1/ci/badge/get
-        - `electricitymaps-api-token`: (optional)
-            - API token for electricitymaps in case you get rate-limited. See details below.
 - `get-measurement`: Measures the energy at this point in time since either the start-measurement or last get-measurement action call.
     - `label`: (optional) (default: 'measurement ##')
 
@@ -165,16 +169,27 @@ jobs:
         - Shows the badge for the ci run during display-results step
         - automatically false if `send-data is also false
     - `json-output`: (optional) (default: false)
-        - will output data to JSON to `/tmp/eco-ci/lap-data.json` and `/tmp/eco-ci/total-data.json`
+        - will output data to JSON to `/tmp/eco-ci/lap-data.json`
 
-#### Electricity Maps Token
+#### Grid Intensity API Token
+Used to get the grid intensity for a given location.
+We currently only support ElectricityMaps. WattTime and Entso-e are on the way! (Speed it up with a PR! ❤️)
 
-We use ElectricityMaps to get the grid intensity for a given location. 
-If you want carbon values to be displayed you must set this token. It is free for personal use. In case you need a commercial license it does not matter which zones you select, as we only use the real-time endpoint which is zone free.
+##### ElectricityMaps
+It is free for personal use but sadly it is locked to a single zone. This means that if you get it for the Zone Germany the API will fail when requesting values for the US.
+
+This is very problematic on GitHub Actions as the Us is comprised out of different zones and the machines come up in different zones. Either you buy a multi-zone key or you will have a lot of missing values.
+
 Get your key here: [https://api-portal.electricitymaps.com/](https://api-portal.electricitymaps.com/)
 
 After having obtained the token you must set it as secret and pass it in the initalization of the action (see documentation above). 
 To learn how to create a secret see the GitHub documentation: https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions
+
+##### WattTime
+TODO - (Speed it up with a PR! ❤️)
+
+##### Entso-e
+TODO - (Speed it up with a PR! ❤️)
 
 #### Continuing on Errors
 
@@ -276,7 +291,7 @@ For macOS we used for the `macos-14` M1 shared runners:
 [Source for full Mac Mini power consumption](https://www.anandtech.com/show/16252/mac-mini-apple-m1-tested)
 [Source for Cores and RAM of total machine (assuming only efficiency cores used for hypervisor and performance for runners)](https://github.blog/news-insights/product-news/introducing-the-new-apple-silicon-powered-m1-macos-larger-runner-for-github-actions/) (We slightly tuned vhost-ratio to 0.3 instead of 0.4 to adapt to the measured power source from Source #1)
 
-And for the *Intel* `macos-14` shared runners:
+And for the *Intel* `macos-13` shared runners:
 `python3 xgb.py --tdp 65 --cpu-threads=4 --cpu-cores=4 --release-year=2017 --ram 16 --cpu-freq=3600 --cpu-chips=1 --vhost-ratio=1 --dump-hashmap > macos-13-mac-mini-intel.sh`
 [GitHub specs](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories)
 [Source for hardware specs](https://en.wikipedia.org/wiki/Mac_Mini#Technical_specifications_3)
@@ -291,6 +306,20 @@ If you have trouble finding out the splitting factor for your system: [Open an i
 
 Once you have the file ready we are happy to merge it in through a PR! In future versions we also plan to include a loading mechanism, where you can just
 ingest a file from your repository without having to upstream it with us. But since this is a community open source plugin upstream is preferred, right :)
+
+##### user contributed example machines
+Community contributions to the `machine-power-data` directory help extend support for custom hardware setups. Below is an example of a contributed machine configuration:
+- `intel-xeon-6246_vhr_04167.sh`
+
+    > For additional context and clarification around the process of creating this file, please refer to the discussion in the associated [PR #123](https://github.com/green-coding-solutions/eco-ci-energy-estimation/pull/123).
+
+  This power data file corresponds to a virtual machine running on two Intel(R) Xeon(R) Gold 6246 CPU @ 3.30GHz processors. The virtual machine is allocated 2 out of the available 48 threads. Based on this, a virtual host ratio (`--vhost-ratio`) of $0.04167$ is used.
+
+  All parameters used to generate this file with Cloud Energy are documented within the data file itself. However, for reproducibility, the exact command used is included below:
+
+  `python xgb.py --cpu-chips 2 --cpu-freq 3300 --cpu-threads 48 --cpu-cores 24 --release-year 2019 --tdp 165 --ram 384 --architecture cascadelake --cpu-make intel --vhost-ratio 0.04167 --dump-hashmap > intel-xeon-6246_vhr_04167.sh`
+
+
 
 ### GitLab
 To use Eco CI in your GitLab pipeline, you must first include a reference to the eco-ci-gitlab.yml file as such:
@@ -325,10 +354,11 @@ For each job you can export the artifacts. We currently export the pipeline data
 artifacts:
     paths:
       - eco-ci-output.txt
-      - eco-ci-total-data.json
     reports:
       metrics: metrics.txt
 ```
+
+By default, metrics.txt is copied into [`$CI_PROJECT_DIR`](https://docs.gitlab.com/ci/variables/predefined_variables/#predefined-variables). If necessary, the target location of all artifacts can be adjusted in [`eco-ci-gitlab.yml`](https://github.com/green-coding-solutions/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml) using appropriate copy commands.
 
 #### Gitlab sample file
 
@@ -455,6 +485,15 @@ export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH" # if macOS
   + `uses: green-coding-solutions/eco-ci-energy-estimation@main`
   + We do **not** recommend this as it might contain beta features. We recommend using the releases and tagged versions only
 
+
+## Restricted Environments
+If you are running in restricted environments, such as an enterprise with a heavily constrained network, you can tell Eco CI to not make any outbound requests.
+
+Set:
+- `send-data` to `false`
+    - Otherwise data will be sent to the API endpoint configured in `api-endpoint-add`
+- `co2-calculation-method` to `constant`
+    - Otherwise the IP will be resolved to a location
 
 ## Limitations / Compatibility
 - At the moment this will only work with linux based pipelines, mainly tested on ubuntu images.

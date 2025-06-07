@@ -13,8 +13,11 @@ function display_results {
     # this will set them to an empty string if they are missing entirely
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
-    local output='/tmp/eco-ci/output.txt'
-    local output_pr='/tmp/eco-ci/output-pr.txt'
+	# Output files
+	local tmp_dir='/tmp/eco-ci'
+	local output="${tmp_dir}/output.txt"
+    local output_pr="${tmp_dir}/output-pr.txt"
+    local gitlab_metrics_file="${tmp_dir}/metrics.txt" # only available in gitlab instances
 
     if [[ $(wc -l < /tmp/eco-ci/energy-total.txt) -eq 0 ]]; then
         echo 'Could not display table as no measurement data was present!' >&2
@@ -34,21 +37,21 @@ function display_results {
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
 
         if [[ "$ECO_CI_SOURCE" != 'gitlab' ]]; then
-                echo "Eco CI Output: " >> $output_pr
-                echo "|Label|🖥 avg. CPU utilization [%]|🔋 Total Energy [Joules]|🔌 avg. Power [Watts]|Duration [Seconds]|" | tee -a $output $output_pr
-                echo "|---|---|---|---|---|" | tee -a $output $output_pr
+                echo "Eco CI Output [RUN-ID: ${ECO_CI_RUN_ID}]: " >> $output_pr
+                echo '<table><tr><th>Label</th><th>🖥 avg. CPU utilization [%]</th><th>🔋 Total Energy [Joules]</th><th>🔌 avg. Power [Watts]</th><th>Duration [Seconds]</th></tr>' | tee -a $output $output_pr
+                echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
         fi
 
         for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ )); do
             if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
                     # CI_JOB_NAME is a set variable by GitLab
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)" | tee -a $output metrics.txt
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)" | tee -a $output metrics.txt
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)" | tee -a $output metrics.txt
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)" | tee -a $output metrics.txt
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)" | tee -a $output $gitlab_metrics_file
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)" | tee -a $output $gitlab_metrics_file
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)" | tee -a $output $gitlab_metrics_file
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)" | tee -a $output $gitlab_metrics_file
                     echo "----------------" >> $output
             else
-                echo "|$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)|$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)|" | tee -a $output $output_pr
+                echo "<tr><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)</td></tr>" | tee -a $output $output_pr
             fi
 
             total_energy=$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY $total_energy | awk '{printf "%.2f", $1 + $2}')
@@ -66,20 +69,20 @@ function display_results {
 
         if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
             # CI_JOB_NAME is a set variable by GitLab
-            echo "\"${CI_JOB_NAME}: Energy [Joules]:\" ${total_energy}" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Avg. CPU Utilization:\" $cpu_avg_weighted" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" ${total_power_avg}" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Duration [seconds]:\" ${total_time_s}" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Energy [Joules]:\" ${total_energy}" | tee -a $output $gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Avg. CPU Utilization:\" $cpu_avg_weighted" | tee -a $output $gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" ${total_power_avg}" | tee -a $output $gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Duration [seconds]:\" ${total_time_s}" | tee -a $output $gitlab_metrics_file
             echo "----------------" >> $output
-            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Energy [Joules]:\" ${eco_ci_total_energy_overhead}" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Avg. Power [Watts]:\" ${eco_ci_total_power_overhead}" | tee -a $output metrics.txt
-            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Duration [seconds]:\" ${eco_ci_total_time_s_overhead}" | tee -a $output metrics.txt
+            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Energy [Joules]:\" ${eco_ci_total_energy_overhead}" | tee -a $output $gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Avg. Power [Watts]:\" ${eco_ci_total_power_overhead}" | tee -a $output $gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Duration [seconds]:\" ${eco_ci_total_time_s_overhead}" | tee -a $output $gitlab_metrics_file
 
         else
-            echo "|---|---|---|---|---|" | tee -a $output $output_pr
-            echo "|Total Run|${cpu_avg_weighted}|${total_energy}|${total_power_avg}|${total_time_s}|" | tee -a $output $output_pr
-            echo "|---|---|---|---|---|" | tee -a $output $output_pr
-            echo "|Additional overhead from Eco CI|N/A|${eco_ci_total_energy_overhead}|${eco_ci_total_power_overhead}|${eco_ci_total_time_s_overhead}|" | tee -a $output $output_pr
+            echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
+            echo "<tr><td>Total Run</td><td>${cpu_avg_weighted}</td><td>${total_energy}</td><td>${total_power_avg}</td><td>${total_time_s}</td></tr>" | tee -a $output $output_pr
+            echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
+            echo "<tr><td>Additional overhead from Eco CI</td><td>N/A</td><td>${eco_ci_total_energy_overhead}</td><td>${eco_ci_total_power_overhead}</td><td>${eco_ci_total_time_s_overhead}</td></tr>" | tee -a $output $output_pr
             echo '' | tee -a $output $output_pr
         fi
     fi
@@ -87,47 +90,44 @@ function display_results {
     local repo_enc=$( echo "${ECO_CI_REPOSITORY}" | jq -Rr @uri)
     local branch_enc=$( echo "${ECO_CI_BRANCH}" | jq -Rr @uri)
 
-    if [[ ${ECO_CI_CALCULATE_CO2} == 'true' ]]; then
-        source "$(dirname "$0")/misc.sh"
-        get_energy_co2 "$total_energy"
-        get_embodied_co2 "$total_time_s"
-        read_vars # reload set vars
+    source "$(dirname "$0")/misc.sh"
+    get_energy_co2 "$total_energy"
+    get_embodied_co2 "$total_time_s"
+    read_vars # reload set vars
 
-        # CO2 API might have failed or not set, so we only calculate total if it worked
-        ECO_CI_CO2EQ_EMBODIED=${ECO_CI_CO2EQ_EMBODIED:-}  # Default to an empty string if unset
-        ECO_CI_CO2EQ_ENERGY=${ECO_CI_CO2EQ_ENERGY:-}      # Default to an empty string if unset
-        ECO_CI_GEO_IP=${ECO_CI_GEO_IP:-}      # Default to an empty string if unset
-        ECO_CI_GEO_CITY=${ECO_CI_GEO_CITY:-}      # Default to an empty string if unset
-        ECO_CI_GEO_LAT=${ECO_CI_GEO_LAT:-}      # Default to an empty string if unset
-        ECO_CI_GEO_LON=${ECO_CI_GEO_LON:-}      # Default to an empty string if unset
+    # CO2 API might have failed or not set, so we only calculate total if it worked
+    ECO_CI_CO2EQ_EMBODIED=${ECO_CI_CO2EQ_EMBODIED:-}  # Default to an empty string if unset
+    ECO_CI_CO2EQ_ENERGY=${ECO_CI_CO2EQ_ENERGY:-}      # Default to an empty string if unset
+    ECO_CI_GEO_IP=${ECO_CI_GEO_IP:-}      # Default to an empty string if unset
+    ECO_CI_GEO_CITY=${ECO_CI_GEO_CITY:-}      # Default to an empty string if unset
+    ECO_CI_GEO_LAT=${ECO_CI_GEO_LAT:-}      # Default to an empty string if unset
+    ECO_CI_GEO_LON=${ECO_CI_GEO_LON:-}      # Default to an empty string if unset
 
-        if [ -n "$ECO_CI_CO2EQ_EMBODIED" ] && [ -n "$ECO_CI_CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
-            ECO_CI_CO2EQ=$(echo "$ECO_CI_CO2EQ_EMBODIED $ECO_CI_CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
+    if [ -n "$ECO_CI_CO2EQ_EMBODIED" ] && [ -n "$ECO_CI_CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
+        ECO_CI_CO2EQ=$(echo "$ECO_CI_CO2EQ_EMBODIED $ECO_CI_CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
 
-            echo '🌳 CO2 Data:' | tee -a $output $output_pr
-            echo "City: <b>${ECO_CI_GEO_CITY}</b>, Lat: <b>${ECO_CI_GEO_LAT}</b>, Lon: <b>${ECO_CI_GEO_LON}</b>" | tee -a $output $output_pr
-            echo "IP: <b>${ECO_CI_GEO_IP}</b>" | tee -a $output $output_pr
-            echo "CO₂ from energy is: ${ECO_CI_CO2EQ_ENERGY} g" | tee -a $output $output_pr
-            echo "CO₂ from manufacturing (embodied carbon) is: ${ECO_CI_CO2EQ_EMBODIED} g" | tee -a $output $output_pr
-            echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>${ECO_CI_CO2I} gCO₂eq/kWh</b>" | tee -a $output $output_pr
-            printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" "${ECO_CI_CO2EQ}" | tee -a $output $output_pr
+        echo '🌳 CO2 Data:' | tee -a $output $output_pr
+        echo "City: <b>${ECO_CI_GEO_CITY}</b>, Lat: <b>${ECO_CI_GEO_LAT}</b>, Lon: <b>${ECO_CI_GEO_LON}</b>" | tee -a $output $output_pr
+        echo "IP: <b>${ECO_CI_GEO_IP}</b>" | tee -a $output $output_pr
+        echo "CO₂ from energy is: ${ECO_CI_CO2EQ_ENERGY} g" | tee -a $output $output_pr
+        echo "CO₂ from manufacturing (embodied carbon) is: ${ECO_CI_CO2EQ_EMBODIED} g" | tee -a $output $output_pr
+        echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>${ECO_CI_CO2I} gCO₂eq/kWh</b>" | tee -a $output $output_pr
+        printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" "${ECO_CI_CO2EQ}" | tee -a $output $output_pr
 
-            if [[ "${display_badge}" == 'true' ]]; then
-                local random_number=$((RANDOM % 1000000000 + 1))
-                echo "<hr>" | tee -a $output $output_pr
-                echo "Total cost of whole PR so far: <br><br>" | tee -a $output $output_pr
-                echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=energy#${random_number}'></a>" | tee -a $output $output_pr
-                echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=carbon#${random_number}'></a>" | tee -a $output $output_pr
-            fi
-        else
-            echo '❌ CO2 Data:' | tee -a $output $output_pr
-            echo 'Error in retrieving values. Please see the detailed logs for the exact error messages!' | tee -a $output $output_pr
+        if [[ "${ECO_CI_SEND_DATA}" == 'true' && "${display_badge}" == 'true' ]]; then
+            local random_number=$((RANDOM % 1000000000 + 1))
+            echo "<hr>" | tee -a $output $output_pr
+            echo "Total cost of whole PR so far: <br><br>" | tee -a $output $output_pr
+            echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=energy#${random_number}'></a>" | tee -a $output $output_pr
+            echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=carbon#${random_number}'></a>" | tee -a $output $output_pr
         fi
-
+    else
+        echo '❌ CO2 Data:' | tee -a $output $output_pr
+        echo 'Error in retrieving values. Please see the detailed logs for the exact error messages!' | tee -a $output $output_pr
     fi
 
     if [[ "${ECO_CI_SEND_DATA}" == 'true' && "${display_badge}" == 'true' ]]; then
-        echo "\nBadges for your README.md - See: [GMT CI Dashboard](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
+        echo -e "\nBadges for your README.md - See: [GMT CI Dashboard](${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID})" >> $output
     fi
 }
 

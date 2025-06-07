@@ -51,7 +51,8 @@ jobs:
           machine: "ubuntu-latest"
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
-          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          co2-calculation-method: "location-based"
+          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
 
       - name: Initialize Energy Estimation (macos-14)
         if: ${{ contains(matrix.os, 'macos-14') }}
@@ -62,7 +63,8 @@ jobs:
           machine: "ubuntu-latest"
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
-          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          co2-calculation-method: "location-based"
+          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
           machine-power-data: "macos-14-mac-mini-m1.sh"
 
       - name: Initialize Energy Estimation (macos-13)
@@ -74,7 +76,8 @@ jobs:
           machine: "ubuntu-latest"
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
-          electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          co2-calculation-method: "location-based"
+          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
           machine-power-data: "macos-13-mac-mini-intel.sh"
 
 
@@ -214,7 +217,7 @@ jobs:
             max=4.00
           fi
 
-          total_power=$(grep "|Total Run|" /tmp/eco-ci/output.txt | awk -F'|' '{print $5}')
+          total_power=$(grep "<td>Total Run</td>" /tmp/eco-ci/output.txt | awk -F'</td><td>' '{print $4}')
 
           awk -v p="$total_power" -v min="$min" -v max="$max" '
           BEGIN {
@@ -239,3 +242,20 @@ jobs:
               exit 1
             fi
 
+      - name: Validate sent data to API
+        shell: bash
+        run: |
+
+          branch=${{ github.ref_name }}
+          repo=${{ github.repository }}
+          workflow_id=$(curl -s -H "Authorization: Bearer ${{github.token}}" "${{ github.api_url }}/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" | jq -r .workflow_id)
+          data=$(curl -s "https://api.green-coding.io/v1/ci/measurements?repo=${repo}&branch=${branch}&workflow=${workflow_id}&start_date=1970-01-01&end_date=3000-01-01")
+
+          echo "Data from API is: ${data}"
+
+          if echo "$data" | jq '(.data | length >= 4) and (.data[0][3] == "No quotes allowed in labels")' | grep -q true ; then
+            echo "Data could be retrieved via API"
+          else
+            echo 'API did not return expected result'
+            exit 1
+          fi
