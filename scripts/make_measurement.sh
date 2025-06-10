@@ -90,6 +90,8 @@ function make_measurement() {
     read step_time_s step_time_s_int step_time_difference <<<  $(echo "$step_time_us 1000000 $current_step_captured_duration" | awk '{printf "%.2f %d %.9f", $1 / $2, int($1 / $2), ($1 / $2) - $3}')
 
     if [[ $captured_datapoints -gt 0 ]]; then
+        make_inference # will populate /tmp/eco-ci/energy-step.txt
+        
         if [[ $captured_datapoints -lt $(($step_time_s_int - 1)) ]]; then # one datapoint might be missing due to the fact that we need to wait for one tick
             ECO_CI_STEP_NOTE="Missing data points. Expected ${step_time_s_int} (-1) but got ${captured_datapoints} - Data will be backfilled"
             echo "Warning - " $ECO_CI_STEP_NOTE  >&2
@@ -101,8 +103,6 @@ function make_measurement() {
         read _ last_line_cpu_tmp_utilization <<< "$(tail -n 1 /tmp/eco-ci/cpu-util-temp.txt)"
         echo "${step_time_difference} ${last_line_cpu_tmp_utilization}" >> /tmp/eco-ci/cpu-util-temp.txt
         echo 'Backfilling ' $step_time_difference 's in step with ' $last_line_cpu_tmp_utilization
-
-        make_inference # will populate /tmp/eco-ci/energy-step.txt
 
         if [[ -z $ECO_CI_MEASUREMENT_COUNT ]]; then
             ECO_CI_MEASUREMENT_COUNT=1
