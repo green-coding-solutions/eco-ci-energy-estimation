@@ -78,13 +78,13 @@ jobs:
             }
           }'
 
-            status=$?
-            if [[ $status -eq 0 ]]; then
-              echo "Power value is in the expected range [$min, $max]."
-            else
-              echo "Power value is outside the expected range [$min, $max]."
-              exit 1
-            fi
+          status=$?
+          if [[ $status -eq 0 ]]; then
+            echo "Power value is in the expected range [$min, $max]."
+          else
+            echo "Power value is outside the expected range [$min, $max]."
+            exit 1
+          fi
 
       - name: Validate grid intensity
         shell: bash

@@ -124,13 +124,13 @@ jobs:
 
 - `task`: (required) (options are `start-measurement`, `get-measurement`, `display-results`)
     + `start-measurement`: Initialize the action and starts the measurement. This must be called, and only *once* per job. If called again data will be reset.
-        - `co2-calculation-method`: (optional) (default: true)
+        - `co2-calculation-method`: (optional) (default: 'constant')
             - Can have the options `constant` or `location-based`
             - If you use `constant` you must also set `co2-grid-intensity-constant`
             - if you use `location-based` you must also set `co2-grid-intensity-api-token`
         - `co2-grid-intensity-constant`: (optional) (default: 472)
             - Constant value to be used to calculate the CO2 from the estimated energy.
-            - We use the wordwide average value from Ember compiled by The Green Web Foundation from https://github.com/thegreenwebfoundation/co2.js/blob/main/data/output/average-intensities.json#L1314 as default and update it annually.
+            - We use the worldwide average value from Ember compiled by The Green Web Foundation from https://github.com/thegreenwebfoundation/co2.js/blob/main/data/output/average-intensities.json#L1314 as default and update it annually.
         - `co2-grid-intensity-api-token`: (optional)
             - API token for the API of your choice regarding the grid intensity. See details below under [Grid Intensity API Token](#grid-intensity-api-token) which APIs are currently supported.
             - Note that when using an API Eco CI also needs to resolve the location of the IP. Currently implemented via https://ipapi.co/

@@ -78,11 +78,11 @@ inputs:
       default: 'https://metrics.green-coding.io'
       required: false
   co2-calculation-method:
-    description: 'CO2 calculation can be a constant and will use a supplied fixed grid intensity. Or it can also be location based where it will use a grid intenisty API provider to determine the carbon intensity value of the current machine IP.'
+    description: 'CO2 calculation can be a constant and will use a supplied fixed grid intensity. Or it can also be location based where it will use a grid intensity API provider to determine the carbon intensity value of the current machine IP.'
     default: 'constant'
     required: false
   co2-grid-intensity-constant:
-    description: "Constant value to be used to calculate the CO2 from the estimated energy. We use the wordwide average value from Ember compiled by The Green Web Foundation from https://github.com/thegreenwebfoundation/co2.js/blob/main/data/output/average-intensities.json#L1314 as default and update it annually."
+    description: "Constant value to be used to calculate the CO2 from the estimated energy. We use the worldwide average value from Ember compiled by The Green Web Foundation from https://github.com/thegreenwebfoundation/co2.js/blob/main/data/output/average-intensities.json#L1314 as default and update it annually."
     default: 472
     required: false
   co2-grid-intensity-api-token:
