@@ -95,8 +95,8 @@ jobs:
       - name: 'Dump Raw Measurement Data'
         uses: ./.github/actions/dump-raw-measurement-data
 
-      - name: Sleep 3
-        run: sleep 3
+      - name: Sleep 900
+        run: sleep 900
 
       - name: 'Dump Raw Measurement Data'
         uses: ./.github/actions/dump-raw-measurement-data
@@ -131,8 +131,8 @@ jobs:
       #     task: get-measurement
       #     label: without quotes'; echo
 
-      - name: Sleep 3
-        run: sleep 3
+      - name: Sleep 200
+        run: sleep 200
 
       - name: Eco CI Measurement - without quotes ...
         uses: ./
