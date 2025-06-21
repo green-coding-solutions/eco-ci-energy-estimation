@@ -95,8 +95,10 @@ jobs:
       - name: 'Dump Raw Measurement Data'
         uses: ./.github/actions/dump-raw-measurement-data
 
-      - name: Sleep 900
-        run: sleep 900
+      - name: Stress 900
+        run: |
+          sudo apt-get update && sudo apt-get install -y stress-ng
+          stress-ng -c 10 -t 900
 
       - name: 'Dump Raw Measurement Data'
         uses: ./.github/actions/dump-raw-measurement-data
@@ -131,8 +133,9 @@ jobs:
       #     task: get-measurement
       #     label: without quotes'; echo
 
-      - name: Sleep 200
-        run: sleep 200
+      - name: Stress 200
+        run: |
+          stress-ng -c 10 -t 900
 
       - name: Eco CI Measurement - without quotes ...
         uses: ./
