@@ -48,7 +48,7 @@ jobs:
         with:
           task: start-measurement
           project: "Eco CI"
-          machine: "ubuntu-latest"
+          machine: ${{ matrix.os }}
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
           electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
@@ -59,7 +59,7 @@ jobs:
         with:
           task: start-measurement
           project: "Eco CI"
-          machine: "ubuntu-latest"
+          machine: ${{ matrix.os }}
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
           electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
@@ -71,7 +71,7 @@ jobs:
         with:
           task: start-measurement
           project: "Eco CI"
-          machine: "ubuntu-latest"
+          machine: ${{ matrix.os }}
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
           electricitymaps-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
