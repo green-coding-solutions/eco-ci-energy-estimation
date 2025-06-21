@@ -71,8 +71,8 @@ function cpu_vars {
         # we use 4 years - 1*60*60*24*365*4 =
         add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
     elif [[ "$machine_power_data" == "gitlab_EPYC_7B12_saas-linux-medium-amd64.sh" ]]; then
-        echo 'Using gitlab_EPYC_7B12_saas-linux-small-amd64.sh'
-        add_var 'ECO_CI_MODEL_NAME' 'EPYC_7B12'
+        echo 'Using gitlab_EPYC_7B12_saas-linux-medium-amd64.sh'
+        add_var 'ECO_CI_MODEL_NAME' 'EPYC_7B12_medium'
         # we assume a disk size of 1344 GB total according to https://gitlab.com/gitlab-org/gitlab-runner/-/issues/29107
         # which claims runners have ~50 GB of disk space with a splitting factor of 2/64
         # FROM https://datavizta.boavizta.org/serversimpact
