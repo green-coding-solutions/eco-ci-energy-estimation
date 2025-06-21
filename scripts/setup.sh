@@ -44,13 +44,16 @@ function start_measurement {
     add_var 'ECO_CI_FILTER_PROJECT' "${11}"
     add_var 'ECO_CI_FILTER_MACHINE' "${12}"
     add_var 'ECO_CI_FILTER_TAGS' "${13}"
-    add_var 'ECO_CI_CALCULATE_CO2' "${14}"
-    add_var 'ECO_CI_GMT_API_TOKEN' "${15}"
-    add_var 'ECO_CI_ELECTRICITYMAPS_API_TOKEN' "${16}"
-    add_var 'ECO_CI_JSON_OUTPUT' "${17}"
-    add_var 'ECO_CI_API_ENDPOINT_ADD' "${18}"
-    add_var 'ECO_CI_API_ENDPOINT_BADGE_GET' "${19}"
-    add_var 'ECO_CI_DASHBOARD_URL' "${20}"
+    add_var 'ECO_CI_CO2_CALCULATION_METHOD' "${14}"
+    add_var 'ECO_CI_CO2_GRID_INTENSITY_CONSTANT' "${15}"
+    add_var 'ECO_CI_CO2_GRID_INTENSITY_API_TOKEN' "${16}"
+    add_var 'ECO_CI_GMT_API_TOKEN' "${17}"
+    add_var 'ECO_CI_JSON_OUTPUT' "${18}"
+    add_var 'ECO_CI_API_ENDPOINT_ADD' "${19}"
+    add_var 'ECO_CI_API_ENDPOINT_BADGE_GET' "${20}"
+    add_var 'ECO_CI_DASHBOARD_URL' "${21}"
+
+    read_vars # reload set vars
 
     touch /tmp/eco-ci/cpu-util-step.txt
     touch /tmp/eco-ci/cpu-util-total.txt
@@ -58,11 +61,18 @@ function start_measurement {
     touch /tmp/eco-ci/energy-total.txt
     touch /tmp/eco-ci/timer-step.txt
 
-    if [[ "${14}" == 'true' ]]; then
+    if [[ "${ECO_CI_CO2_CALCULATION_METHOD}" == 'location-based' ]]; then
         source "$(dirname "$0")/misc.sh"
         get_geoip # will set $ECO_CI_GEO_CITY, $ECO_CI_GEO_LAT, $ECO_CI_GEO_LONG and $ECO_CI_GEO_IP
         read_vars # reload set vars
         get_carbon_intensity # will set $ECO_CI_CO2I
+    elif [[ "${ECO_CI_CO2_CALCULATION_METHOD}" == 'constant' ]]; then
+        echo "Using constant for CO2 grid intensity: ${ECO_CI_CO2_GRID_INTENSITY_CONSTANT}"
+        add_var 'ECO_CI_CO2I' "$ECO_CI_CO2_GRID_INTENSITY_CONSTANT"
+        add_var 'ECO_CI_GEO_CITY' "CONSTANT"
+    else
+        echo "Eco CI CO2 Calculation Method can only be constant or location based. You provided: ${ECO_CI_CO2_CALCULATION_METHOD}" >&2
+        exit 1
     fi
 
     ##  we now save first energy data from the beginning of the function until here
@@ -126,7 +136,7 @@ fi
 
 case $option in
   start_measurement)
-    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}" "${16}" "${17}" "${18}" "${19}" "${20}" "${21}"
+    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}" "${16}" "${17}" "${18}" "${19}" "${20}" "${21}" "${22}"
     ;;
   lap_measurement)
     lap_measurement

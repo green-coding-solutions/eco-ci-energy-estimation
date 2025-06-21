@@ -75,6 +75,8 @@ function make_measurement() {
     ECO_CI_MEASUREMENT_COUNT=${ECO_CI_MEASUREMENT_COUNT:-}
     ECO_CI_WORKFLOW_ID=${ECO_CI_WORKFLOW_ID:-}
     ECO_CI_STEP_NOTE=''
+    GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
+
 
     # capture time - Note that we need 64 bit here!
     local step_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-step.txt)))

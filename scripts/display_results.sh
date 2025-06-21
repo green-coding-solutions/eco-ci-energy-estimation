@@ -90,43 +90,40 @@ function display_results {
     local repo_enc=$( echo "${ECO_CI_REPOSITORY}" | jq -Rr @uri)
     local branch_enc=$( echo "${ECO_CI_BRANCH}" | jq -Rr @uri)
 
-    if [[ ${ECO_CI_CALCULATE_CO2} == 'true' ]]; then
-        source "$(dirname "$0")/misc.sh"
-        get_energy_co2 "$total_energy"
-        get_embodied_co2 "$total_time_s"
-        read_vars # reload set vars
+    source "$(dirname "$0")/misc.sh"
+    get_energy_co2 "$total_energy"
+    get_embodied_co2 "$total_time_s"
+    read_vars # reload set vars
 
-        # CO2 API might have failed or not set, so we only calculate total if it worked
-        ECO_CI_CO2EQ_EMBODIED=${ECO_CI_CO2EQ_EMBODIED:-}  # Default to an empty string if unset
-        ECO_CI_CO2EQ_ENERGY=${ECO_CI_CO2EQ_ENERGY:-}      # Default to an empty string if unset
-        ECO_CI_GEO_IP=${ECO_CI_GEO_IP:-}      # Default to an empty string if unset
-        ECO_CI_GEO_CITY=${ECO_CI_GEO_CITY:-}      # Default to an empty string if unset
-        ECO_CI_GEO_LAT=${ECO_CI_GEO_LAT:-}      # Default to an empty string if unset
-        ECO_CI_GEO_LON=${ECO_CI_GEO_LON:-}      # Default to an empty string if unset
+    # CO2 API might have failed or not set, so we only calculate total if it worked
+    ECO_CI_CO2EQ_EMBODIED=${ECO_CI_CO2EQ_EMBODIED:-}  # Default to an empty string if unset
+    ECO_CI_CO2EQ_ENERGY=${ECO_CI_CO2EQ_ENERGY:-}      # Default to an empty string if unset
+    ECO_CI_GEO_IP=${ECO_CI_GEO_IP:-}      # Default to an empty string if unset
+    ECO_CI_GEO_CITY=${ECO_CI_GEO_CITY:-}      # Default to an empty string if unset
+    ECO_CI_GEO_LAT=${ECO_CI_GEO_LAT:-}      # Default to an empty string if unset
+    ECO_CI_GEO_LON=${ECO_CI_GEO_LON:-}      # Default to an empty string if unset
 
-        if [ -n "$ECO_CI_CO2EQ_EMBODIED" ] && [ -n "$ECO_CI_CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
-            ECO_CI_CO2EQ=$(echo "$ECO_CI_CO2EQ_EMBODIED $ECO_CI_CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
+    if [ -n "$ECO_CI_CO2EQ_EMBODIED" ] && [ -n "$ECO_CI_CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
+        ECO_CI_CO2EQ=$(echo "$ECO_CI_CO2EQ_EMBODIED $ECO_CI_CO2EQ_ENERGY" | awk '{printf "%.9f", $1 + $2}')
 
-            echo '🌳 CO2 Data:' | tee -a $output $output_pr
-            echo "City: <b>${ECO_CI_GEO_CITY}</b>, Lat: <b>${ECO_CI_GEO_LAT}</b>, Lon: <b>${ECO_CI_GEO_LON}</b>" | tee -a $output $output_pr
-            echo "IP: <b>${ECO_CI_GEO_IP}</b>" | tee -a $output $output_pr
-            echo "CO₂ from energy is: ${ECO_CI_CO2EQ_ENERGY} g" | tee -a $output $output_pr
-            echo "CO₂ from manufacturing (embodied carbon) is: ${ECO_CI_CO2EQ_EMBODIED} g" | tee -a $output $output_pr
-            echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>${ECO_CI_CO2I} gCO₂eq/kWh</b>" | tee -a $output $output_pr
-            printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" "${ECO_CI_CO2EQ}" | tee -a $output $output_pr
+        echo '🌳 CO2 Data:' | tee -a $output $output_pr
+        echo "City: <b>${ECO_CI_GEO_CITY}</b>, Lat: <b>${ECO_CI_GEO_LAT}</b>, Lon: <b>${ECO_CI_GEO_LON}</b>" | tee -a $output $output_pr
+        echo "IP: <b>${ECO_CI_GEO_IP}</b>" | tee -a $output $output_pr
+        echo "CO₂ from energy is: ${ECO_CI_CO2EQ_ENERGY} g" | tee -a $output $output_pr
+        echo "CO₂ from manufacturing (embodied carbon) is: ${ECO_CI_CO2EQ_EMBODIED} g" | tee -a $output $output_pr
+        echo "<a href='https://www.electricitymaps.com/methodology#carbon-intensity-and-emission-factors' target=_blank rel=noopener>Carbon Intensity</a> for this location: <b>${ECO_CI_CO2I} gCO₂eq/kWh</b>" | tee -a $output $output_pr
+        printf "<a href='https://sci-guide.greensoftware.foundation/'  target=_blank rel=noopener>SCI</a>: <b>%.6f gCO₂eq / pipeline run</b> emitted\n" "${ECO_CI_CO2EQ}" | tee -a $output $output_pr
 
-            if [[ "${display_badge}" == 'true' ]]; then
-                local random_number=$((RANDOM % 1000000000 + 1))
-                echo "<hr>" | tee -a $output $output_pr
-                echo "Total cost of whole PR so far: <br><br>" | tee -a $output $output_pr
-                echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=energy#${random_number}'></a>" | tee -a $output $output_pr
-                echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=carbon#${random_number}'></a>" | tee -a $output $output_pr
-            fi
-        else
-            echo '❌ CO2 Data:' | tee -a $output $output_pr
-            echo 'Error in retrieving values. Please see the detailed logs for the exact error messages!' | tee -a $output $output_pr
+        if [[ "${ECO_CI_SEND_DATA}" == 'true' && "${display_badge}" == 'true' ]]; then
+            local random_number=$((RANDOM % 1000000000 + 1))
+            echo "<hr>" | tee -a $output $output_pr
+            echo "Total cost of whole PR so far: <br><br>" | tee -a $output $output_pr
+            echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=energy#${random_number}'></a>" | tee -a $output $output_pr
+            echo "<a href='${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}'><img src='${ECO_CI_API_ENDPOINT_BADGE_GET}?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}&mode=totals&metric=carbon#${random_number}'></a>" | tee -a $output $output_pr
         fi
-
+    else
+        echo '❌ CO2 Data:' | tee -a $output $output_pr
+        echo 'Error in retrieving values. Please see the detailed logs for the exact error messages!' | tee -a $output $output_pr
     fi
 
     if [[ "${ECO_CI_SEND_DATA}" == 'true' && "${display_badge}" == 'true' ]]; then

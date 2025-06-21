@@ -25,10 +25,6 @@ inputs:
     description: 'Send metrics data to dashboard (default: metrics.green-coding.io) to create and display badge, and see an overview of the energy of your CI runs. Set to false to send no data.'
     default: true
     required: false
-  calculate-co2:
-    description: 'Uses the grid carbon intensity of the run location to estimate the emitted carbon for the measurements.'
-    default: true
-    required: false
   display-table:
     description: 'Show the energy reading results in a table during display-results step'
     default: true
@@ -81,9 +77,16 @@ inputs:
       description: 'The URL for the GMT Dashboard. Punch in yours if self-hosted. Defaults to "https://metrics.green-coding.io"'
       default: 'https://metrics.green-coding.io'
       required: false
-
-  electricitymaps-api-token:
-      description: 'API token for electricitymaps in case you get rate-limited. See documentation for details'
+  co2-calculation-method:
+    description: 'CO2 calculation can be a constant and will use a supplied fixed grid intensity. Or it can also be location based where it will use a grid intensity API provider to determine the carbon intensity value of the current machine IP.'
+    default: 'constant'
+    required: false
+  co2-grid-intensity-constant:
+    description: "Constant value to be used to calculate the CO2 from the estimated energy. We use the worldwide average value from Ember compiled by The Green Web Foundation from https://github.com/thegreenwebfoundation/co2.js/blob/main/data/output/average-intensities.json#L1314 as default and update it annually."
+    default: 472
+    required: false
+  co2-grid-intensity-api-token:
+      description: 'API token for the API of your choice regarding the grid intensity. See documentation for details'
       default: ''
       required: false
 
@@ -120,7 +123,7 @@ runs:
         workflow_id=${workflow_id:-"not_set"}
         workflow_name=${workflow_name:-"not_set"}
 
-        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.type }}" "${{ inputs.project }}" "${{ inputs.machine }}" "${{ inputs.tags }}" "${{ inputs.calculate-co2 }}" "${{ inputs.gmt-api-token }}" "${{ inputs.electricitymaps-api-token }}" "${{ inputs.json-output }}" "${{ inputs.api-endpoint-add }}" "${{ inputs.api-endpoint-badge-get }}" "${{ inputs.dashboard-url }}"
+        ${{github.action_path}}/scripts/setup.sh start_measurement "${{inputs.machine-power-data}}" "${{ github.run_id }}" "${{inputs.branch}}" "${{ github.repository }}" "$workflow_id" "$workflow_name" "${{ github.sha }}" "github" "${{ inputs.send-data }}" "${{ inputs.type }}" "${{ inputs.project }}" "${{ inputs.machine }}" "${{ inputs.tags }}" "${{ inputs.co2-calculation-method }}" "${{ inputs.co2-grid-intensity-constant }}" "${{ inputs.co2-grid-intensity-api-token }}" "${{ inputs.gmt-api-token }}" "${{ inputs.json-output }}" "${{ inputs.api-endpoint-add }}" "${{ inputs.api-endpoint-badge-get }}" "${{ inputs.dashboard-url }}"
 
     - if:  inputs.task == 'get-measurement'
       id: run-lap-model
