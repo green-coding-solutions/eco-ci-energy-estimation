@@ -46,7 +46,7 @@ jobs:
       - name: Clock test
         shell: bash
         run: |
-          python3 clock.py &
+          python3 clock.py &> /tmp/clocklog &
 
       - name: API Base Debug
         run: |
@@ -145,7 +145,7 @@ jobs:
 
       - name: Stress 200
         run: |
-          stress-ng -c 10 -t 900
+          stress-ng -c 10 -t 200
 
       - name: Eco CI Measurement - without quotes ...
         uses: ./
@@ -211,6 +211,11 @@ jobs:
         with:
           task: display-results
           pr-comment: true
+
+      - name: Read clock final
+        shell: bash
+        run: |
+          cat /tmp/clocklog
 
       - name: Read proc stat final
         shell: bash
