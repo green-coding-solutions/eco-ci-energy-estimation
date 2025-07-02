@@ -38,6 +38,17 @@ jobs:
         with:
           path: .
 
+      - name: Read proc stat
+        run: |
+          cat /proc/stat
+
+
+      - name: Clock test
+        shell: bash
+        run: |
+          cat /proc/stat
+          python3 test.py &
+
       - name: API Base Debug
         run: |
           echo "Current API Base is" ${{ github.api_url }}
@@ -201,6 +212,12 @@ jobs:
         with:
           task: display-results
           pr-comment: true
+
+      - name: Read proc stat final
+        shell: bash
+        run: |
+          cat /proc/stat
+
 
       - name: Validate power values
         shell: bash
