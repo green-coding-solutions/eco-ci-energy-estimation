@@ -46,8 +46,7 @@ jobs:
       - name: Clock test
         shell: bash
         run: |
-          cat /proc/stat
-          python3 test.py &
+          python3 clock.py &
 
       - name: API Base Debug
         run: |
