@@ -1,0 +1,207 @@
+name: Test PR & Periodic
+
+on:
+  pull_request:
+    paths-ignore:
+     - 'README.md'
+     - 'LICENSE'
+     - '.gitlab-ci.yml.example'
+     - '.gitignore'
+  schedule:
+    # only run once a week to show the action is working and preserve as much energy as possible
+    # Reason being that we pull our ML model and this could have changed in the meantime
+    - cron: '22 4 * * 6'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  test-action:
+    runs-on: eco-ci-runner-M4
+
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          path: .
+
+      - name: API Base Debug
+        run: |
+          echo "Current API Base is" ${{ github.api_url }}
+
+      - name: Initialize Energy Estimation (Linux)
+        uses: ./
+        with:
+          task: start-measurement
+          project: "Eco CI"
+          machine: eco-ci-runner-M4
+          tags: "CI/CD,Test PR & Periodic-Workflow"
+          gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
+          co2-calculation-method: "location-based"
+          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+
+
+      - name: working step
+        continue-on-error: true
+        run: |
+          timeout 2s ls -alhR / || true
+
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
+
+      - name: Eco CI Measurement - echo Hellos; Shell
+        uses: ./
+        with:
+          task: get-measurement
+          label: "echo Hellos; $SHELL; \""
+
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
+
+
+      - name: Eco CI Measurement - (Soo this is something)
+        uses: ./
+        with:
+          task: get-measurement
+          label: "(Soo this is something); & ; echo $SHELL"
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
+
+
+      - name: Eco CI Measurement - Environment setup (OS ...
+        uses: ./
+        with:
+          task: get-measurement
+          label: 'Environment setup (OS Linux, lint)'
+
+      # - name: Sleep 3
+      #   run: sleep 3
+
+      # There is currently no way of catching this IMHO
+      # - name: Test measurement 4
+      #   uses: ./
+      #   with:
+      #     task: get-measurement
+      #     label: without quotes'; echo
+
+      - name: Sleep 3
+        run: sleep 3
+
+      - name: Eco CI Measurement - without quotes ...
+        uses: ./
+        with:
+          task: get-measurement
+          label: without quotes"; echo
+
+      # - name: Sleep 3
+      #   run: sleep 3
+
+      # There is currently no way of catching this IMHO
+      # - name: Test measurement 6
+      #   uses: ./
+      #   with:
+      #     task: get-measurement
+      #     label: 'without quotes'''
+
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
+
+
+      - name: Dump running processes scripts
+        run: |
+          ps -ax | grep scripts
+          amount_of_lines=$(ps -ax | grep scripts | wc -l)
+          if [[ $amount_of_lines != 2 ]]; then # script process itself and the grep call
+            echo 'Unexpected amount of processes for "scripts"'
+            exit 1
+          fi
+
+
+
+      - name: Dump running processes iostat
+        run: |
+          ps -ax | grep iostat
+          amount_of_lines=$(ps -ax | grep iostat | wc -l)
+          if [[ $amount_of_lines != 1 ]]; then # the grep call
+            echo 'Unexpected amount of processes for "iostat"'
+            exit 1
+          fi
+
+      - name: Final Measurement no label
+        uses: ./
+        with:
+          task: get-measurement
+
+      - name: 'Dump Raw Measurement Data'
+        uses: ./.github/actions/dump-raw-measurement-data
+
+
+      - name: Eco CI Energy Estimation
+        uses: ./
+        with:
+          task: display-results
+          pr-comment: true
+
+      - name: Validate power values
+        shell: bash
+        run: |
+          set -e
+
+            min=1.75
+            max=4.00
+
+          total_power=$(grep "<td>Total Run</td>" /tmp/eco-ci/output.txt | awk -F'</td><td>' '{print $4}')
+
+          awk -v p="$total_power" -v min="$min" -v max="$max" '
+          BEGIN {
+            if (p ~ /^[0-9.]+$/) {
+              printf "Total power: %.2f\n", p
+              if (p > min && p < max) {
+                exit 0
+              } else {
+                exit 1
+              }
+            } else {
+              print "Invalid power value"
+              exit 1
+            }
+          }'
+
+            status=$?
+            if [[ $status -eq 0 ]]; then
+              echo "Power value is in the expected range [$min, $max]."
+            else
+              echo "Power value is outside the expected range [$min, $max]."
+              exit 1
+            fi
+
+      - name: Validate sent data to API
+        shell: bash
+        run: |
+
+          branch=${{ github.ref_name }}
+          repo=${{ github.repository }}
+          workflow_id=$(curl -s -H "Authorization: Bearer ${{github.token}}" "${{ github.api_url }}/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" | jq -r .workflow_id)
+          data=$(curl -s "https://api.green-coding.io/v1/ci/measurements?repo=${repo}&branch=${branch}&workflow=${workflow_id}&start_date=1970-01-01&end_date=3000-01-01")
+
+          echo "Data from API is: ${data}"
+
+          if echo "$data" | jq '(.data | length >= 4) and (.data[0][3] == "No quotes allowed in labels")' | grep -q true ; then
+            echo "Data could be retrieved via API"
+          else
+            echo 'API did not return expected result'
+            exit 1
+          fi
