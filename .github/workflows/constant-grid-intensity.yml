@@ -1,4 +1,4 @@
-name: Test PR & Periodic
+name: Test Constant Grid Intensity
 
 on:
   pull_request:
