@@ -61,8 +61,8 @@ jobs:
       - name: 'Dump Raw Measurement Data'
         uses: ./.github/actions/dump-raw-measurement-data
 
-      - name: Sleep 3
-        run: sleep 3
+      - name: Sleep 30
+        run: sleep 30
 
       - name: 'Dump Raw Measurement Data'
         uses: ./.github/actions/dump-raw-measurement-data
