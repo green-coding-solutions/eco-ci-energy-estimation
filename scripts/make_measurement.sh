@@ -8,17 +8,17 @@ read_vars
 function make_inference_single() {
     local utilization=$1
     local power_data_file_path="$(dirname "$0")/../machine-power-data/${ECO_CI_MACHINE_POWER_DATA}"
-        source "${power_data_file_path}" # will set cloud_energy_hashmap
 
     if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} >= 4 )); then
+        source "${power_data_file_path}" # will set cloud_energy_hashmap
         echo ${cloud_energy_hashmap[$utilization]} # will be return
     else
         echo 'Using legacy mode inference'
         # The pattern contains a . and [ ] but this no problem as no other dot appears anywhere
-        local power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap\\\\[${read_var_util}\\\\]" ' $0 ~ pattern { print $2 }' "${power_data_file_path}")
+        local power_value=$(awk -F "=" -v pattern="cloud_energy_hashmap\\\\[${utilization}\\\\]" ' $0 ~ pattern { print $2 }' "${power_data_file_path}")
 
         if [[ -z $power_value ]]; then
-            echo "Could not match power value for utilization: '${read_var_util}'" >&2
+            echo "Could not match power value for utilization: '${utilization}'" >&2
             exit -1
         fi
         echo $power_value # will be return
