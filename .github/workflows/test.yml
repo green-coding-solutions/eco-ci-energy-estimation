@@ -34,7 +34,7 @@ jobs:
           brew install coreutils
           echo "/opt/homebrew/opt/coreutils/libexec/gnubin:/usr/local/opt/coreutils/libexec/gnubin:$PATH" >> $GITHUB_PATH
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: .
 
