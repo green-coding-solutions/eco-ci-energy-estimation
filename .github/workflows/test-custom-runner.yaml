@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   test-action:
-    runs-on: ${{ github.event.inputs.runner }}"
+    runs-on: ${{ github.event.inputs.runner }}
 
     steps:
 
