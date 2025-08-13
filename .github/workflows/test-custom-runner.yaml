@@ -1,4 +1,4 @@
-name: Test PR & Periodic M4
+name: Test PR & Periodic Custom Runner
 
 on:
   pull_request:
@@ -12,6 +12,16 @@ on:
     # Reason being that we pull our ML model and this could have changed in the meantime
     - cron: '22 4 * * 6'
   workflow_dispatch:
+    inputs:
+      runner:
+        description: "Select runner"
+        required: true
+        type: choice
+        options:
+          - ubuntu-latest
+          - macbook-M1-arne
+          - eco-ci-runner-M4
+
 
 permissions:
   contents: read
@@ -20,7 +30,7 @@ permissions:
 
 jobs:
   test-action:
-    runs-on: eco-ci-runner-M4
+    runs-on: ${{ github.event.inputs.runner }}"
 
     steps:
 
