@@ -38,6 +38,16 @@ jobs:
         with:
           path: .
 
+      - name: Read proc stat
+        run: |
+          cat /proc/stat
+
+
+      - name: Clock test
+        shell: bash
+        run: |
+          python3 clock.py &> /tmp/clocklog &
+
       - name: API Base Debug
         run: |
           echo "Current API Base is" ${{ github.api_url }}
@@ -98,8 +108,10 @@ jobs:
       - name: 'Dump Raw Measurement Data'
         uses: ./.github/actions/dump-raw-measurement-data
 
-      - name: Sleep 3
-        run: sleep 3
+      - name: Stress 900
+        run: |
+          sudo apt-get update && sudo apt-get install -y stress-ng
+          stress-ng -c 10 -t 900
 
       - name: 'Dump Raw Measurement Data'
         uses: ./.github/actions/dump-raw-measurement-data
@@ -134,8 +146,9 @@ jobs:
       #     task: get-measurement
       #     label: without quotes'; echo
 
-      - name: Sleep 3
-        run: sleep 3
+      - name: Stress 200
+        run: |
+          stress-ng -c 10 -t 200
 
       - name: Eco CI Measurement - without quotes ...
         uses: ./
@@ -201,6 +214,17 @@ jobs:
         with:
           task: display-results
           pr-comment: true
+
+      - name: Read clock final
+        shell: bash
+        run: |
+          cat /tmp/clocklog
+
+      - name: Read proc stat final
+        shell: bash
+        run: |
+          cat /proc/stat
+
 
       - name: Validate power values
         shell: bash
