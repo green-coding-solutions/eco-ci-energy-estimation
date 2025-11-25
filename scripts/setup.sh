@@ -87,6 +87,16 @@ function start_measurement {
         make_inference # will populate /tmp/eco-ci/energy-step.txt
     fi
 
+    # Get OS name and CPU arch from the runner
+    local os_name=$(uname -s || echo "unknown")
+    local cpu_arch=$(uname -m || echo "unknown")
+
+    add_var 'ECO_CI_OS_NAME' "$os_name"
+    add_var 'ECO_CI_CPU_ARCH' "$cpu_arch"
+
+    # Try to infer a job id from CI env variables
+    local job_id="${GITHUB_JOB:-${CI_JOB_ID:-unknown}}"
+    add_var 'ECO_CI_JOB_ID' "$job_id"
 }
 
 function lap_measurement {
