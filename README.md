@@ -153,7 +153,7 @@ jobs:
         - `gmt-api-token`: (optional)
             - If you are not using the default user for the GMT API supply your auth token. We recommend to have this as a GitHub Secret.
         - `api-endpoint-add`: (optional)
-            - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v2/ci/measurement/add"
+            - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v3/ci/measurement/add"
         - `api-endpoint-badge-get`: (optional)
             - When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io//v1/ci/badge/get
 - `get-measurement`: Measures the energy at this point in time since either the start-measurement or last get-measurement action call.

@@ -66,8 +66,8 @@ inputs:
       default: ''
       required: false
   api-endpoint-add:
-      description: 'When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v2/ci/measurement/add"'
-      default: 'https://api.green-coding.io/v2/ci/measurement/add'
+      description: 'When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to send to. Defaults to "https://api.green-coding.io/v3/ci/measurement/add"'
+      default: 'https://api.green-coding.io/v3/ci/measurement/add'
       required: false
   api-endpoint-badge-get:
       description: 'When using the GMT Dashboard and / or CarbonDB specify the endpoint URL to get the badge from to. Defaults to "https://api.green-coding.io/v1/ci/badge/get'
