@@ -185,6 +185,9 @@ function make_measurement() {
                 \"ip\":\"${ECO_CI_GEO_IP:-""}\",
                 \"carbon_intensity_g\":${ECO_CI_CO2I:-"null"},
                 \"carbon_ug\":${carbon_ug},
+                \"os_name\":\"${ECO_CI_OS_NAME:-"a"}\",
+                \"cpu_arch\":\"${ECO_CI_CPU_ARCH:-"b"}\",
+                \"job_id\":\"${ECO_CI_JOB_ID:-"c"}\",
                 \"note\":  $(echo $ECO_CI_STEP_NOTE | jq -Rr @json)
             }" 2>&1 || true)
 
