@@ -53,6 +53,8 @@ function start_measurement {
     add_var 'ECO_CI_API_ENDPOINT_BADGE_GET' "${20}"
     add_var 'ECO_CI_DASHBOARD_URL' "${21}"
 
+    add_var 'ECO_CI_VERSION' 'v5.1'
+
     read_vars # reload set vars
 
     touch /tmp/eco-ci/cpu-util-step.txt

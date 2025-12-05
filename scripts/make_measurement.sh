@@ -188,6 +188,7 @@ function make_measurement() {
                 \"os_name\":\"${ECO_CI_OS_NAME:-"a"}\",
                 \"cpu_arch\":\"${ECO_CI_CPU_ARCH:-"b"}\",
                 \"job_id\":\"${ECO_CI_JOB_ID:-"c"}\",
+                \"version\":\"${ECO_CI_VERSION:-"c"}\",
                 \"note\":  $(echo $ECO_CI_STEP_NOTE | jq -Rr @json)
             }" 2>&1 || true)
 
