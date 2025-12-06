@@ -52,6 +52,7 @@ function start_measurement {
     add_var 'ECO_CI_API_ENDPOINT_ADD' "${19}"
     add_var 'ECO_CI_API_ENDPOINT_BADGE_GET' "${20}"
     add_var 'ECO_CI_DASHBOARD_URL' "${21}"
+    add_var 'ECO_CI_JOB_ID' "${22}"
 
     add_var 'ECO_CI_VERSION' 'v5.1'
 
@@ -95,10 +96,6 @@ function start_measurement {
 
     add_var 'ECO_CI_OS_NAME' "$os_name"
     add_var 'ECO_CI_CPU_ARCH' "$cpu_arch"
-
-    # Try to infer a job id from CI env variables
-    local job_id="${GITHUB_JOB:-${CI_JOB_ID:-unknown}}"
-    add_var 'ECO_CI_JOB_ID' "$job_id"
 }
 
 function lap_measurement {
@@ -148,7 +145,7 @@ fi
 
 case $option in
   start_measurement)
-    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}" "${16}" "${17}" "${18}" "${19}" "${20}" "${21}" "${22}"
+    start_measurement "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}" "${16}" "${17}" "${18}" "${19}" "${20}" "${21}" "${22}" "${23}"
     ;;
   lap_measurement)
     lap_measurement

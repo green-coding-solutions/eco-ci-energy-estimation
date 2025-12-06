@@ -124,6 +124,7 @@ jobs:
 
 - `task`: (required) (options are `start-measurement`, `get-measurement`, `display-results`)
     + `start-measurement`: Initialize the action and starts the measurement. This must be called, and only *once* per job. If called again data will be reset.
+        - `job-id`: (optional) (default: 'GitHub / GitLab Job ID / Jenkins Build ID')
         - `co2-calculation-method`: (optional) (default: 'constant')
             - Can have the options `constant` or `location-based`
             - If you use `constant` you must also set `co2-grid-intensity-constant`
