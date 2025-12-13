@@ -81,20 +81,7 @@ function cpu_vars {
         # we use 4 years - 1*60*60*24*365*4 =
         add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
 
-    # GitHub uses this one https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories (Q1/2025)
-    # https://www.green-coding.io/case-studies/cpu-utilization-usefulness/
-    elif [[ "$machine_power_data" == "macos-13-mac-mini-intel.sh" ]]; then
-        echo 'Using macos-13-mac-mini-intel.sh'
-        add_var 'ECO_CI_MODEL_NAME' 'Intel_Core_i3-8100'
-        # [GitHub specs](https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories)
-        # [Source for hardware specs](https://en.wikipedia.org/wiki/Mac_Mini#Technical_specifications_3)
-        # [Source for CPU specs](https://www.intel.com/content/www/us/en/products/sku/126688/intel-core-i38100-processor-6m-cache-3-60-ghz/specifications.html)
-        # It seems GitHub is not sharing this machine for the runners and is just running some virtualization layer, as some memory is reserved ...?
-        # FROM official Apple LCA for MacMini October 208
-        # 270 kg
-        add_var 'ECO_CI_SCI_M' 270000.00;
-        # we use 4 years - 1*60*60*24*365*4 =
-        add_var 'ECO_CI_SCI_USAGE_DURATION' 126144000
+
     # GitHub uses this one https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for--private-repositories (Q1/2025)
     # https://www.green-coding.io/case-studies/cpu-utilization-usefulness/
     elif [[ "$machine_power_data" == "macos-14-mac-mini-m1.sh" ]]; then

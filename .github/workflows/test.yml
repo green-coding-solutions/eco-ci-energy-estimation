@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-24.04-arm, macos-13, macos-14]
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-24.04-arm, macos-14]
 
     steps:
       - name: Install dependencies (macos only)
@@ -66,20 +66,6 @@ jobs:
           co2-calculation-method: "location-based"
           co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
           machine-power-data: "macos-14-mac-mini-m1.sh"
-
-      - name: Initialize Energy Estimation (macos-13)
-        if: ${{ contains(matrix.os, 'macos-13') }}
-        uses: ./
-        with:
-          task: start-measurement
-          project: "Eco CI"
-          machine: ${{ matrix.os }}
-          tags: "CI/CD,Test PR & Periodic-Workflow"
-          gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
-          co2-calculation-method: "location-based"
-          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
-          machine-power-data: "macos-13-mac-mini-intel.sh"
-
 
       - name: working step
         continue-on-error: true
@@ -209,9 +195,6 @@ jobs:
           if [[ "${{ matrix.os }}" == *macos-14* ]]; then
             min=4.44
             max=5.44
-          elif [[ "${{ matrix.os }}" == *macos-13* ]]; then
-            min=25.26
-            max=28.90
           else
             min=1.75
             max=4.00
