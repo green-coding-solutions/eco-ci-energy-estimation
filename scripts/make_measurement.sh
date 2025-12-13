@@ -194,7 +194,7 @@ function make_measurement() {
 
             local http_code=$(echo "$curl_response" | tail -n 1)
 
-            if [[ "$http_code" != "204" ]]; then
+            if [[ "$http_code" != "202" ]]; then
                 echo "Error! - Could not send data to GMT API: $curl_response" >&2
                 [ -n "$GITHUB_STEP_SUMMARY" ] && echo "❌ Error! - Could not send data to GMT API: $curl_response" >> $GITHUB_STEP_SUMMARY
             fi
