@@ -80,6 +80,9 @@ dump_raw_measurement_data
 $shell "$(dirname "$0")/../make_measurement.sh" make_measurement "My_label"
 dump_raw_measurement_data
 
+$shell "$(dirname "$0")/../make_measurement.sh" make_measurement "Ultra Short label. skipped?"
+
+
 # Do some other work
 echo "ls -alhR"
 timeout 3s ls -alhR / &> /dev/null || true
