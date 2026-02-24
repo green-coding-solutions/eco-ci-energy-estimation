@@ -265,7 +265,7 @@ jobs:
 
 This plugin is primarily designed for the [GitHub Shared Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources) and comes with their energy values already pre-calculated.
 
-All the values for supported machines are found in the [power-data](https://github.com/green-coding-solutions/eco-ci-energy-estimation/tree/main/power-data) folder.
+All the values for supported machines are found in the [machine-power-data](https://github.com/green-coding-solutions/eco-ci-energy-estimation/tree/main/machine-power-data) folder.
 
 The heavy work to get this values is done by [Cloud Energy](https://github.com/green-coding-solutions/cloud-energy) (See below for details).
 
