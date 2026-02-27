@@ -38,7 +38,8 @@ function display_results {
 
         if [[ "$ECO_CI_SOURCE" != 'gitlab' ]]; then
                 echo "Eco CI Output [RUN-ID: ${ECO_CI_RUN_ID}]: " >> $output_pr
-                echo '<table><tr><th>Label</th><th>🖥 avg. CPU utilization [%]</th><th>🔋 Total Energy [Joules]</th><th>🔌 avg. Power [Watts]</th><th>Duration [Seconds]</th></tr>' | tee -a $output $output_pr
+                echo '<table>' | tee -a $output $output_pr
+                echo '<tr><th>Label</th><th>🖥 avg. CPU utilization [%]</th><th>🔋 Total Energy [Joules]</th><th>🔌 avg. Power [Watts]</th><th>Duration [Seconds]</th></tr>' | tee -a $output $output_pr
                 echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
         fi
 
@@ -83,6 +84,7 @@ function display_results {
             echo "<tr><td>Total Run</td><td>${cpu_avg_weighted}</td><td>${total_energy}</td><td>${total_power_avg}</td><td>${total_time_s}</td></tr>" | tee -a $output $output_pr
             echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
             echo "<tr><td>Additional overhead from Eco CI</td><td>N/A</td><td>${eco_ci_total_energy_overhead}</td><td>${eco_ci_total_power_overhead}</td><td>${eco_ci_total_time_s_overhead}</td></tr>" | tee -a $output $output_pr
+            echo '</table>' | tee -a $output $output_pr
             echo '' | tee -a $output $output_pr
         fi
     fi
