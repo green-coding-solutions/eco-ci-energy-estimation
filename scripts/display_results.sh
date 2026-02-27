@@ -29,9 +29,12 @@ function display_results {
     local total_time_us_with_overhead=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
     local total_time_s_with_overhead=$(echo "${total_time_us_with_overhead} 1000000" | awk '{printf "%.2f", $1 / $2}')
 
-    local total_energy=0
-    local total_time_s=0
-    local total_cpu_avg_weighted=0
+    for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ )); do
+        local total_energy=$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY $total_energy | awk '{printf "%.2f", $1 + $2}')
+        local total_time_s=$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME $total_time_s | awk '{printf "%.2f", $1 + $2}')
+        local total_cpu_avg_weighted=$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG $total_time_s $total_cpu_avg_weighted | awk '{printf "%.2f", ($1 * $2) + $3}')
+    done
+
 
     if [[ "${display_table}" == 'true' ]]; then
         ## Used for the main output display for github (step summary) / gitlab (artifacts)
@@ -43,6 +46,9 @@ function display_results {
                 echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
         fi
 
+        # we iterate here again, although we iterated above over the same data structure already
+        # This is for better code structuring as otherwise we had to multiple time check for display_table and
+        # construct the table with a lot of guard clauses
         for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ )); do
             if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
                     # CI_JOB_NAME is a set variable by GitLab
@@ -54,11 +60,6 @@ function display_results {
             else
                 echo "<tr><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)</td></tr>" | tee -a $output $output_pr
             fi
-
-            total_energy=$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY $total_energy | awk '{printf "%.2f", $1 + $2}')
-            total_time_s=$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME $total_time_s | awk '{printf "%.2f", $1 + $2}')
-            total_cpu_avg_weighted=$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG $total_time_s $total_cpu_avg_weighted | awk '{printf "%.2f", ($1 * $2) + $3}')
-
         done
 
         local total_power_avg=$(echo "${total_energy} ${total_time_s}" | awk '{printf "%.2f", ($2 > 0 ? $1 / $2 : 0) }')
