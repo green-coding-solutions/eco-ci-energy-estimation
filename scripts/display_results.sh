@@ -29,10 +29,15 @@ function display_results {
     local total_time_us_with_overhead=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-total.txt)))
     local total_time_s_with_overhead=$(echo "${total_time_us_with_overhead} 1000000" | awk '{printf "%.2f", $1 / $2}')
 
+
+    local total_energy=0
+    local total_time_s=0
+    local total_cpu_avg_weighted=0
+
     for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ )); do
-        local total_energy=$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY $total_energy | awk '{printf "%.2f", $1 + $2}')
-        local total_time_s=$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME $total_time_s | awk '{printf "%.2f", $1 + $2}')
-        local total_cpu_avg_weighted=$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG $total_time_s $total_cpu_avg_weighted | awk '{printf "%.2f", ($1 * $2) + $3}')
+        total_energy=$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY $total_energy | awk '{printf "%.2f", $1 + $2}')
+        total_time_s=$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME $total_time_s | awk '{printf "%.2f", $1 + $2}')
+        total_cpu_avg_weighted=$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG $total_time_s $total_cpu_avg_weighted | awk '{printf "%.2f", ($1 * $2) + $3}')
     done
 
 
