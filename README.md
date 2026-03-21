@@ -491,7 +491,6 @@ Set:
   + GitHub
       + `ubuntu-latest` (GitHub - 24.04 at the time of writing)
       + `ubuntu-22.04` (GitHub)
-      + `ubuntu-20.04` (GitHub)
       + [Autoscaling Github Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners/managing-larger-runners#configuring-autoscaling-for-larger-runners) are not supported
       + The plugin technically supports large runners, but they will need extra pre-calculated power curved. Contact us if you need them and we are happy to bring them in!
   + GitLab
