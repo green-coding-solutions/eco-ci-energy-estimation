@@ -464,7 +464,7 @@ export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH" # if macOS
 
 ## Note on the integration / Auto-Updates
 - If you want the extension to automatically update within a version number, use the convenient @vX form. 
-  + `uses: green-coding-solutions/eco-ci-energy-estimation@v5 # will pick the latest minor v4.x`
+  + `uses: green-coding-solutions/eco-ci-energy-estimation@v5 # will pick the latest minor v5.x`
   + In case of a major change from @v4 to @v5 you need to upgrade manually. The upside is: If you use dependabot it will create a PR for you as it understands the notation
     
 - If you want to pin the dependency and want to audit every release we recommend using the hash notation
@@ -489,9 +489,8 @@ Set:
 - At the moment this will only work with linux based pipelines, mainly tested on ubuntu images.
   + The plugin is tested on:
   + GitHub
-      + `ubuntu-latest` (GitHub - 22.04 at the time of writing)
-      + `ubuntu-24.04` (GitHub)
-      + `ubuntu-20.04` (GitHub)
+      + `ubuntu-latest` (GitHub - 24.04 at the time of writing)
+      + `ubuntu-22.04` (GitHub)
       + [Autoscaling Github Runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-larger-runners/managing-larger-runners#configuring-autoscaling-for-larger-runners) are not supported
       + The plugin technically supports large runners, but they will need extra pre-calculated power curved. Contact us if you need them and we are happy to bring them in!
   + GitLab
