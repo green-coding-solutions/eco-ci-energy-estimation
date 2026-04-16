@@ -72,13 +72,10 @@ get_energy_co2 (){
     ECO_CI_CO2I=${ECO_CI_CO2I:-}
 
     if [[ -n "$ECO_CI_CO2I" ]]; then
-
-        local value_mJ=$(echo "${total_energy} 1000" | awk '{printf "%.9f", $1 * $2}' | cut -d '.' -f 1)
-        local value_kWh=$(echo "${value_mJ} 1e-9" | awk '{printf "%.9f", $1 * $2}')
+        local value_kWh=$(echo "${total_energy} 3600000" | awk '{printf "%.9f", $1 / $2}')
         local co2_value=$(echo "${value_kWh} ${ECO_CI_CO2I}" | awk '{printf "%.9f", $1 * $2}')
 
         add_var 'ECO_CI_CO2EQ_ENERGY' "$co2_value"
-
     else
         echo "Failed to get carbon intensity data." >&2
     fi
