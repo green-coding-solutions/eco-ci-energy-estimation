@@ -253,13 +253,33 @@ jobs:
 
           time_us=$(echo "$data" | jq -r '[.data[][6]] | add')
           cpu_utilization_weighted_avg=$(echo "$data" | jq -r '(.data | map(.[8]*.[6]) | add) / (.data | map(.[6]) | add)')
+          cpu_utilization_weighted_avg_short=$(echo "$cpu_utilization_weighted_avg" | awk '{printf "%.2f", $1}' )
 
-          normalized_embodied_carbon_ug=$(echo "$embodied_carbon_ug" "$time_us" | awk '{printf "%d", ($1 / $2) *1000000000}')
-          # norm to 7.68% utilization and 13.94 s where we have a reference value of 30.64 Joules
+          normalized_embodied_carbon_ug=$(echo "$embodied_carbon_ug" "$time_us" | awk '{printf "%.0f", ($1 / $2) *1000000000}')
+
+
+          # norm to 7.68% utilization and 13.94 s where we have a reference value of 40.31 Joules
           # https://github.com/green-coding-solutions/eco-ci-energy-estimation/actions/runs/24563799715
-          normalized_energy_uj=$(echo "$energy_uj" "$cpu_utilization_weighted_avg" "$time_us" | awk '{printf "%d", $1 * ($2 / 7.68) * ($3 / 13940000)}')
 
-          echo 'calculation params for normalized energy_uj' "energy_uJ=$energy_uj" "cpu_utilization_weighted_avg=$cpu_utilization_weighted_avg" "time_us=$time_us"
+          # To do that we need to the power at the respective points
+          power_data_file_path="./machine-power-data/github_EPYC_7763_4_CPU_shared.sh"
+
+          if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} < 4 )); then
+              echo "Could not find bash version > 4 to make hashmap lookup ... please install newer bash"
+              exit 1
+          fi
+          source "${power_data_file_path}" # will set cloud_energy_hashmap
+          power_watts_reference=${cloud_energy_hashmap["7.68"]}
+          power_watts_run=${cloud_energy_hashmap[$cpu_utilization_weighted_avg_short]}
+
+          if [[ -z "$power_watts_run" ]]; then
+            echo "Power value for utilization '${cpu_utilization_weighted_avg_short}' could not be found in cloud_energy_hashmap"
+            exit 1
+          fi
+
+          normalized_energy_uj=$(echo "$energy_uj" "$time_us" "$power_watts_reference" "$power_watts_run" | awk '{printf "%.0f", $1 * (13940000 / $2) * ($3 / $4) }')
+
+          echo 'calculation params for normalized energy_uj' "energy_uJ=$energy_uj" "time_us=$time_us" "power_watts_reference=$power_watts_reference" "power_watts_run=$power_watts_run"
 
           echo "normalized_embodied_carbon_ug=$normalized_embodied_carbon_ug" >> $GITHUB_OUTPUT
           echo "normalized_energy_uj=$normalized_energy_uj" >> $GITHUB_OUTPUT
