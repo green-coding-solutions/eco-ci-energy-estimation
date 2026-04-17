@@ -252,11 +252,12 @@ jobs:
           embodied_carbon_ug=$(echo "$total_carbon_ug" "$operational_carbon_ug" | awk '{printf "%.9f", $1 - $2}')
 
           time_us=$(echo "$data" | jq -r '[.data[][6]] | add')
-          cpu_utilization=$(echo "$data" | jq -r '[.data[][8]] | add')
+          cpu_utilization_weighted_avg=$(echo "$data" | jq -r '(.data | map(.[8]*.[6]) | add) / (.data | map(.[6]) | add)')
 
           normalized_embodied_carbon_ug=$(echo "$embodied_carbon_ug" "$time_us" | awk '{printf "%d", ($1 / $2) *1000000000}')
-          # norm to 4.95% utilization and 12.11 s where we have a reference value of 30.64 Joules
-          normalized_energy_uj=$(echo "$energy_uj" "$cpu_utilization" "$time_us" | awk '{printf "%d", $1 * ($2 / 4.95) * ($3 / 12110000)}')
+          # norm to 7.68% utilization and 13.94 s where we have a reference value of 30.64 Joules
+          # https://github.com/green-coding-solutions/eco-ci-energy-estimation/actions/runs/24563799715
+          normalized_energy_uj=$(echo "$energy_uj" "$cpu_utilization_weighted_avg" "$time_us" | awk '{printf "%d", $1 * ($2 / 7.68) * ($3 / 13940000)}')
 
           echo "normalized_embodied_carbon_ug=$normalized_embodied_carbon_ug" >> $GITHUB_OUTPUT
           echo "normalized_energy_uj=$normalized_energy_uj" >> $GITHUB_OUTPUT
@@ -272,8 +273,8 @@ jobs:
             exit 1
           fi
 
-          if [ "$normalized_energy_uj" -lt 30000000 ] || [ "$normalized_energy_uj" -gt 31000000 ]; then
-            echo "Energy uJ was out of bounds. Should be between 30000000 uJ and 31000000 uJ. Was ${normalized_energy_uj} uJ"
+          if [ "$normalized_energy_uj" -lt 39000000 ] || [ "$normalized_energy_uj" -gt 41000000 ]; then
+            echo "Energy uJ was out of bounds. Should be between 39000000 uJ and 41000000 uJ. Was ${normalized_energy_uj} uJ"
             exit 1
           fi
 
