@@ -266,6 +266,7 @@ jobs:
 
 
       - name: Check thresholds
+        if: ${{ contains(matrix.os, 'ubuntu') && !contains(matrix.os, 'arm') }}
         run: |
           normalized_energy_uj=${{ steps.check_api.outputs.normalized_energy_uj }}
           normalized_embodied_carbon_ug=${{ steps.check_api.outputs.normalized_embodied_carbon_ug }}
