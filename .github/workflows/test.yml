@@ -234,7 +234,11 @@ jobs:
           repo=${{ github.repository }}
           job_id=${{ job.check_run_id }}
           workflow_id=$(curl -s -H "Authorization: Bearer ${{github.token}}" "${{ github.api_url }}/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" | jq -r .workflow_id)
+
+          echo "Curl call as string for debug:" "curl -s 'https://api.green-coding.io/v1/ci/measurements?repo=${repo}&branch=${branch}&workflow=${workflow_id}&start_date=1970-01-01&end_date=3000-01-01&job_id=${job_id}' "
           data=$(curl -s "https://api.green-coding.io/v1/ci/measurements?repo=${repo}&branch=${branch}&workflow=${workflow_id}&start_date=1970-01-01&end_date=3000-01-01&job_id=${job_id}")
+
+
 
           echo "Data from API is: ${data}"
 
@@ -279,7 +283,7 @@ jobs:
 
           normalized_energy_uj=$(echo "$energy_uj" "$time_us" "$power_watts_reference" "$power_watts_run" | awk '{printf "%.0f", $1 * (13940000 / $2) * ($3 / $4) }')
 
-          echo 'calculation params for normalized energy_uj' "energy_uJ=$energy_uj" "time_us=$time_us" "power_watts_reference=$power_watts_reference" "power_watts_run=$power_watts_run"
+          echo 'calculation params for normalized energy_uj' "energy_uJ=$energy_uj" "time_us=$time_us" "power_watts_reference=$power_watts_reference" "power_watts_run=$power_watts_run" "cpu_utilization_weighted_avg_short=$cpu_utilization_weighted_avg_short"
 
           echo "normalized_embodied_carbon_ug=$normalized_embodied_carbon_ug" >> $GITHUB_OUTPUT
           echo "normalized_energy_uj=$normalized_energy_uj" >> $GITHUB_OUTPUT
