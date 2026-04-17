@@ -259,6 +259,8 @@ jobs:
           # https://github.com/green-coding-solutions/eco-ci-energy-estimation/actions/runs/24563799715
           normalized_energy_uj=$(echo "$energy_uj" "$cpu_utilization_weighted_avg" "$time_us" | awk '{printf "%d", $1 * ($2 / 7.68) * ($3 / 13940000)}')
 
+          echo 'calculation params for normalized energy_uj' "energy_uJ=$energy_uj" "cpu_utilization_weighted_avg=$cpu_utilization_weighted_avg" "time_us=$time_us"
+
           echo "normalized_embodied_carbon_ug=$normalized_embodied_carbon_ug" >> $GITHUB_OUTPUT
           echo "normalized_energy_uj=$normalized_energy_uj" >> $GITHUB_OUTPUT
 
