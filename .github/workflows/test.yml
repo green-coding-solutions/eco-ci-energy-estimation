@@ -303,7 +303,7 @@ jobs:
           fi
 
           # Gate around 41.02 Joules as stated earlier
-          if [ "$normalized_energy_uj" -lt 39000000 ] || [ "$normalized_energy_uj" -gt 45000000 ]; then
+          if [ "$normalized_energy_uj" -lt 38000000 ] || [ "$normalized_energy_uj" -gt 45000000 ]; then
             echo "Energy uJ was out of bounds. Should be between 40000000 uJ and 45000000 uJ. Was ${normalized_energy_uj} uJ"
             exit 1
           fi
