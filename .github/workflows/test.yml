@@ -227,19 +227,93 @@ jobs:
 
       - name: Validate sent data to API
         shell: bash
+        id: check_api
         run: |
 
           branch=${{ github.ref_name }}
           repo=${{ github.repository }}
           job_id=${{ job.check_run_id }}
           workflow_id=$(curl -s -H "Authorization: Bearer ${{github.token}}" "${{ github.api_url }}/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" | jq -r .workflow_id)
+
+          echo "Curl call as string for debug:" "curl -s 'https://api.green-coding.io/v1/ci/measurements?repo=${repo}&branch=${branch}&workflow=${workflow_id}&start_date=1970-01-01&end_date=3000-01-01&job_id=${job_id}' "
           data=$(curl -s "https://api.green-coding.io/v1/ci/measurements?repo=${repo}&branch=${branch}&workflow=${workflow_id}&start_date=1970-01-01&end_date=3000-01-01&job_id=${job_id}")
+
+
 
           echo "Data from API is: ${data}"
 
-          if echo "$data" | jq '(.data | length >= 4) and (.data[0][3] == "No quotes allowed in labels")' | grep -q true ; then
+          if echo "$data" | jq -e '(.data | length >= 4) and (.data[0][3] == "No quotes allowed in labels")' >/dev/null ; then
             echo "Data could be retrieved via API"
           else
             echo 'API did not return expected result'
+            exit 1
+          fi
+
+          energy_uj=$(echo "$data" | jq -r '[.data[][0]] | add')
+          total_carbon_ug=$(echo "$data" | jq -r '[.data[][14]] | add')
+          carbon_grid_intensity_g=$(echo "$data" | jq -r '.data[0][13]')
+          operational_carbon_ug=$(echo "$energy_uj" "$carbon_grid_intensity_g" | awk '{printf "%.9f", ($1 / (3600 * 1000)) * $2}')
+          embodied_carbon_ug=$(echo "$total_carbon_ug" "$operational_carbon_ug" | awk '{printf "%.9f", $1 - $2}')
+
+          time_us=$(echo "$data" | jq -r '[.data[][6]] | add')
+          cpu_utilization_weighted_avg=$(echo "$data" | jq -r '(.data | map(.[8]*.[6]) | add) / (.data | map(.[6]) | add)')
+          cpu_utilization_weighted_avg_short=$(echo "$cpu_utilization_weighted_avg" | awk '{printf "%.2f", $1}' )
+
+          normalized_embodied_carbon_ug=$(echo "$embodied_carbon_ug" "$time_us" | awk '{printf "%.0f", ($1 / $2) *1000000000}')
+
+
+          # norm to 9.75% utilization and 12.49 s where we have a reference value of 41.02 Joules
+          # https://github.com/green-coding-solutions/eco-ci-energy-estimation/actions/runs/24566408801
+          cpu_util_ref="9.75"
+          time_ref_us="12490000"
+
+          # To do that we need to the power at the respective points
+          power_data_file_path="./machine-power-data/github_EPYC_7763_4_CPU_shared.sh"
+
+          if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} < 4 )); then
+              echo "Could not find bash version > 4 to make hashmap lookup ... please install newer bash"
+              exit 1
+          fi
+          source "${power_data_file_path}" # will set cloud_energy_hashmap
+          power_watts_reference=${cloud_energy_hashmap["${cpu_util_ref}"]}
+          power_watts_run=${cloud_energy_hashmap[$cpu_utilization_weighted_avg_short]}
+
+          if [[ -z "$power_watts_run" ]]; then
+            echo "Power value for utilization '${cpu_utilization_weighted_avg_short}' could not be found in cloud_energy_hashmap"
+            exit 1
+          fi
+
+          normalized_energy_uj=$(echo "$energy_uj" "$time_ref_us" "$time_us" "$power_watts_reference" "$power_watts_run" | awk '{printf "%.0f", $1 * ($2 / $3) * ($4 / $5) }')
+
+          echo 'calculation params for normalized energy_uj' "energy_uJ=$energy_uj" "time_us=$time_us" "power_watts_reference=$power_watts_reference" "power_watts_run=$power_watts_run" "cpu_utilization_weighted_avg_short=$cpu_utilization_weighted_avg_short"
+
+          echo "normalized_embodied_carbon_ug=$normalized_embodied_carbon_ug" >> $GITHUB_OUTPUT
+          echo "normalized_energy_uj=$normalized_energy_uj" >> $GITHUB_OUTPUT
+
+
+      - name: Check thresholds
+        if: ${{ contains(matrix.os, 'ubuntu') && !contains(matrix.os, 'arm') }}
+        run: |
+          normalized_energy_uj=${{ steps.check_api.outputs.normalized_energy_uj }}
+          normalized_embodied_carbon_ug=${{ steps.check_api.outputs.normalized_embodied_carbon_ug }}
+
+          if [ -z "$normalized_energy_uj" ]; then
+            echo "Energy value is not set"
+            exit 1
+          fi
+
+          # Gate around 41.02 Joules as stated earlier
+          if [ "$normalized_energy_uj" -lt 38000000 ] || [ "$normalized_energy_uj" -gt 45000000 ]; then
+            echo "Energy uJ was out of bounds. Should be between 40000000 uJ and 45000000 uJ. Was ${normalized_energy_uj} uJ"
+            exit 1
+          fi
+
+          if [ -z "$normalized_embodied_carbon_ug" ]; then
+            echo "Embodied Carbon value is not set"
+            exit 1
+          fi
+
+          if [ "$normalized_embodied_carbon_ug" -lt 285300. ] || [ "$normalized_embodied_carbon_ug" -gt 285400 ]; then
+            echo "Normalized embodied carbon was out of bounds. Should be between 285300 ug and 285400 ug. Was ${normalized_embodied_carbon_ug} ug"
             exit 1
           fi
