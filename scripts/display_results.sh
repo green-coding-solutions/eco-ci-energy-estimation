@@ -37,7 +37,7 @@ function display_results {
     for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ )); do
         total_energy=$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY $total_energy | awk '{printf "%.2f", $1 + $2}')
         total_time_s=$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME $total_time_s | awk '{printf "%.2f", $1 + $2}')
-        total_cpu_avg_weighted=$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG $total_time_s $total_cpu_avg_weighted | awk '{printf "%.2f", ($1 * $2) + $3}')
+        total_cpu_avg_weighted=$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG \$ECO_CI_MEASUREMENT_${i}_TIME $total_cpu_avg_weighted | awk '{printf "%.2f", ($1 * $2) + $3}')
     done
 
 
