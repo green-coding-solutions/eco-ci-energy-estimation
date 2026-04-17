@@ -227,6 +227,7 @@ jobs:
 
       - name: Validate sent data to API
         shell: bash
+        id: check_api
         run: |
 
           branch=${{ github.ref_name }}
@@ -241,5 +242,62 @@ jobs:
             echo "Data could be retrieved via API"
           else
             echo 'API did not return expected result'
+            exit 1
+          fi
+
+          energy_uj=$(echo "$data" | jq -r '[.data[][0]] | add')
+          total_carbon_ug=$(echo "$data" | jq -r '[.data[][14]] | add')
+          carbon_grid_intensity_g=$(echo "$data" | jq -r '.data[0][13]')
+          operational_carbon_ug=$(echo "$energy_uj" "$carbon_grid_intensity_g" | awk '{printf "%.9f", ($1 / (3600 * 1000)) * $2}')
+          embodied_carbon_ug=$(echo "$total_carbon_ug" "$operational_carbon_ug" | awk '{printf "%.9f", $1 - $2}')
+
+          time_us=$(echo "$data" | jq -r '[.data[][6]] | add')
+          cpu_utilization=$(echo "$data" | jq -r '[.data[][8]] | add' | awk '{printf "%.2f", $1}')
+
+          # norm energy_uj to the time of 1s and to the utilization of 12% from a reference value
+
+          power_data_file_path="./machine-power-data/github_EPYC_7763_4_CPU_shared.sh"
+
+          if [[ -n "$BASH_VERSION" ]] && (( ${BASH_VERSION:0:1} < 4 )); then
+              echo "Could not find bash version > 4 to make hashmap lookup ... please install newer bash"
+              exit 1
+          fi
+          source "${power_data_file_path}" # will set cloud_energy_hashmap
+          power_watts=${cloud_energy_hashmap[$cpu_utilization]}
+          if [[ -z "$power_watts" ]]; then
+            echo "Power value for utilization '${cpu_utilization}' could not be found in cloud_energy_hashmap"
+            exit 1
+          fi
+
+          normalized_embodied_carbon_ug=$(echo "$embodied_carbon_ug" "$time_us" | awk '{printf "%d", ($1 / $2) *1000000000}')
+          # norm to 4.95% utilization and 12.11 s where we have a reference value of 30.64 Joules
+          normalized_energy_uj=$(echo "$energy_uj" "$cpu_utilization" "$time_us" | awk '{printf "%d", $1 * ($2 / 4.95) * ($3 / 12110000)}')
+
+          echo "normalized_embodied_carbon_ug=$normalized_embodied_carbon_ug" >> $GITHUB_OUTPUT
+          echo "normalized_energy_uj=$normalized_energy_uj" >> $GITHUB_OUTPUT
+
+
+      - name: Check thresholds
+        run: |
+          normalized_energy_uj=${{ steps.check_api.outputs.normalized_energy_uj }}
+          normalized_embodied_carbon_ug=${{ steps.check_api.outputs.normalized_embodied_carbon_ug }}
+
+          if [ -z "$normalized_energy_uj" ]; then
+            echo "Energy value is not set"
+            exit 1
+          fi
+
+          if [ "$normalized_energy_uj" -lt 30620000000000 ] || [ "$normalized_energy_uj" -gt 48000000 ]; then
+            echo "Energy uJ was out of bounds. Should be between 30J and 48J. Please see validation query in source of test.yml"
+            exit 1
+          fi
+
+          if [ -z "$normalized_embodied_carbon_ug" ]; then
+            echo "Embodied Carbon value is not set"
+            exit 1
+          fi
+
+          if [ "$normalized_embodied_carbon_ug" -lt 285300. ] || [ "$normalized_embodied_carbon_ug" -gt 285400 ]; then
+            echo "Normalized embodied carbon was out of bounds. Should be between 0.0002853 g and 0.0002854. Was ${normalized_embodied_carbon_ug}"
             exit 1
           fi
