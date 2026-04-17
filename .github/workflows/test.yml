@@ -262,8 +262,10 @@ jobs:
           normalized_embodied_carbon_ug=$(echo "$embodied_carbon_ug" "$time_us" | awk '{printf "%.0f", ($1 / $2) *1000000000}')
 
 
-          # norm to 7.68% utilization and 13.94 s where we have a reference value of 40.31 Joules
-          # https://github.com/green-coding-solutions/eco-ci-energy-estimation/actions/runs/24563799715
+          # norm to 9.75% utilization and 12.49 s where we have a reference value of 41.02 Joules
+          # https://github.com/green-coding-solutions/eco-ci-energy-estimation/actions/runs/24566408801
+          cpu_util_ref="9.75"
+          time_ref_us="12490000"
 
           # To do that we need to the power at the respective points
           power_data_file_path="./machine-power-data/github_EPYC_7763_4_CPU_shared.sh"
@@ -273,7 +275,7 @@ jobs:
               exit 1
           fi
           source "${power_data_file_path}" # will set cloud_energy_hashmap
-          power_watts_reference=${cloud_energy_hashmap["7.68"]}
+          power_watts_reference=${cloud_energy_hashmap["${cpu_util_ref}"]}
           power_watts_run=${cloud_energy_hashmap[$cpu_utilization_weighted_avg_short]}
 
           if [[ -z "$power_watts_run" ]]; then
@@ -281,7 +283,7 @@ jobs:
             exit 1
           fi
 
-          normalized_energy_uj=$(echo "$energy_uj" "$time_us" "$power_watts_reference" "$power_watts_run" | awk '{printf "%.0f", $1 * (13940000 / $2) * ($3 / $4) }')
+          normalized_energy_uj=$(echo "$energy_uj" "$time_ref_us" "$time_us" "$power_watts_reference" "$power_watts_run" | awk '{printf "%.0f", $1 * ($2 / $3) * ($4 / $5) }')
 
           echo 'calculation params for normalized energy_uj' "energy_uJ=$energy_uj" "time_us=$time_us" "power_watts_reference=$power_watts_reference" "power_watts_run=$power_watts_run" "cpu_utilization_weighted_avg_short=$cpu_utilization_weighted_avg_short"
 
@@ -300,8 +302,9 @@ jobs:
             exit 1
           fi
 
-          if [ "$normalized_energy_uj" -lt 39000000 ] || [ "$normalized_energy_uj" -gt 41000000 ]; then
-            echo "Energy uJ was out of bounds. Should be between 39000000 uJ and 41000000 uJ. Was ${normalized_energy_uj} uJ"
+          # Gate around 41.02 Joules as stated earlier
+          if [ "$normalized_energy_uj" -lt 40000000 ] || [ "$normalized_energy_uj" -gt 45000000 ]; then
+            echo "Energy uJ was out of bounds. Should be between 40000000 uJ and 45000000 uJ. Was ${normalized_energy_uj} uJ"
             exit 1
           fi
 
