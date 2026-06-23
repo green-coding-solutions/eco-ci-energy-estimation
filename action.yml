@@ -41,6 +41,10 @@ inputs:
     description: 'Add a comment to the PR with the results during display-results step'
     default: false
     required: false
+  display-unit:
+    description: 'Unit for energy values in the table and PR comment output. Options: J (Joules), Wh (watt-hours), kWh (kilowatt-hours)'
+    default: 'J'
+    required: false
   json-output:
     description: 'Output measurement data also as JSON artifacts'
     default: false
@@ -150,7 +154,7 @@ runs:
       id: run-total-model
       shell: bash
       run: |
-        ${{github.action_path}}/scripts/display_results.sh display_results "${{inputs.display-table}}" "${{inputs.display-badge}}"
+        ${{github.action_path}}/scripts/display_results.sh display_results "${{inputs.display-table}}" "${{inputs.display-badge}}" "${{inputs.display-unit}}"
         cat "/tmp/eco-ci/output.txt" >> $GITHUB_STEP_SUMMARY
         total_data_file="/tmp/eco-ci/total-data.json"
         if [[ -e $total_data_file ]]; then
