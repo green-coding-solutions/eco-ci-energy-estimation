@@ -8,6 +8,13 @@ read_vars
 function display_results {
     local display_table="$1"
     local display_badge="$2"
+    local display_unit="${3:-J}"
+    local energy_unit_label energy_divisor energy_precision
+    case "${display_unit}" in
+        'Wh')  energy_unit_label='Wh';  energy_divisor=3600;    energy_precision=4 ;;
+        'kWh') energy_unit_label='kWh'; energy_divisor=3600000; energy_precision=7 ;;
+        *)     energy_unit_label='J';   energy_divisor=1;       energy_precision=2 ;;
+    esac
 
     # First get values, in case any are unbound
     # this will set them to an empty string if they are missing entirely
@@ -47,7 +54,7 @@ function display_results {
         if [[ "$ECO_CI_SOURCE" != 'gitlab' ]]; then
                 echo "Eco CI Output [RUN-ID: ${ECO_CI_RUN_ID}]: " >> $output_pr
                 echo '<table>' | tee -a $output $output_pr
-                echo '<tr><th>Label</th><th>🖥 avg. CPU utilization [%]</th><th>🔋 Total Energy [Joules]</th><th>🔌 avg. Power [Watts]</th><th>Duration [Seconds]</th></tr>' | tee -a $output $output_pr
+                echo "<tr><th>Label</th><th>🖥 avg. CPU utilization [%]</th><th>🔋 Total Energy [${energy_unit_label}]</th><th>🔌 avg. Power [Watts]</th><th>Duration [Seconds]</th></tr>" | tee -a $output $output_pr
                 echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
         fi
 
@@ -55,15 +62,17 @@ function display_results {
         # This is for better code structuring as otherwise we had to multiple time check for display_table and
         # construct the table with a lot of guard clauses
         for (( i=1; i<=$ECO_CI_MEASUREMENT_COUNT; i++ )); do
+            local raw_energy_i=$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)
+            local display_energy_i=$(echo "${raw_energy_i} ${energy_divisor}" | awk -v prec="${energy_precision}" '{printf "%.*f", prec, $1 / $2}')
             if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
                     # CI_JOB_NAME is a set variable by GitLab
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Energy Used [Joules]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)" | tee -a $output $gitlab_metrics_file
+                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Energy Used [${energy_unit_label}]:\" ${display_energy_i}" | tee -a $output $gitlab_metrics_file
                     echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)" | tee -a $output $gitlab_metrics_file
                     echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)" | tee -a $output $gitlab_metrics_file
                     echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)" | tee -a $output $gitlab_metrics_file
                     echo "----------------" >> $output
             else
-                echo "<tr><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_ENERGY)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)</td></tr>" | tee -a $output $output_pr
+                echo "<tr><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)</td><td>${display_energy_i}</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)</td></tr>" | tee -a $output $output_pr
             fi
         done
 
@@ -74,22 +83,25 @@ function display_results {
         local eco_ci_total_time_s_overhead=$(echo "${total_time_s_with_overhead} ${total_time_s}" | awk '{printf "%.2f", $1 - $2}')
         local eco_ci_total_power_overhead=$(echo "${eco_ci_total_energy_overhead} ${eco_ci_total_time_s_overhead}" | awk '{printf "%.2f", ($2 > 0 ? $1 / $2 : 0)}')
 
+        local display_total_energy=$(echo "${total_energy} ${energy_divisor}" | awk -v prec="${energy_precision}" '{printf "%.*f", prec, $1 / $2}')
+        local display_eco_ci_energy_overhead=$(echo "${eco_ci_total_energy_overhead} ${energy_divisor}" | awk -v prec="${energy_precision}" '{printf "%.*f", prec, $1 / $2}')
+
         if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
             # CI_JOB_NAME is a set variable by GitLab
-            echo "\"${CI_JOB_NAME}: Energy [Joules]:\" ${total_energy}" | tee -a $output $gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Energy [${energy_unit_label}]:\" ${display_total_energy}" | tee -a $output $gitlab_metrics_file
             echo "\"${CI_JOB_NAME}: Avg. CPU Utilization:\" $cpu_avg_weighted" | tee -a $output $gitlab_metrics_file
             echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" ${total_power_avg}" | tee -a $output $gitlab_metrics_file
             echo "\"${CI_JOB_NAME}: Duration [seconds]:\" ${total_time_s}" | tee -a $output $gitlab_metrics_file
             echo "----------------" >> $output
-            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Energy [Joules]:\" ${eco_ci_total_energy_overhead}" | tee -a $output $gitlab_metrics_file
+            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Energy [${energy_unit_label}]:\" ${display_eco_ci_energy_overhead}" | tee -a $output $gitlab_metrics_file
             echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Avg. Power [Watts]:\" ${eco_ci_total_power_overhead}" | tee -a $output $gitlab_metrics_file
             echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Duration [seconds]:\" ${eco_ci_total_time_s_overhead}" | tee -a $output $gitlab_metrics_file
 
         else
             echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
-            echo "<tr><td>Total Run</td><td>${cpu_avg_weighted}</td><td>${total_energy}</td><td>${total_power_avg}</td><td>${total_time_s}</td></tr>" | tee -a $output $output_pr
+            echo "<tr><td>Total Run</td><td>${cpu_avg_weighted}</td><td>${display_total_energy}</td><td>${total_power_avg}</td><td>${total_time_s}</td></tr>" | tee -a $output $output_pr
             echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
-            echo "<tr><td>Additional overhead from Eco CI</td><td>N/A</td><td>${eco_ci_total_energy_overhead}</td><td>${eco_ci_total_power_overhead}</td><td>${eco_ci_total_time_s_overhead}</td></tr>" | tee -a $output $output_pr
+            echo "<tr><td>Additional overhead from Eco CI</td><td>N/A</td><td>${display_eco_ci_energy_overhead}</td><td>${eco_ci_total_power_overhead}</td><td>${eco_ci_total_time_s_overhead}</td></tr>" | tee -a $output $output_pr
             echo '</table>' | tee -a $output $output_pr
             echo '' | tee -a $output $output_pr
         fi
@@ -142,7 +154,7 @@ function display_results {
 option="$1"
 case $option in
   display_results)
-    display_results "$2" "$3"
+    display_results "$2" "$3" "${4:-J}"
     ;;
 esac
 

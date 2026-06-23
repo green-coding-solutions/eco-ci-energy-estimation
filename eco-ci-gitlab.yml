@@ -2,6 +2,7 @@ variables:
   ECO_CI_SEND_DATA: "true"
   ECO_CI_DISPLAY_BADGE: "true"
   ECO_CI_DISPLAY_TABLE: "true"
+  ECO_CI_DISPLAY_UNIT: "J"
   ECO_CI_SHOW_CARBON: "true"
   ECO_CI_FILTER_TYPE: "machine.ci"
   ECO_CI_FILTER_PROJECT: "CI/CD"
@@ -41,7 +42,7 @@ variables:
         - |
             echo 'running eco-ci display script'
             FORMAT_CLR="\e[44m" && TXT_CLEAR="\e[0m"
-            /tmp/eco-ci-repo/scripts/display_results.sh display_results "${ECO_CI_DISPLAY_TABLE}" "${ECO_CI_DISPLAY_BADGE}"
+            /tmp/eco-ci-repo/scripts/display_results.sh display_results "${ECO_CI_DISPLAY_TABLE}" "${ECO_CI_DISPLAY_BADGE}" "${ECO_CI_DISPLAY_UNIT}"
             echo -e "$FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$TXT_CLEAR"
             cp /tmp/eco-ci/output.txt "${CI_PROJECT_DIR}/eco-ci-output.txt"
             cp /tmp/eco-ci/metrics.txt "${CI_PROJECT_DIR}/metrics.txt"
