@@ -52,7 +52,7 @@ jobs:
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
           co2-calculation-method: "location-based"
-          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITY_MAPS_ALT_TOKEN_INFO_AT_GCS }}
 
       - name: Initialize Energy Estimation (macos-14)
         if: ${{ contains(matrix.os, 'macos-14') }}
@@ -64,7 +64,7 @@ jobs:
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
           co2-calculation-method: "location-based"
-          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITY_MAPS_ALT_TOKEN_INFO_AT_GCS }}
           machine-power-data: "macos-14-mac-mini-m1.sh"
 
       - name: working step

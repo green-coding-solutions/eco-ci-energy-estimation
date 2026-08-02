@@ -47,7 +47,7 @@ jobs:
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
           co2-calculation-method: "location-based"
-          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITYMAPS_TOKEN }}
+          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITY_MAPS_ALT_TOKEN_INFO_AT_GCS }}
 
 
       - name: working step
