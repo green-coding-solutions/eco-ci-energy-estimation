@@ -77,6 +77,17 @@ function make_measurement() {
     ECO_CI_STEP_NOTE=''
     GITHUB_STEP_SUMMARY=${GITHUB_STEP_SUMMARY:-}
 
+    if [[ -z $ECO_CI_MEASUREMENT_COUNT ]]; then
+        ECO_CI_MEASUREMENT_COUNT=1
+        add_var 'ECO_CI_MEASUREMENT_COUNT' $ECO_CI_MEASUREMENT_COUNT
+    else
+        ECO_CI_MEASUREMENT_COUNT=$((ECO_CI_MEASUREMENT_COUNT+1))
+        add_var 'ECO_CI_MEASUREMENT_COUNT' $ECO_CI_MEASUREMENT_COUNT
+    fi
+
+    if [[ -z $label ]]; then
+        label="Measurement #${ECO_CI_MEASUREMENT_COUNT}"
+    fi
 
     # capture time - Note that we need 64 bit here!
     local step_time_us=$(($(date "+%s%6N") - $(cat /tmp/eco-ci/timer-step.txt)))
@@ -91,7 +102,12 @@ function make_measurement() {
     # calculate step times now. not earlier. to make all calculations after all capturing
     read step_time_s step_time_s_int step_time_difference <<<  $(echo "$step_time_us 1000000 $current_step_captured_duration" | awk '{printf "%.2f %d %.9f", $1 / $2, int($1 / $2), ($1 / $2) - $3}')
 
-    if [[ $captured_datapoints -gt 0 ]]; then
+    if [[ $captured_datapoints -eq 0 ]]; then
+        echo "Note - No datapoints have been captured. Filling step empty energy and utilization"
+        local cpu_avg="0"
+        local step_energy="0"
+        local power_avg="0"
+    else
         if [[ $captured_datapoints -lt $(($step_time_s_int - 1)) ]]; then # one datapoint might be missing due to the fact that we need to wait for one tick
             ECO_CI_STEP_NOTE="Missing data points. Expected ${step_time_s_int} (-1) but got ${captured_datapoints} - Data will be backfilled"
             echo "Warning - " $ECO_CI_STEP_NOTE  >&2
@@ -106,110 +122,11 @@ function make_measurement() {
 
         make_inference # will populate /tmp/eco-ci/energy-step.txt
 
-        if [[ -z $ECO_CI_MEASUREMENT_COUNT ]]; then
-            ECO_CI_MEASUREMENT_COUNT=1
-            add_var 'ECO_CI_MEASUREMENT_COUNT' $ECO_CI_MEASUREMENT_COUNT
-        else
-            ECO_CI_MEASUREMENT_COUNT=$((ECO_CI_MEASUREMENT_COUNT+1))
-            add_var 'ECO_CI_MEASUREMENT_COUNT' $ECO_CI_MEASUREMENT_COUNT
-        fi
-
-        if [[ -z $label ]]; then
-            label="Measurement #${ECO_CI_MEASUREMENT_COUNT}"
-        fi
-
-
         local cpu_avg=$(awk '{ weighted_total += ($1 * $2); total_time += $1 } END { print weighted_total/total_time }' /tmp/eco-ci/cpu-util-temp.txt)
         local step_energy=$(awk '{sum+=$1} END {print sum}' /tmp/eco-ci/energy-step.txt)
         local power_avg=$(echo "$step_energy $step_time_s" | awk '{printf "%.2f", ($2 > 0 ? $1 / $2 : 0) }')
 
-        add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_LABEL" "$label"
-        add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"
-        add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_ENERGY" "$step_energy"
-        add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_POWER_AVG" "$power_avg"
-        add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_TIME" "$step_time_s"
-
         echo $step_energy >> /tmp/eco-ci/energy-values.txt
-
-        if [[ "$ECO_CI_SEND_DATA" == 'true' ]]; then
-            echo "Sending data to ${ECO_CI_API_ENDPOINT_ADD}"
-
-            source "$(dirname "$0")/misc.sh"
-            get_energy_co2 "$step_energy"
-            get_embodied_co2 "$step_time_s"
-            read_vars # reload set vars
-
-            # CO2 API might have failed or not set, so we only calculate total if it worked
-            ECO_CI_CO2EQ_EMBODIED=${ECO_CI_CO2EQ_EMBODIED:-}  # Default to an empty string if unset
-            ECO_CI_CO2EQ_ENERGY=${ECO_CI_CO2EQ_ENERGY:-}      # Default to an empty string if unset
-
-            if [ -n "$ECO_CI_CO2EQ_EMBODIED" ] && [ -n "$ECO_CI_CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
-                local carbon_ug=$(echo "${ECO_CI_CO2EQ_EMBODIED} ${ECO_CI_CO2EQ_ENERGY} 1000000" | awk '{printf "%d", ($1 + $2) * $3 }')
-            else
-                local carbon_ug='null'
-            fi
-
-            local energy_uj=$(echo "${step_energy} 1000000" | awk '{printf "%d", $1 * $2}' | cut -d '.' -f 1)
-
-            local tags_as_json_list=''
-            if [[ "$ECO_CI_FILTER_TAGS" != '' ]]; then # prevent sending [""] array if empty
-              tags_as_json_list=$(echo  $ECO_CI_FILTER_TAGS | jq -Rr @json | sed 's/,/\",\"/g' )
-            fi
-
-
-            # Important: The data is NOT escaped! Since we control all variables locally we must make sure that no crap values are in there
-            # like unescaped " for instance
-            local curl_response=$(curl -w "%{http_code}" -X POST "${ECO_CI_API_ENDPOINT_ADD}" \
-                -H 'Content-Type: application/json' \
-                -H "X-Authentication: ${ECO_CI_GMT_API_TOKEN}" \
-                -d "{
-                \"energy_uj\":\"${energy_uj}\",
-                \"cpu\": $(echo $ECO_CI_MODEL_NAME | jq -Rr @json),
-                \"commit_hash\":\"${ECO_CI_COMMIT_HASH}\",
-                \"repo\":\"${ECO_CI_REPOSITORY}\",
-                \"branch\":\"${ECO_CI_BRANCH}\",
-                \"workflow\":\"${ECO_CI_WORKFLOW_ID}\",
-                \"run_id\":\"${ECO_CI_RUN_ID}\",
-                \"label\": $(echo $label | jq -Rr @json),
-                \"source\":\"${ECO_CI_SOURCE}\",
-                \"cpu_util_avg\":\"${cpu_avg}\",
-                \"duration_us\":\"${step_time_us}\",
-                \"workflow_name\": $(echo $ECO_CI_WORKFLOW_NAME | jq -Rr @json),
-                \"filter_type\": $(echo $ECO_CI_FILTER_TYPE | jq -Rr @json),
-                \"filter_project\": $(echo $ECO_CI_FILTER_PROJECT | jq -Rr @json) ,
-                \"filter_machine\": $(echo $ECO_CI_FILTER_MACHINE | jq -Rr @json),
-                \"filter_tags\":[${tags_as_json_list}],
-                \"lat\":\"${ECO_CI_GEO_LAT:-""}\",
-                \"lon\":\"${ECO_CI_GEO_LON:-""}\",
-                \"city\":\"${ECO_CI_GEO_CITY:-""}\",
-                \"ip\":\"${ECO_CI_GEO_IP:-""}\",
-                \"carbon_intensity_g\":${ECO_CI_CO2I:-"null"},
-                \"carbon_ug\":${carbon_ug},
-                \"os_name\":\"${ECO_CI_OS_NAME:-"a"}\",
-                \"cpu_arch\":\"${ECO_CI_CPU_ARCH:-"b"}\",
-                \"job_id\":\"${ECO_CI_JOB_ID:-"c"}\",
-                \"version\":\"${ECO_CI_VERSION:-"c"}\",
-                \"note\":  $(echo $ECO_CI_STEP_NOTE | jq -Rr @json)
-            }" 2>&1 || true)
-
-            local http_code=$(echo "$curl_response" | tail -n 1)
-
-            if [[ "$http_code" != "202" ]]; then
-                echo "Error! - Could not send data to GMT API: $curl_response" >&2
-                [ -n "$GITHUB_STEP_SUMMARY" ] && echo "❌ Error! - Could not send data to GMT API: $curl_response" >> $GITHUB_STEP_SUMMARY
-            fi
-
-        fi
-
-        if [[ ${ECO_CI_JSON_OUTPUT} == 'true' ]]; then
-            local lap_data_file='/tmp/eco-ci/lap-data.json'
-            echo 'Create JSON lap-data.json file'
-            source "$(dirname "$0")/json.sh"
-            if [[ ! -f "${lap_data_file}" ]]; then
-                create_json_file "${lap_data_file}"
-            fi
-            add_to_json_file "${lap_data_file}" "${label}" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time_s}"
-        fi
 
         # merge all current data to the totals file. This means we will include the overhead since we do it AFTER this processing block
         # this block may well take longer than one second, as we also have API requests in there and thus cpu-uti-step might have accumulated
@@ -233,13 +150,102 @@ function make_measurement() {
         echo "${overhead_step_time_difference} ${extrapolated_energy_total}" | awk '{printf "%.9f\n", $1 * $2}' >> /tmp/eco-ci/energy-total.txt
         echo 'Backfilling ' $overhead_step_time_difference 's in energy-total with ' $extrapolated_energy_total
 
-        # Reset the step timers, so we do not capture the overhead per step
-        # we want to only caputure the overhead in the totals
-        source "$(dirname "$0")/setup.sh" lap_measurement
-
-    else
-        echo "Skipping measurement as no data was collected since last call"
     fi
+
+    add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_LABEL" "$label"
+    add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_CPU_AVG" "$cpu_avg"
+    add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_ENERGY" "$step_energy"
+    add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_POWER_AVG" "$power_avg"
+    add_var "ECO_CI_MEASUREMENT_${ECO_CI_MEASUREMENT_COUNT}_TIME" "$step_time_s"
+
+    if [[ "$ECO_CI_SEND_DATA" == 'true' ]]; then
+        echo "Sending data to ${ECO_CI_API_ENDPOINT_ADD}"
+
+        source "$(dirname "$0")/misc.sh"
+        get_energy_co2 "$step_energy"
+        get_embodied_co2 "$step_time_s"
+        read_vars # reload set vars
+
+        # CO2 API might have failed or not set, so we only calculate total if it worked
+        ECO_CI_CO2EQ_EMBODIED=${ECO_CI_CO2EQ_EMBODIED:-}  # Default to an empty string if unset
+        ECO_CI_CO2EQ_ENERGY=${ECO_CI_CO2EQ_ENERGY:-}      # Default to an empty string if unset
+
+        if [ -n "$ECO_CI_CO2EQ_EMBODIED" ] && [ -n "$ECO_CI_CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
+            local carbon_ug=$(echo "${ECO_CI_CO2EQ_EMBODIED} ${ECO_CI_CO2EQ_ENERGY} 1000000" | awk '{printf "%d", ($1 + $2) * $3 }')
+        else
+            local carbon_ug='null'
+        fi
+
+        local energy_uj=$(echo "${step_energy} 1000000" | awk '{printf "%d", $1 * $2}' | cut -d '.' -f 1)
+
+        local tags_as_json_list=''
+        if [[ "$ECO_CI_FILTER_TAGS" != '' ]]; then # prevent sending [""] array if empty
+          tags_as_json_list=$(echo  $ECO_CI_FILTER_TAGS | jq -Rr @json | sed 's/,/\",\"/g' )
+        fi
+
+
+        # Important: The data is NOT escaped! Since we control all variables locally we must make sure that no crap values are in there
+        # like unescaped " for instance
+        local curl_response=$(curl -w "%{http_code}" -X POST "${ECO_CI_API_ENDPOINT_ADD}" \
+            -H 'Content-Type: application/json' \
+            -H "X-Authentication: ${ECO_CI_GMT_API_TOKEN}" \
+            -d "{
+            \"energy_uj\":\"${energy_uj}\",
+            \"cpu\": $(echo $ECO_CI_MODEL_NAME | jq -Rr @json),
+            \"commit_hash\":\"${ECO_CI_COMMIT_HASH}\",
+            \"repo\":\"${ECO_CI_REPOSITORY}\",
+            \"branch\":\"${ECO_CI_BRANCH}\",
+            \"workflow\":\"${ECO_CI_WORKFLOW_ID}\",
+            \"run_id\":\"${ECO_CI_RUN_ID}\",
+            \"label\": $(echo $label | jq -Rr @json),
+            \"source\":\"${ECO_CI_SOURCE}\",
+            \"cpu_util_avg\":\"${cpu_avg}\",
+            \"duration_us\":\"${step_time_us}\",
+            \"workflow_name\": $(echo $ECO_CI_WORKFLOW_NAME | jq -Rr @json),
+            \"filter_type\": $(echo $ECO_CI_FILTER_TYPE | jq -Rr @json),
+            \"filter_project\": $(echo $ECO_CI_FILTER_PROJECT | jq -Rr @json) ,
+            \"filter_machine\": $(echo $ECO_CI_FILTER_MACHINE | jq -Rr @json),
+            \"filter_tags\":[${tags_as_json_list}],
+            \"lat\":\"${ECO_CI_GEO_LAT:-""}\",
+            \"lon\":\"${ECO_CI_GEO_LON:-""}\",
+            \"city\":\"${ECO_CI_GEO_CITY:-""}\",
+            \"ip\":\"${ECO_CI_GEO_IP:-""}\",
+            \"carbon_intensity_g\":${ECO_CI_CO2I:-"null"},
+            \"carbon_ug\":${carbon_ug},
+            \"os_name\":\"${ECO_CI_OS_NAME:-"a"}\",
+            \"cpu_arch\":\"${ECO_CI_CPU_ARCH:-"b"}\",
+            \"job_id\":\"${ECO_CI_JOB_ID:-"c"}\",
+            \"version\":\"${ECO_CI_VERSION:-"c"}\",
+            \"note\":  $(echo $ECO_CI_STEP_NOTE | jq -Rr @json)
+        }" 2>&1 || true)
+
+        local http_code=$(echo "$curl_response" | tail -n 1)
+
+        if [[ "$http_code" != "202" ]]; then
+            echo "Error! - Could not send data to GMT API: $curl_response" >&2
+            [ -n "$GITHUB_STEP_SUMMARY" ] && echo "❌ Error! - Could not send data to GMT API: $curl_response" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    fi
+
+    if [[ ${ECO_CI_JSON_OUTPUT} == 'true' ]]; then
+        local lap_data_file='/tmp/eco-ci/lap-data.json'
+        echo 'Create JSON lap-data.json file'
+        source "$(dirname "$0")/json.sh"
+        if [[ ! -f "${lap_data_file}" ]]; then
+            create_json_file "${lap_data_file}"
+        fi
+        add_to_json_file "${lap_data_file}" "${label}" "${cpu_avg}" "${step_energy}" "${power_avg}" "${step_time_s}"
+    fi
+
+
+    # Reset the step timers, so we do not capture the overhead per step
+    # we want to only caputure the overhead in the totals
+
+    source "$(dirname "$0")/setup.sh" lap_measurement
+
+
+
  }
 
 
