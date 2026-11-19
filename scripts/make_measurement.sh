@@ -163,17 +163,17 @@ function make_measurement() {
                 -H 'Content-Type: application/json' \
                 -H "X-Authentication: ${ECO_CI_GMT_API_TOKEN}" \
                 -d "{
-                \"energy_uj\":\"${energy_uj}\",
+                \"energy_uj\":${energy_uj},
                 \"cpu\": $(echo $ECO_CI_MODEL_NAME | jq -Rr @json),
                 \"commit_hash\":\"${ECO_CI_COMMIT_HASH}\",
                 \"repo\":\"${ECO_CI_REPOSITORY}\",
                 \"branch\":\"${ECO_CI_BRANCH}\",
-                \"workflow\":\"${ECO_CI_WORKFLOW_ID}\",
+                \"workflow_id\":\"${ECO_CI_WORKFLOW_ID}\",
                 \"run_id\":\"${ECO_CI_RUN_ID}\",
                 \"label\": $(echo $label | jq -Rr @json),
                 \"source\":\"${ECO_CI_SOURCE}\",
-                \"cpu_util_avg\":\"${cpu_avg}\",
-                \"duration_us\":\"${step_time_us}\",
+                \"cpu_util_avg\":${cpu_avg},
+                \"duration_us\":${step_time_us},
                 \"workflow_name\": $(echo $ECO_CI_WORKFLOW_NAME | jq -Rr @json),
                 \"filter_type\": $(echo $ECO_CI_FILTER_TYPE | jq -Rr @json),
                 \"filter_project\": $(echo $ECO_CI_FILTER_PROJECT | jq -Rr @json) ,
