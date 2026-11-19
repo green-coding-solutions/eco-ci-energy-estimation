@@ -250,10 +250,8 @@ jobs:
           fi
 
           energy_uj=$(echo "$data" | jq -r '[.data[][0]] | add')
-          total_carbon_ug=$(echo "$data" | jq -r '[.data[][14]] | add')
-          carbon_grid_intensity_g=$(echo "$data" | jq -r '.data[0][13]')
-          operational_carbon_ug=$(echo "$energy_uj" "$carbon_grid_intensity_g" | awk '{printf "%.9f", ($1 / (3600 * 1000)) * $2}')
-          embodied_carbon_ug=$(echo "$total_carbon_ug" "$operational_carbon_ug" | awk '{printf "%.9f", $1 - $2}')
+          # idx 14 is operational_carbon_ug, idx 15 is embodied_carbon_ug. They are sent separately since /v4/ci/measurement/add
+          embodied_carbon_ug=$(echo "$data" | jq -r '[.data[][15]] | add')
 
           time_us=$(echo "$data" | jq -r '[.data[][6]] | add')
           cpu_utilization_weighted_avg=$(echo "$data" | jq -r '(.data | map(.[8]*.[6]) | add) / (.data | map(.[6]) | add)')
