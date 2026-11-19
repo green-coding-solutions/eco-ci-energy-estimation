@@ -28,7 +28,7 @@ ECO_CI_JOB_ID="local-testing"
 
 
 # Change this to a local installation of the GMT if you have
-ECO_CI_API_ENDPOINT_ADD='http://api.green-coding.internal:9142/v3/ci/measurement/add'
+ECO_CI_API_ENDPOINT_ADD='http://api.green-coding.internal:9142/v4/ci/measurement/add'
 ECO_CI_API_BADGE_GET='http://api.green-coding.internal:9142/v1/ci/badge/get'
 ECO_CI_DASHBOARD_URL='http://metrics.green-coding.internal:9142'
 ECO_CI_GMT_API_TOKEN=''
