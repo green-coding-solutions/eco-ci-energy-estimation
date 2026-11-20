@@ -21,7 +21,7 @@ ECO_CI_JOB_ID=${BUILD_ID:-}
 ECO_CI_JSON_OUTPUT='true'
 
 # Change this to a local installation of the GMT if you have
-ECO_CI_API_ENDPOINT_ADD='https://api.green-coding.io/v3/ci/measurement/add'
+ECO_CI_API_ENDPOINT_ADD='https://api.green-coding.io/v4/ci/measurement/add'
 ECO_CI_API_BADGE_GET='https://api.green-coding.io/v1/ci/badge/get'
 ECO_CI_DASHBOARD_URL='https://metrics.green-coding.io'
 ECO_CI_GMT_API_TOKEN=''

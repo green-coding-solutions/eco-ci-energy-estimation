@@ -143,10 +143,16 @@ function make_measurement() {
             ECO_CI_CO2EQ_EMBODIED=${ECO_CI_CO2EQ_EMBODIED:-}  # Default to an empty string if unset
             ECO_CI_CO2EQ_ENERGY=${ECO_CI_CO2EQ_ENERGY:-}      # Default to an empty string if unset
 
-            if [ -n "$ECO_CI_CO2EQ_EMBODIED" ] && [ -n "$ECO_CI_CO2EQ_ENERGY" ]; then # We only check for co2 as if this is set the others should be set too
-                local carbon_ug=$(echo "${ECO_CI_CO2EQ_EMBODIED} ${ECO_CI_CO2EQ_ENERGY} 1000000" | awk '{printf "%d", ($1 + $2) * $3 }')
-            else
-                local carbon_ug='null'
+            # Operational and embodied carbon are sent separately, as they can be available independently
+            # (embodied needs only machine data, operational needs a carbon intensity)
+            local operational_carbon_ug='null'
+            local embodied_carbon_ug='null'
+
+            if [ -n "$ECO_CI_CO2EQ_ENERGY" ]; then
+                operational_carbon_ug=$(echo "${ECO_CI_CO2EQ_ENERGY} 1000000" | awk '{printf "%d", $1 * $2 }')
+            fi
+            if [ -n "$ECO_CI_CO2EQ_EMBODIED" ]; then
+                embodied_carbon_ug=$(echo "${ECO_CI_CO2EQ_EMBODIED} 1000000" | awk '{printf "%d", $1 * $2 }')
             fi
 
             local energy_uj=$(echo "${step_energy} 1000000" | awk '{printf "%d", $1 * $2}' | cut -d '.' -f 1)
@@ -184,7 +190,8 @@ function make_measurement() {
                 \"city\":\"${ECO_CI_GEO_CITY:-""}\",
                 \"ip\":\"${ECO_CI_GEO_IP:-""}\",
                 \"carbon_intensity_g\":${ECO_CI_CO2I:-"null"},
-                \"carbon_ug\":${carbon_ug},
+                \"operational_carbon_ug\":${operational_carbon_ug},
+                \"embodied_carbon_ug\":${embodied_carbon_ug},
                 \"os_name\":\"${ECO_CI_OS_NAME:-"a"}\",
                 \"cpu_arch\":\"${ECO_CI_CPU_ARCH:-"b"}\",
                 \"job_id\":\"${ECO_CI_JOB_ID:-"c"}\",
