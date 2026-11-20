@@ -313,7 +313,7 @@ jobs:
             exit 1
           fi
 
-          if [ "$normalized_embodied_carbon_ug" -lt 285300. ] || [ "$normalized_embodied_carbon_ug" -gt 285400 ]; then
+          if [ "$normalized_embodied_carbon_ug" -lt 285300 ] || [ "$normalized_embodied_carbon_ug" -gt 285400 ]; then
             echo "Normalized embodied carbon was out of bounds. Should be between 285300 ug and 285400 ug. Was ${normalized_embodied_carbon_ug} ug"
             exit 1
           fi
