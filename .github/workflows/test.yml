@@ -251,6 +251,11 @@ jobs:
 
           energy_uj=$(echo "$data" | jq -r '[.data[][0]] | add')
           # idx 14 is operational_carbon_ug, idx 15 is embodied_carbon_ug. They are sent separately since /v4/ci/measurement/add
+          # jq's add silently skips nulls (and returns null if all are null, which awk turns into 0), so reject them first
+          if ! echo "$data" | jq -e '[.data[][15]] | all(. != null)' >/dev/null; then
+            echo 'API returned measurements without embodied_carbon_ug (idx 15)'
+            exit 1
+          fi
           embodied_carbon_ug=$(echo "$data" | jq -r '[.data[][15]] | add')
 
           time_us=$(echo "$data" | jq -r '[.data[][6]] | add')
