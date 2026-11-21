@@ -235,8 +235,8 @@ jobs:
           job_id=${{ job.check_run_id }}
           workflow_id=$(curl -s -H "Authorization: Bearer ${{github.token}}" "${{ github.api_url }}/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" | jq -r .workflow_id)
 
-          echo "Curl call as string for debug:" "curl -s 'https://api.green-coding.io/v1/ci/measurements?repo=${repo}&branch=${branch}&workflow=${workflow_id}&start_date=1970-01-01&end_date=3000-01-01&job_id=${job_id}' "
-          data=$(curl -s "https://api.green-coding.io/v1/ci/measurements?repo=${repo}&branch=${branch}&workflow=${workflow_id}&start_date=1970-01-01&end_date=3000-01-01&job_id=${job_id}")
+          echo "Curl call as string for debug:" "curl -s 'https://api.green-coding.io/v2/ci/measurements?repo=${repo}&branch=${branch}&workflow=${workflow_id}&start_date=1970-01-01&end_date=3000-01-01&job_id=${job_id}' "
+          data=$(curl -s "https://api.green-coding.io/v2/ci/measurements?repo=${repo}&branch=${branch}&workflow=${workflow_id}&start_date=1970-01-01&end_date=3000-01-01&job_id=${job_id}")
 
 
 
@@ -250,13 +250,27 @@ jobs:
           fi
 
           energy_uj=$(echo "$data" | jq -r '[.data[][0]] | add')
-          # idx 14 is operational_carbon_ug, idx 15 is embodied_carbon_ug. They are sent separately since /v4/ci/measurement/add
+          # /v2 columns: 14 = operational_carbon_ug, 15 = embodied_carbon_ug, 16 = note, 17 = total carbon (NULL if a part is missing)
+          # Operational and embodied carbon are sent separately since /v4/ci/measurement/add
           # jq's add silently skips nulls (and returns null if all are null, which awk turns into 0), so reject them first
-          if ! echo "$data" | jq -e '[.data[][15]] | all(. != null)' >/dev/null; then
-            echo 'API returned measurements without embodied_carbon_ug (idx 15)'
+          if ! echo "$data" | jq -e 'all(.data[]; .[15] != null and .[17] != null)' >/dev/null ; then
+            echo 'API returned measurements without embodied_carbon_ug (idx 15) or total carbon (idx 17)'
             exit 1
           fi
           embodied_carbon_ug=$(echo "$data" | jq -r '[.data[][15]] | add')
+
+          # Cross-check the embodied carbon returned by the API against a self calculated value (total - energy * grid intensity).
+          # The client truncates operational and embodied carbon to integer ug each, so allow 1 ug deviation per row
+          total_carbon_ug=$(echo "$data" | jq -r '[.data[][17]] | add')
+          carbon_grid_intensity_g=$(echo "$data" | jq -r '.data[0][13]')
+          operational_carbon_ug=$(echo "$energy_uj" "$carbon_grid_intensity_g" | awk '{printf "%.9f", ($1 / (3600 * 1000)) * $2}')
+          self_embodied_carbon_ug=$(echo "$total_carbon_ug" "$operational_carbon_ug" | awk '{printf "%.9f", $1 - $2}')
+          row_count=$(echo "$data" | jq -r '.data | length')
+          if ! echo "$embodied_carbon_ug" "$self_embodied_carbon_ug" "$row_count" | awk '{d = $1 - $2; if (d < 0) d = -d; exit !(d <= $3)}'; then
+            echo "Embodied carbon from API (${embodied_carbon_ug} ug) does not match self calculated embodied carbon (${self_embodied_carbon_ug} ug). Allowed deviation: ${row_count} ug"
+            exit 1
+          fi
+          echo "Embodied carbon from API (${embodied_carbon_ug} ug) matches self calculated embodied carbon (${self_embodied_carbon_ug} ug)"
 
           time_us=$(echo "$data" | jq -r '[.data[][6]] | add')
           cpu_utilization_weighted_avg=$(echo "$data" | jq -r '(.data | map(.[8]*.[6]) | add) / (.data | map(.[6]) | add)')
