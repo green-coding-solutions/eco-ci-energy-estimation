@@ -46,8 +46,8 @@ jobs:
           machine: eco-ci-runner-M4
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
-          co2-calculation-method: "location-based"
-          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITY_MAPS_ALT_TOKEN_INFO_AT_GCS }}
+          co2-calculation-method: "constant"
+          co2-grid-intensity-constant: 472
 
 
       - name: working step

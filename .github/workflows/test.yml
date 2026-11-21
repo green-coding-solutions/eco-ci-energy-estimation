@@ -51,8 +51,8 @@ jobs:
           machine: ${{ matrix.os }}
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
-          co2-calculation-method: "location-based"
-          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITY_MAPS_ALT_TOKEN_INFO_AT_GCS }}
+          co2-calculation-method: "constant"
+          co2-grid-intensity-constant: 472
 
       - name: Initialize Energy Estimation (macos-14)
         if: ${{ contains(matrix.os, 'macos-14') }}
@@ -63,8 +63,8 @@ jobs:
           machine: ${{ matrix.os }}
           tags: "CI/CD,Test PR & Periodic-Workflow"
           gmt-api-token: ${{ secrets.GMT_API_TOKEN }}
-          co2-calculation-method: "location-based"
-          co2-grid-intensity-api-token: ${{ secrets.ELECTRICITY_MAPS_ALT_TOKEN_INFO_AT_GCS }}
+          co2-calculation-method: "constant"
+          co2-grid-intensity-constant: 472
           machine-power-data: "macos-14-mac-mini-m1.sh"
 
       - name: working step
@@ -250,22 +250,25 @@ jobs:
           fi
 
           energy_uj=$(echo "$data" | jq -r '[.data[][0]] | add')
-          # /v2 columns: 14 = operational_carbon_ug, 15 = embodied_carbon_ug, 16 = note, 17 = total carbon (NULL if a part is missing)
-          # Operational and embodied carbon are sent separately since /v4/ci/measurement/add
+          # /v2 columns: 6 = duration_us, 14 = operational_carbon_ug, 15 = embodied_carbon_ug, 16 = note, 17 = total carbon (NULL if a part is missing)
+          # Operational and embodied carbon are sent separately since /v4/ci/measurement/add. Operational carbon (and thus total)
+          # can be NULL if no grid intensity could be determined, so only embodied carbon is required here
           # jq's add silently skips nulls (and returns null if all are null, which awk turns into 0), so reject them first
-          if ! echo "$data" | jq -e 'all(.data[]; .[15] != null and .[17] != null)' >/dev/null ; then
-            echo 'API returned measurements without embodied_carbon_ug (idx 15) or total carbon (idx 17)'
+          if ! echo "$data" | jq -e 'all(.data[]; .[15] != null)' >/dev/null ; then
+            echo 'API returned measurements without embodied_carbon_ug (idx 15)'
             exit 1
           fi
           embodied_carbon_ug=$(echo "$data" | jq -r '[.data[][15]] | add')
 
-          # Cross-check the embodied carbon returned by the API against a self calculated value (total - energy * grid intensity).
-          # The client truncates operational and embodied carbon to integer ug each, so allow 1 ug deviation per row
-          total_carbon_ug=$(echo "$data" | jq -r '[.data[][17]] | add')
-          carbon_grid_intensity_g=$(echo "$data" | jq -r '.data[0][13]')
-          operational_carbon_ug=$(echo "$energy_uj" "$carbon_grid_intensity_g" | awk '{printf "%.9f", ($1 / (3600 * 1000)) * $2}')
-          self_embodied_carbon_ug=$(echo "$total_carbon_ug" "$operational_carbon_ug" | awk '{printf "%.9f", $1 - $2}')
+          # Cross-check the embodied carbon returned by the API against a self calculated value from the duration.
+          # Mirrors scripts/make_measurement.sh + misc.sh::get_embodied_co2: duration is rounded to 2 decimals in seconds,
+          # embodied = SCI_M * duration_s / SCI_USAGE_DURATION and then truncated to integer ug.
+          # Constants are the ones for github_EPYC_7763_4_CPU_shared.sh in scripts/vars.sh::cpu_vars
+          sci_m="35990.625"
+          sci_usage_duration="126144000"
+          self_embodied_carbon_ug=$(echo "$data" | jq -r '.data[][6]' | awk -v m="$sci_m" -v u="$sci_usage_duration" '{t = sprintf("%.2f", $1 / 1000000); sum += int(sprintf("%.9f", m * t / u) * 1000000)} END {printf "%d", sum}')
           row_count=$(echo "$data" | jq -r '.data | length')
+          # Exact match expected. Allow 1 ug per row for floating point differences between awk implementations
           if ! echo "$embodied_carbon_ug" "$self_embodied_carbon_ug" "$row_count" | awk '{d = $1 - $2; if (d < 0) d = -d; exit !(d <= $3)}'; then
             echo "Embodied carbon from API (${embodied_carbon_ug} ug) does not match self calculated embodied carbon (${self_embodied_carbon_ug} ug). Allowed deviation: ${row_count} ug"
             exit 1
