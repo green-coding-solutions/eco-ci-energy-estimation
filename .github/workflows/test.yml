@@ -275,6 +275,30 @@ jobs:
           fi
           echo "Embodied carbon from API (${embodied_carbon_ug} ug) matches self calculated embodied carbon (${self_embodied_carbon_ug} ug)"
 
+          # Test runs with co2-calculation-method "constant", so operational carbon and total carbon must be present
+          grid_intensity_constant="472" # must match co2-grid-intensity-constant of the start-measurement steps
+          if ! echo "$data" | jq -e --argjson ci "$grid_intensity_constant" 'all(.data[]; .[13] == $ci and .[14] != null and .[17] != null)' >/dev/null ; then
+            echo "API returned measurements with carbon_intensity_g (idx 13) != ${grid_intensity_constant} or without operational_carbon_ug (idx 14) or total carbon (idx 17)"
+            exit 1
+          fi
+          operational_carbon_ug=$(echo "$data" | jq -r '[.data[][14]] | add')
+
+          # Cross-check the operational carbon returned by the API against a self calculated value from the energy.
+          # Mirrors misc.sh::get_energy_co2: kWh = J / 3600000 (9 decimals), g = kWh * intensity (9 decimals), then truncated to integer ug.
+          self_operational_carbon_ug=$(echo "$data" | jq -r '.data[][0]' | awk -v ci="$grid_intensity_constant" '{kwh = sprintf("%.9f", ($1 / 1000000) / 3600000); sum += int(sprintf("%.9f", kwh * ci) * 1000000)} END {printf "%d", sum}')
+          # energy_uj is itself truncated from the Joule value the client used, so allow 1 ug per row
+          if ! echo "$operational_carbon_ug" "$self_operational_carbon_ug" "$row_count" | awk '{d = $1 - $2; if (d < 0) d = -d; exit !(d <= $3)}'; then
+            echo "Operational carbon from API (${operational_carbon_ug} ug) does not match self calculated operational carbon (${self_operational_carbon_ug} ug). Allowed deviation: ${row_count} ug"
+            exit 1
+          fi
+          echo "Operational carbon from API (${operational_carbon_ug} ug) matches self calculated operational carbon (${self_operational_carbon_ug} ug)"
+
+          total_carbon_ug=$(echo "$data" | jq -r '[.data[][17]] | add')
+          if [ "$total_carbon_ug" -ne $((operational_carbon_ug + embodied_carbon_ug)) ]; then
+            echo "Total carbon from API (${total_carbon_ug} ug) is not operational + embodied carbon ($((operational_carbon_ug + embodied_carbon_ug)) ug)"
+            exit 1
+          fi
+
           time_us=$(echo "$data" | jq -r '[.data[][6]] | add')
           cpu_utilization_weighted_avg=$(echo "$data" | jq -r '(.data | map(.[8]*.[6]) | add) / (.data | map(.[6]) | add)')
           cpu_utilization_weighted_avg_short=$(echo "$cpu_utilization_weighted_avg" | awk '{printf "%.2f", $1}' )
