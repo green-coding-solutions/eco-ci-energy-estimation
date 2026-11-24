@@ -1,5 +1,9 @@
 # Eco CI
 
+Part of the Green Software Landscape
+
+[![CI Pipeline](https://raw.githubusercontent.com/bundesverband-green-software/landscape/refs/heads/main/badges/ci-pipeline.svg)](https://landscape.bundesverband-green-software.de)
+
 Eco CI is a project aimed at estimating energy consumption in continuous integration (CI) environments. It provides functionality to calculate the energy consumption of CI jobs based on the power consumption characteristics of the underlying hardware.
 
 
