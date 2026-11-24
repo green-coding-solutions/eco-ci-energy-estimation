@@ -342,7 +342,7 @@ variables:
 
 
 #### Artifacts for GitLab
-For each job you can export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of GitLab's [Metric Report](https://docs.gitlab.com/ee/ci/testing/metrics_reports.html) artifact (which we output to the default metrics.txt):
+For each job you can export the artifacts. We currently export the pipeline data as a regular artifact, as well as make use of GitLab's [Metric Report](https://docs.gitlab.com/ci/testing/metrics_reports/) artifact (which we output to the default metrics.txt) and GitLab's [Annotations Report](https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsannotations) artifact:
 
 ```
 artifacts:
@@ -350,9 +350,14 @@ artifacts:
       - eco-ci-output.txt
     reports:
       metrics: metrics.txt
+      annotations: eco-ci-annotations.json
 ```
 
-By default, metrics.txt is copied into [`$CI_PROJECT_DIR`](https://docs.gitlab.com/ci/variables/predefined_variables/#predefined-variables). If necessary, the target location of all artifacts can be adjusted in [`eco-ci-gitlab.yml`](https://github.com/green-coding-solutions/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml) using appropriate copy commands.
+The metrics report shows the energy values in the merge request widget and compares them with the target branch. GitLab only processes it on the Premium and Ultimate tiers. On the Free tier it is ignored without an error.
+
+The annotations report adds a link to the Eco CI dashboard on the job page. It is available on all tiers. The file `eco-ci-annotations.json` is only created when `ECO_CI_SEND_DATA` is `true`, as the dashboard has no data otherwise. If it is missing, GitLab only shows a warning in the job log.
+
+By default, metrics.txt and eco-ci-annotations.json are copied into [`$CI_PROJECT_DIR`](https://docs.gitlab.com/ci/variables/predefined_variables/#predefined-variables). If necessary, the target location of all artifacts can be adjusted in [`eco-ci-gitlab.yml`](https://github.com/green-coding-solutions/eco-ci-energy-estimation/blob/main/eco-ci-gitlab.yml) using appropriate copy commands.
 
 #### Gitlab sample file
 

@@ -34,4 +34,5 @@ test-job:   # This job runs in the test stage.
       - eco-ci-output.txt
       - eco-ci-total-data.json # only if you have JSON output active
     reports:
-      metrics: metrics.txt
+      metrics: metrics.txt # only processed on GitLab Premium and Ultimate
+      annotations: eco-ci-annotations.json # only if ECO_CI_SEND_DATA is true
