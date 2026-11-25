@@ -1,0 +1,62 @@
+name: 'Eco CI Energy Estimation'
+description: 'DEPRECATED: This version of Eco CI is no longer supported. Please upgrade to the latest major version.'
+author: 'Green Coding Solutions'
+branding:
+  icon: 'battery-charging'
+  color: 'green'
+
+# All inputs that any deprecated version (< v4.5) accepted are declared here,
+# so that existing workflows do not produce "Unexpected input" warnings.
+# None of them have any effect anymore.
+inputs:
+  task: {description: 'Deprecated - no effect', required: false, default: ''}
+  label: {description: 'Deprecated - no effect', required: false, default: ''}
+  branch: {description: 'Deprecated - no effect', required: false, default: ''}
+  machine-power-data: {description: 'Deprecated - no effect', required: false, default: ''}
+  send-data: {description: 'Deprecated - no effect', required: false, default: ''}
+  show-carbon: {description: 'Deprecated - no effect', required: false, default: ''}
+  display-table: {description: 'Deprecated - no effect', required: false, default: ''}
+  display-graph: {description: 'Deprecated - no effect', required: false, default: ''}
+  display-badge: {description: 'Deprecated - no effect', required: false, default: ''}
+  pr-comment: {description: 'Deprecated - no effect', required: false, default: ''}
+  json-output: {description: 'Deprecated - no effect', required: false, default: ''}
+  api-base: {description: 'Deprecated - no effect', required: false, default: ''}
+  gh-api-base: {description: 'Deprecated - no effect', required: false, default: ''}
+  company-uuid: {description: 'Deprecated - no effect', required: false, default: ''}
+  project-uuid: {description: 'Deprecated - no effect', required: false, default: ''}
+  machine-uuid: {description: 'Deprecated - no effect', required: false, default: ''}
+  type: {description: 'Deprecated - no effect', required: false, default: ''}
+  project: {description: 'Deprecated - no effect', required: false, default: ''}
+  machine: {description: 'Deprecated - no effect', required: false, default: ''}
+  tags: {description: 'Deprecated - no effect', required: false, default: ''}
+  gmt-api-token: {description: 'Deprecated - no effect', required: false, default: ''}
+  api-endpoint-add: {description: 'Deprecated - no effect', required: false, default: ''}
+  api-endpoint-badge-get: {description: 'Deprecated - no effect', required: false, default: ''}
+  dashboard-url: {description: 'Deprecated - no effect', required: false, default: ''}
+  electricitymaps-api-token: {description: 'Deprecated - no effect', required: false, default: ''}
+
+outputs:
+  data-total-json:
+    description: 'Deprecated - always empty'
+    value: ''
+  data-lap-json:
+    description: 'Deprecated - always empty'
+    value: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Eco CI deprecation notice
+      shell: bash
+      env:
+        ECO_CI_TASK: ${{ inputs.task }}
+      run: |
+        msg="This version of Eco CI (green-coding-solutions/eco-ci-energy-estimation) is deprecated and no longer measures anything. Please upgrade to the latest major version. See https://github.com/green-coding-solutions/eco-ci-energy-estimation"
+        echo "::warning title=Eco CI is deprecated::${msg}"
+        if [[ "${ECO_CI_TASK}" == "display-results" && -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+          {
+            echo "## ⚠️ Eco CI: deprecated version"
+            echo
+            echo "${msg}"
+          } >> "$GITHUB_STEP_SUMMARY"
+        fi
