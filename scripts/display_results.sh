@@ -5,6 +5,19 @@ set -euo pipefail
 source "$(dirname "$0")/vars.sh"
 read_vars
 
+# Writes one metric line to the job output and to the GitLab metrics report.
+# GitLab parses metrics.txt with `line.gsub(/#.*$/, '').shellsplit`. A '#' cuts the line and leaves an
+# unmatched quote, which makes GitLab reject the whole report. '"' and '\' also break the quoted name.
+# So these characters are removed from the name in metrics.txt only.
+function write_gitlab_metric {
+    local output_file="$1"
+    local metrics_file="$2"
+    local name="$3"
+    local value="$4"
+    echo "\"${name}:\" ${value}" | tee -a "${output_file}"
+    echo "\"$(echo "${name}" | tr -d '#"\\'):\" ${value}" >> "${metrics_file}"
+}
+
 function display_results {
     local display_table="$1"
     local display_badge="$2"
@@ -66,10 +79,11 @@ function display_results {
             local display_energy_i=$(echo "${raw_energy_i} ${energy_divisor}" | awk -v prec="${energy_precision}" '{printf "%.*f", prec, $1 / $2}')
             if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
                     # CI_JOB_NAME is a set variable by GitLab
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Energy Used [${energy_unit_label}]:\" ${display_energy_i}" | tee -a $output $gitlab_metrics_file
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. CPU Utilization:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)" | tee -a $output $gitlab_metrics_file
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Avg. Power [Watts]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)" | tee -a $output $gitlab_metrics_file
-                    echo "\"${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL): Duration [seconds]:\" $(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)" | tee -a $output $gitlab_metrics_file
+                    local metric_prefix="${CI_JOB_NAME}: Label: $(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)"
+                    write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${metric_prefix}: Energy Used [${energy_unit_label}]" "${display_energy_i}"
+                    write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${metric_prefix}: Avg. CPU Utilization" "$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)"
+                    write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${metric_prefix}: Avg. Power [Watts]" "$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)"
+                    write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${metric_prefix}: Duration [seconds]" "$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)"
                     echo "----------------" >> $output
             else
                 echo "<tr><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_LABEL)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_CPU_AVG)</td><td>${display_energy_i}</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_POWER_AVG)</td><td>$(eval echo \$ECO_CI_MEASUREMENT_${i}_TIME)</td></tr>" | tee -a $output $output_pr
@@ -88,14 +102,14 @@ function display_results {
 
         if [[ "$ECO_CI_SOURCE" == 'gitlab' ]]; then
             # CI_JOB_NAME is a set variable by GitLab
-            echo "\"${CI_JOB_NAME}: Energy [${energy_unit_label}]:\" ${display_total_energy}" | tee -a $output $gitlab_metrics_file
-            echo "\"${CI_JOB_NAME}: Avg. CPU Utilization:\" $cpu_avg_weighted" | tee -a $output $gitlab_metrics_file
-            echo "\"${CI_JOB_NAME}: Avg. Power [Watts]:\" ${total_power_avg}" | tee -a $output $gitlab_metrics_file
-            echo "\"${CI_JOB_NAME}: Duration [seconds]:\" ${total_time_s}" | tee -a $output $gitlab_metrics_file
+            write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${CI_JOB_NAME}: Energy [${energy_unit_label}]" "${display_total_energy}"
+            write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${CI_JOB_NAME}: Avg. CPU Utilization" "${cpu_avg_weighted}"
+            write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${CI_JOB_NAME}: Avg. Power [Watts]" "${total_power_avg}"
+            write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${CI_JOB_NAME}: Duration [seconds]" "${total_time_s}"
             echo "----------------" >> $output
-            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Energy [${energy_unit_label}]:\" ${display_eco_ci_energy_overhead}" | tee -a $output $gitlab_metrics_file
-            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Avg. Power [Watts]:\" ${eco_ci_total_power_overhead}" | tee -a $output $gitlab_metrics_file
-            echo "\"${CI_JOB_NAME}: Overhead from Eco CI - Duration [seconds]:\" ${eco_ci_total_time_s_overhead}" | tee -a $output $gitlab_metrics_file
+            write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${CI_JOB_NAME}: Overhead from Eco CI - Energy [${energy_unit_label}]" "${display_eco_ci_energy_overhead}"
+            write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${CI_JOB_NAME}: Overhead from Eco CI - Avg. Power [Watts]" "${eco_ci_total_power_overhead}"
+            write_gitlab_metric "${output}" "${gitlab_metrics_file}" "${CI_JOB_NAME}: Overhead from Eco CI - Duration [seconds]" "${eco_ci_total_time_s_overhead}"
 
         else
             echo '<tr><td colspan="5" style="text-align:center"></td></tr>' | tee -a $output $output_pr
