@@ -124,6 +124,13 @@ function display_results {
     local repo_enc=$( echo "${ECO_CI_REPOSITORY}" | jq -Rr @uri)
     local branch_enc=$( echo "${ECO_CI_BRANCH}" | jq -Rr @uri)
 
+    if [[ "$ECO_CI_SOURCE" == 'gitlab' && "${ECO_CI_SEND_DATA}" == 'true' ]]; then
+        # GitLab annotations report (artifacts:reports:annotations). Shows a link to the dashboard on the job page.
+        # The dashboard only has data if it was sent, so the file is only written then.
+        jq -n --arg url "${ECO_CI_DASHBOARD_URL}/ci.html?repo=${repo_enc}&branch=${branch_enc}&workflow=${ECO_CI_WORKFLOW_ID}" \
+            '{eco_ci: [{external_link: {label: "Eco CI Energy and CO2 Dashboard", url: $url}}]}' > "${tmp_dir}/annotations.json"
+    fi
+
     source "$(dirname "$0")/misc.sh"
     get_energy_co2 "$total_energy"
     get_embodied_co2 "$total_time_s"

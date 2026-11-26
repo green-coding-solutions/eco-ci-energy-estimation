@@ -46,3 +46,6 @@ variables:
             echo -e "$FORMAT_CLR$(cat /tmp/eco-ci/output.txt)$TXT_CLEAR"
             cp /tmp/eco-ci/output.txt "${CI_PROJECT_DIR}/eco-ci-output.txt"
             cp /tmp/eco-ci/metrics.txt "${CI_PROJECT_DIR}/metrics.txt"
+            if [[ -f /tmp/eco-ci/annotations.json ]]; then
+                cp /tmp/eco-ci/annotations.json "${CI_PROJECT_DIR}/eco-ci-annotations.json"
+            fi
