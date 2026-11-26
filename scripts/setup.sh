@@ -54,7 +54,7 @@ function start_measurement {
     add_var 'ECO_CI_DASHBOARD_URL' "${21}"
     add_var 'ECO_CI_JOB_ID' "${22}"
 
-    add_var 'ECO_CI_VERSION' 'v5.3.0'
+    add_var 'ECO_CI_VERSION' 'v6.0.0'
 
     read_vars # reload set vars
 
