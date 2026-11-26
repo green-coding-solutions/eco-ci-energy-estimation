@@ -1,0 +1,90 @@
+name: Test Deprecation of old versions
+
+# All tags before v4.5 point to a deprecation commit that only prints a warning.
+# This workflow checks that:
+#   - deprecated tags still resolve and run without failing the job (and expose the `deprecated` output)
+#   - v4.5 (the first supported version) is NOT the deprecation stub
+#
+# It tests published tags, not the code of the current branch, so it does not run on pull requests.
+# `uses:` cannot contain expressions, so each tag needs its own step.
+
+on:
+  schedule:
+    - cron: '44 4 * * 6'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deprecated-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: v1 (oldest major tag, v1 inputs)
+        id: v1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v1
+        with:
+          task: start-measurement
+          display-graph: false
+
+      - name: v2
+        id: v2
+        uses: green-coding-solutions/eco-ci-energy-estimation@v2
+        with:
+          task: get-measurement
+          label: 'deprecation test'
+
+      - name: v3 (v3 inputs)
+        id: v3
+        uses: green-coding-solutions/eco-ci-energy-estimation@v3
+        with:
+          task: get-measurement
+          label: 'deprecation test'
+          company-uuid: ''
+          show-carbon: true
+
+      - name: v4.4.1 (last deprecated version)
+        id: v4_4_1
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.4.1
+        with:
+          task: display-results
+          send-data: false
+          json-output: true
+
+      - name: Check all deprecated tags returned the deprecation stub
+        env:
+          V1: ${{ steps.v1.outputs.deprecated }}
+          V2: ${{ steps.v2.outputs.deprecated }}
+          V3: ${{ steps.v3.outputs.deprecated }}
+          V4_4_1: ${{ steps.v4_4_1.outputs.deprecated }}
+        run: |
+          failed=0
+          for name in V1 V2 V3 V4_4_1; do
+            if [[ "${!name}" != "true" ]]; then
+              echo "::error::${name} is not pointing to the deprecation commit (deprecated='${!name}')"
+              failed=1
+            else
+              echo "${name}: deprecated"
+            fi
+          done
+          exit $failed
+
+  supported-v4-5:
+    runs-on: ubuntu-latest
+    steps:
+      - name: v4.5 start measurement
+        id: v4_5
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.5
+        with:
+          task: start-measurement
+          send-data: false
+
+      - name: Check v4.5 is not deprecated
+        env:
+          DEPRECATED: ${{ steps.v4_5.outputs.deprecated }}
+        run: |
+          if [[ "${DEPRECATED}" == "true" ]]; then
+            echo "::error::v4.5 points to the deprecation commit, but it should still be a working version"
+            exit 1
+          fi
+          echo "v4.5: not deprecated"
