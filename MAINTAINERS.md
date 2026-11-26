@@ -27,3 +27,28 @@ bash update-tag.sh v5.2.1
 bash update-tag.sh v5.2
 bash update-tag.sh v5
 ```
+
+### Deprecate old tags
+
+This step is necessary if you do not want to support some versions anymore.
+Typically when the GMT API has been deprecated or some strong calculation error was found.
+
+```bash
+git fetch origin --tags --force
+
+# 0. Backup of the current tag -> SHA mapping (for rollback)
+TAGS="v5.0 v5.1" # list all!
+for t in $TAGS; do echo "$t $(git rev-parse "$t^{commit}")"; done > ~/eco-ci-tag-backup.txt
+
+# 1. Move to deprecation branch
+git switch deprecated
+DEPRECATED_SHA=$(git rev-parse HEAD)
+
+# 2. Move all old tags locally
+for t in $TAGS; do git tag -f "$t" "$DEPRECATED_SHA"; done
+
+# 3. Check, then force-push all tags in a single push
+git tag --points-at "$DEPRECATED_SHA" | wc -l    # expect 34
+git push --force origin $(for t in $TAGS; do printf 'refs/tags/%s ' "$t"; done)
+
+git switch main
