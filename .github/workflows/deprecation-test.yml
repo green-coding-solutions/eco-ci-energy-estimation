@@ -2,8 +2,9 @@ name: Test Deprecation of old versions
 
 # All tags before v4.5 point to a deprecation commit that only prints a warning.
 # This workflow checks that:
-#   - deprecated tags still resolve and run without failing the job (and expose the `deprecated` output)
-#   - v4.5 (the first supported version) is NOT the deprecation stub
+#   - deprecated tags still resolve and run without failing the job
+#   - they point to the head of the `deprecated` branch (the deprecation commit)
+#   - v4.5 (the first supported version) does NOT point to the deprecation commit
 #
 # It tests published tags, not the code of the current branch, so it does not run on pull requests.
 # `uses:` cannot contain expressions, so each tag needs its own step.
@@ -51,20 +52,23 @@ jobs:
           send-data: false
           json-output: true
 
-      - name: Check all deprecated tags returned the deprecation stub
-        env:
-          V1: ${{ steps.v1.outputs.deprecated }}
-          V2: ${{ steps.v2.outputs.deprecated }}
-          V3: ${{ steps.v3.outputs.deprecated }}
-          V4_4_1: ${{ steps.v4_4_1.outputs.deprecated }}
+      - name: Check deprecated tags point to the deprecation commit
         run: |
+          remote="https://github.com/${GITHUB_REPOSITORY}"
+          deprecated_sha=$(git ls-remote "$remote" refs/heads/deprecated | cut -f1)
+          if [[ -z "$deprecated_sha" ]]; then
+            echo "::error::Branch 'deprecated' not found on ${remote}"
+            exit 1
+          fi
+          echo "Deprecation commit: ${deprecated_sha}"
           failed=0
-          for name in V1 V2 V3 V4_4_1; do
-            if [[ "${!name}" != "true" ]]; then
-              echo "::error::${name} is not pointing to the deprecation commit (deprecated='${!name}')"
+          for tag in v1 v2 v3 v4.4.1; do
+            sha=$(git ls-remote "$remote" "refs/tags/${tag}" | cut -f1)
+            if [[ "$sha" != "$deprecated_sha" ]]; then
+              echo "::error::${tag} points to '${sha}', not to the deprecation commit"
               failed=1
             else
-              echo "${name}: deprecated"
+              echo "${tag}: deprecated"
             fi
           done
           exit $failed
@@ -80,11 +84,12 @@ jobs:
           send-data: false
 
       - name: Check v4.5 is not deprecated
-        env:
-          DEPRECATED: ${{ steps.v4_5.outputs.deprecated }}
         run: |
-          if [[ "${DEPRECATED}" == "true" ]]; then
-            echo "::error::v4.5 points to the deprecation commit, but it should still be a working version"
+          remote="https://github.com/${GITHUB_REPOSITORY}"
+          deprecated_sha=$(git ls-remote "$remote" refs/heads/deprecated | cut -f1)
+          sha=$(git ls-remote "$remote" refs/tags/v4.5 | cut -f1)
+          if [[ -z "$sha" || "$sha" == "$deprecated_sha" ]]; then
+            echo "::error::v4.5 points to '${sha}', but it should still be a working version"
             exit 1
           fi
-          echo "v4.5: not deprecated"
+          echo "v4.5: not deprecated (${sha})"
